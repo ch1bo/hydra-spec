@@ -1,0 +1,52 @@
+\section{Off-Chain Protocol}
+
+We sate the coordinated off-chain protocol in Figure~\ref{fig:head_coordinated}.
+Note the following deviations of the original protocol in~\cite{hydrahead20}.
+
+\begin{itemize}
+\item No hanging transactions due to `coordination'.
+\item No acknowledgement nor confirmation of transactions.
+\item No confirmation of snapshots (two-round confirmation by local acknowledgement).
+\end{itemize}
+
+Variables:
+
+\begin{center}
+\begin{tabular}{|l|l|}\hline
+  $\hats$  & Sequence number of latest (possibly unconfirmed) snapshot. \\ \hline
+  $\bars$  & Sequence number of latest confirmed snapshot. \\ \hline
+  $\hatmU$ & Latest (possibly unconfirmed) snapshot object. \\ \hline
+  $\barmU$ & Latest confirmed snapshot object. \\ \hline
+  $\hatmL$ & Local ledger extension by next leader. Only the next leader
+  makes use of this variable.\\ \hline
+  $\mT$    & Set of all received transactions (independent of their validity).\\  \hline
+  $\hatmT$ & Transactions that extend the next leader's $\barmU$ (or $\hatmU$) to form $\hatmL$.\\
+           & Only the next leader makes use of this variable.\\  \hline
+  $\barmT$ & Set of all confirmed transactions up to the latest confirmed snapshot.\\  \hline
+\end{tabular}
+\end{center}
+
+In particular, note, that the original variables $\hatmT$ and $\barmT$ are not required anymore because they
+were used in context of hanging transactions. We thus reused them to fit the new context.
+
+\input{fig_offchain_prot}
+
+Comments: 
+\begin{itemize}
+\item Fix: from client or from network: same function called twice should trigger at most one wait.
+  For instance, $\hpRS$ called twice must not queue the 'wait' part for multiple execution.
+\item Fix: $\hpNS$ called twice must not trigger local $\hpRS$ twice.
+\item Fix: Concurrency resolution (reqSn stack) for snapshots (see state diagram in \cite{hydraspec22}).
+\item Add: garbage collection ($\hatmT,\barmT$,etc.)
+\item Extensive code explanation (per line of code)
+\end{itemize}
+
+The following figure visualizes the possible event flows from the view of a single party.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth*2/3]{fig/reqackstates.png}
+                  \caption{State diagram of reqSn/ackSn cycles.}
+                  \label{fig:sim:baselines}
+\end{figure}
+
+

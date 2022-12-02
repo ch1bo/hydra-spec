@@ -1,0 +1,237 @@
+\begin{figure*}[t!]
+
+  \def\sfact{0.8}
+  \centering
+  \begin{algobox}{Coordinated Hydra Head}
+    \medskip
+    \begin{tabular}{c}
+      \begin{tabular}{cc}
+        \adjustbox{valign=t,scale=\sfact}{
+         \begin{walgo}{0.65}
+          %%% INIT
+          \On{$(\hpInit,i,\hpPuv,\hpPr,\Uinit)$ %
+            from client}{ %
+            % let $i$ be position of $\hpPr$'s public key in $\hpPuv$
+            % \; %
+            $\msVKL \gets \hpPuv$ \; %
+            $\msCVK \gets \msCombVK(\msVKL)$ \; %
+            $\msSK \gets \hpPr$ \; %c
+
+            $\hats,\bars \gets 0$ \; %
+            $\hatmU, \barmU \gets \Sno (0,\Uinit, \emptyset)$ \; %
+            % $\hatmL,\barmL \gets \Uinit$ \; %
+            $\hatmL \gets \Uinit$ \; %
+            % $\hatmT,\barmT \gets \emptyset$ \; %
+            $\mT, \hatmT,  \barmT \gets \emptyset$ \; % all, seenforsnap, confirmedforsnap
+          }
+
+          
+          \vspace{12pt} %
+          
+          %%% NEW TX
+          \On{$(\hpNew,\tx)$ %
+            from client}{ %
+            \Req $\validTx(\tx)$ and %
+            $\barmU \applytx \tx \neq \bot$ \; %
+
+            % $\hash \gets \hashF(\tx)$ \; %
+
+            % $\hySignedT[\hash] \gets \hyTxo(i,\tx)$ \; %
+            
+            \Multi $(\hpRT,\tx)$ \; %
+          }           
+
+        \end{walgo}
+        }
+        &
+
+        \adjustbox{valign=t,scale=\sfact}{
+        \begin{walgo}{0.6}
+          %%% NEW SN  
+          \On{$(\hpNS)$ %
+            from client}{ // assumed to be called only once%%
+              
+            \Req $\hpLdr(\bars + 1) = i$ %
+            and $\hats = \bars$ \;
+             
+            % $\hySignedU \gets %
+            % \hySto(\hyConfSN + 1,\hyConfL,\hyConfT)$ \; %
+
+            %$\hatmT \gets 
+            
+            $T \gets \big( \hpMT(\hatmT) \big) \hpProjH$ \; %
+
+            \Multi $(\hpRS,\bars+1,T)$ \; %
+          }
+
+          \vspace{12pt} %
+
+          %%% CLOSE
+          \On{$(\hpClose)$ from client}{ %
+            \Return $(\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
+          }
+          
+          \vspace{12pt} %
+          
+          %%% CONTEST
+          \On{$(\hpCont,\eta)$ from client}{ %
+            \Req $s_\eta > \bars$ %
+             
+            $(U_\eta,s_\eta) \gets \eta$ \; %
+
+
+            \Return $(U_\eta,s_\eta)$ \; %
+          }
+
+          \vspace{12pt}
+
+          % \On{$(\hpFinalize,\eta)$ from client}{ %
+          %   $(\hash,s,T) \gets \eta$ \; %            
+          % }    
+          
+
+        \end{walgo}
+          }
+        % &
+        
+        % \adjustbox{valign=t,scale=\sfact}{
+        % \begin{walgo}{0.3}
+        %   \If{bla}{
+        %     bla \; %
+        %   }      
+        % \end{walgo}} %
+
+      \end{tabular}
+      
+      \vspace{-10pt}
+      \\
+      % \ifdefined\IsLLNCS %
+        \multicolumn{1}{l}{\line(1,0){490}} %
+      % \else %
+      %   \multicolumn{1}{l}{\line(1,0){465}} %
+      % \fi %
+      \\
+
+      \begin{tabular}{c@{}c}
+        \adjustbox{valign=t,scale=\sfact}{
+        \begin{walgo}{0.65}
+          %%% REQ TX
+          \On{$(\hpRT,\tx)$ %
+            from $\party_j$}{ %
+            \Req $\validTx(\tx)$ %
+            
+            $\mT[\hash] \gets \Txo(j,\tx)$ \; %
+
+            \If{$(\hats\in\{\bars,\bars+1\}) \wedge (\hpLdr(\hats+1) = i) \wedge (\hatmL\applytx\tx\not=\bot)$}{
+              $\hatmL \gets \hatmL\applytx\tx$ %
+
+              $\hatmT[\hash] \gets \mT[\hash]$ \; %
+            }
+            
+          }
+
+          \vspace{12pt} %
+
+          %%% REQ SN
+          \On{$(\hpRS,s,T)$ %
+            from $\party_j$}{ %
+
+            \Req $s = \hats + 1$ %
+            and $\hpLdr(s) = j$ \; %
+
+            \Wait{$\bars = \hats$ %
+              and $\barmU\applytx\Reach^{\mT}(T) \not= \bot$ % meaning reach is 'complete' for extension
+            }{ %
+               $\hats \gets \bars + 1$ \; %
+
+               $\forall\tx\in\Reach^{\mT}(T)$:
+                \Out $(\hpSeen,\tx)$ \; %
+              
+               $\hatmU \gets
+               \Sno(\hats,\barmU\applytx\Reach^{\mT}(T))$ \; %
+
+               $\msSig_i \gets %
+               \msSign(\hyPr,\hatmU.h \| \hats)$ \; %
+ 
+               \Send $(\hpAS,\hats,\msSig_i)$ %
+               to $\party_j$ \; %
+
+               \If{$\hpLdr(\hats+1) = i$}{
+                 $\hatmT :\subseteq_{\mbox{max}} \mT$ s.t. $\hatmU\applytx\hatmT\not=\bot$ \; %
+                 $\hatmL \gets \hatmU\applytx\hatmT$
+               }
+            }
+           }
+          
+        \end{walgo}
+        }
+        &
+
+        \adjustbox{valign=t,scale=\sfact}{
+        \begin{walgo}{0.6}
+          %%% ACK SN
+          \On{$(\hpAS,s,\msSig_j)$ %
+            from $\party_j$}{ %
+
+            \Req $s \in \{\hats,\hats+1\}$ \; % 2-round ack/confirmation
+            % and $\hySignedU.\hySN = \hySN$ \; %
+
+            \Wait{$\hats=s$
+            }{ %
+            
+            \Req $\hatmU.\hpSigs[j] = \eps$ \; %
+
+            $\hatmU.\hpSigs[j] \gets \msSig_j$ \; %
+
+            \If{$\forall k: \hatmU.\hpSigs[k] \neq \eps$}{ %
+              $\msCSig %
+              \gets \msComb(\hatmU.\hash \| s, %
+              \msVKL, \hatmU.\hpSigs)$ \; %
+              
+              \If{$\msVfy(\msCVK, \hatmU.\hash \| \hats,\msCSig)$}{ %
+              $\bars \gets s$ \; %
+              $\hatmU.\msCSig \gets \msCSig$ \; %
+              $\barmU \gets \hatmU$ \; %
+              $T \gets \Reach^{\mT}(\barmU.T)$ \; %
+              $\barmT \gets \barmT \cup T$ \; %
+
+              $\forall \tx\in T$: \Out $(\hpConf,\tx)$ \; %
+  
+            }\Else{
+             \fail
+            }%
+            }
+           }
+          }  
+        \end{walgo}
+
+          }
+          
+        % &
+        
+        % \adjustbox{valign=t,scale=\sfact}{
+        % \begin{walgo}{0.3}
+        %   \If{bla}{
+        %     bla \; %
+        %   }      
+        % \end{walgo}} %
+
+      \end{tabular}
+
+
+    \end{tabular}
+    \bigskip
+  \end{algobox}
+  
+  \caption{Head-protocol machine for the \emph{coordinated head} from the perspective of party
+    $\party_i$.}
+  \label{fig:head_coordinated}
+
+\end{figure*}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

@@ -1,0 +1,18 @@
+\section{Introduction}
+This document gives an analysis of the Hydra 'Coordinated' Head (off-chain) protocol to be implemented as
+the primary version of Hydra Head on Cardano. The 'coordinated' head protocol contains a
+simplified version of the off-chain protocol (head-protocol machine) to make implementation
+easier.
+
+Currently, the analysis is still \textbf{sketchy}, with the goal to make it more formal in upcoming
+iterations.
+
+\subsection{Overview}
+In the coordinated-head protocol, off-chain consensus is simplified by not having transactions
+confirmed concurrently to the snapshots (and to each other) but having the snapshot leader propose,
+in their snapshot, a set of transactions for explicit confirmation. The parties' views of confirmed
+transactions thus progress in sync with each other (once per confirmed snapshot), thus simplifying
+the close/contest procedure on the main-chain. Also, there is no need for conflict resolution as
+in Appendix~B of~\cite{hydrahead20}.
+
+

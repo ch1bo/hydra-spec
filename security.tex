@@ -1,0 +1,200 @@
+\section{Security (Iteration 1)}
+
+Adversaries:
+
+\begin{mdescription}
+\item[Active Adversary.] An \emph{active adversary} $\adv$ has full control
+  over the protocol, i.e., he is fully unrestricted in the above security game.
+
+ \item[Network Adversary.] A \emph{network adversary} $\adv_\emptyset$ does not corrupt
+   any head parties, eventually delivers all sent network messages
+   (i.e., does not drop any messages), and does not cause the $\hpClose$ event.
+   Apart from this restriction, the adversary can act arbitrarily in the above experiment.
+\end{mdescription}
+
+\noindent Random variables:
+
+\begin{mitemize}
+  \item $\That_i$: the set of transactions $\tx$ for which party
+  $\party_i$, \emph{while uncorrupted}, output $(\hpSeen,\tx)$;
+  \item $\Tbar_i$: the set of transactions $\tx$ for which party
+  $\party_i$, \emph{while uncorrupted}, output $(\hpConf,\tx)$;
+  \item $\Hcont$: the set of (at the time) uncorrupted parties who
+  produced $\xi$ upon close/contest request and $\xi$ was applied to
+  correct~$\eta$; and
+  \item $\honest$: the set of parties that remain uncorrupted.
+\end{mitemize}
+
+
+\noindent Security conditions / events:
+
+\begin{itemize}
+\item \propName{Consistency (Head)}: In presence of an active adversary, the
+  following condition holds at any point in time:
+   For all $i,j$,
+   $\Uinit \circ (\Tbar_i \cup \Tbar_j) \not= \bot$, i.e., no two
+   uncorrupted parties see conflicting transactions confirmed.
+
+  \item \propName{Liveness (Head)}:
+    Consider any protocol execution in presence of a network adversary wherein
+    the head does not get closed for a sufficiently long period of time, and consider
+    an honest party $p_i$ who enters transaction $\tx$ by executing $(\hpNew,\tx)$
+    while $\validTx(\tx)$ and $\barmU_i\applytx\tx\not=\bot$.
+
+    Then the following eventually holds:
+    $\tx \in \bigcap_{i\in[n]} \Tbar_i\ \vee\ %
+    \forall i: \Uinit \circ (\Tbar_i\cup\{\tx\}) = \bot$,
+    i.e., every party will observe the transaction confirmed or every party
+    will observe the transaction in conflict with his confirmed transactions.\footnote{
+      In particular, \emph{liveness} expresses that the protocol makes progress
+      under reasonable network conditions if no head parties get corrupted.
+    }
+
+\item \propName{Soundness (Chain)}: In presence of an active adversary,
+  the following condition is satisfied:
+  $\exists \Ttilde \subseteq \bigcap_{i \in \honest} \That_i : \Ufinal
+  = \Uinit \circ \Ttilde\not=\bot$, i.e., the final UTxO set results
+  from applying a set of transactions to $U_0$ that have been seen by
+  all honest parties (wheras each such transaction applies conforming to the ledger rules).
+\item \propName{Completeness (Chain)}: In presence of an active adversary,
+  the following condition holds: For $\Ttilde$ as above,
+  $\bigcup_{p_i \in \Hcont} \Tbar_i \subseteq \Ttilde$, i.e., all
+  transactions seen as confirmed by an honest party at the end of the
+  protocol are considered.
+\end{itemize}
+
+\subsection{Proofs}
+
+\paragraph{Consistency.}
+
+\begin{lemma}[Consistency]
+  \label{lem:consistency}
+  The coordinated head protocol satisfies the \propName{Consistency} property.
+\end{lemma}
+\begin{proof}
+  Observe that $\Tbar_i\cup\Tbar_j\subseteq\That_i$ since no
+  transaction can be confirmed without every honest party signing off
+  on it.  Since parties do not sign conflicting transactions
+  (see $\hpRS$, `wait'), we have
+  $\Uinit\applytx\Tbar_i\neq\bot$,
+  $\Uinit\applytx\Tbar_j\neq\bot$, and
+  $\Uinit\applytx\That_i\neq\bot$.  Thus, since $\Tbar_i\cup\Tbar_j\subseteq\That_i$
+  it follows that
+  $\Uinit\applytx(\Tbar_i\cup\Tbar_j)\neq\bot$
+\end{proof}
+
+\paragraph{Liveness.}
+For all lemmas towards liveness, we assume the presence of a network adversary,
+that every snapshot leader eventually attemps to issue a snapshot whenever it is
+their turn as a leader, and that the head does not get closed for a sufficiently
+long period of time.
+We call this the \emph{liveness condition}.
+
+\begin{lemma}\label{lem:reqconf}  
+  Under the liveness condition, any snapshot issued as $(\hpRS,s,T)$ will eventually be confirmed
+  in the sense that every party holds a valid mulisignature on it.
+\end{lemma}
+\begin{proof}
+  Consider a party $p_i$ receiving message $(\hpRS,s,T)$. We demonstrate that $p_i$ executes
+  the code past the `wait' instruction of the $\hpRS$ routine. 
+
+  \begin{itemize}
+   \item Passing the `require' guard:
+  Note that the snapshot leader sends the request only if $\hats=\bars$, and for $s=\hats+1$.
+  Thus, $\hats_i=\hats$ since $p_i$ has already signed the snapshot for $\hats$. The `require'
+  guard is thus satisfied for $p_i$.
+
+   \item Passing the `wait' guard:
+  Since the snapshot leader sees $\hats=\bars$, also $p_i$ will eventually see $\hats_i=\bars_i$,
+  and all transactions seen by the leader will eventually be seen by $p_i$, and attempted
+  to be applied to the same snapshot. The `wait' gard is thus eventually satisfied for $p_i$.
+  \end{itemize}
+
+  This implies that every party will eventually sign and acknowledge the newly created snapshot.
+  Finally, the `require' and `wait' guards of the $\hpAS$ code will be passed by every party
+  since an $\hpAS$ for snapshot number $s$ can only be received for $s\in\{\hats,\hats+1\}$
+  as an acknowledgement can only be received for the current snapshot being worked on by $p_i$
+  or a snapshot that is one step ahead---implying that everybody will hold a valid multisignature
+  on the snapshot in consideration.
+\end{proof}
+
+\begin{lemma}[Eternal snapshot confirmation]\label{lem:eternal}
+  Under the liveness condition, for any $k>0$, every party eventually confirms
+  a snapshot with sequence number $s=k$.
+\end{lemma}
+\begin{proof}
+  By Lemma~\ref{lem:reqconf}, any requested snapshot eventually gets confirmed, implying
+  that the next leader observes $\hats=\bars$ and thus, in turn, issues a new snapshot.
+  Thus, for any $k$, a snapshot is eventually confirmed.
+\end{proof}
+
+\begin{lemma}[Liveness]
+  \label{lem:liveness}
+  The coordinated head protocol satisfies the \propName{Liveness} property.
+\end{lemma}
+\begin{proof}
+  Consider the first point in time where a transaction $\tx$ enters the system by some party $p_i$
+  issuing $(\hpNew,\tx)$ while $\barmU\applytx\tx\not=\bot$, and consider the next point in time
+  $t$ when $p_i$ issues a snapshot.
+
+  By Lemma~\ref{lem:eternal}, this snapshot will eventually be issued and confirmed by all parties.
+  
+  \medskip
+  
+  Let $\hatmT$ be the transactions to be considered by $p_i$'s snaphot: $\hatmL=\barmU^{t}\applytx\hatmT$
+  where $\barmU^{t}$ is the snaphot prior to $p_i$'s.
+
+  \medskip
+  
+  If $\tx\in\hatmT$ then every party outputs $(\hpConf,\tx)$ upon completion of this snapshot, and
+  the lemma follows.
+
+  \medskip
+  
+  It remains to handle the case that $\tx\notin\hatmT$. We distinguish two cases:
+  \begin{enumerate}
+  \item % tx gets added to \mathcal{T} and is attempted to be added during the reqSn leader switch
+     Case: $p_i$ executed $(\hpRT,\tx)$ before executing the $\hpRS$ code guarded
+     by `$\hpLdr(\hats+1)=i$'.
+     The, during $\hpRS$, $\hatmT$ is chosen as a maximal subset of $\mT$ whereas $\tx\in\mT$.
+     Since $\tx\notin\mT$ this implies that $\hatmU^{t}\applytx(\hatmT\cup\{\tx\})=\bot$ (maximality).
+     After everybody confirmed $p_i$'s snapshot, it thus holds for all $j$ that
+     $U_0\applytx(\Tbar_j\cup\{\tx\})=\bot$, and the lemma follows.
+   \item % tx gets added after the reqSn leader switch and is attempted to be added directly during reqTx
+     Case: $p_i$ excecuted $(\hpRT,\tx)$ after executing the respective $\hpRS$ code.
+     Then, during $\hpRT$, we had $\hatmL\applytx\tx=\bot$, and thus
+     $\barmU^{t}\applytx(\hatmT\cup\{\tx\})=\bot$ while, eventually,
+     $\hatmT\subseteq\Tbar_j$ for all $j$, and
+     $U_0\applytx(\Tbar_j\cup\{\tx\})=\bot$, and the lemma follows.\qedhere  
+  \end{enumerate}
+\end{proof}
+
+\paragraph{Soundness and completeness.}
+
+\begin{lemma}[Soundness]
+  \label{lem:soundness}
+  The basic head protocol satisfies the \propName{Soundness} property.
+\end{lemma}
+
+\begin{proof}
+  Let $T$ be the set of transactions such that $\Ufinal=U_0\applytx T$.
+  Since $\Ufinal$ is multi-signed, it holds that $T\subseteq\That_i$
+  ($T$ is \emph{seen}) by every honest party in the head.
+  Furtermore, since honest signatures are only issued for valid transaction,
+  $\Ufinal\not=\bot$ (i.e., $\Ufinal$ is a valid state), and soundness
+  follows.
+\end{proof}
+
+
+\begin{lemma}[Completeness]
+ \label{lem:completeness}
+ The basic head protocol satisfies the \propName{Completeness}
+ property.
+\end{lemma}
+\begin{proof}
+  Consider all parties $p_i\in\Hcont$. Since the close/contest process
+  finally accepts the latest multi-signed snapshot, it holds that
+  $\Ufinal.s \geq \max_{p_i\in\Hcont}(\bars_i)$, and thus that
+  $\bigcup_{p_i\in\Hcont}\Tbar_i\subseteq\That$,
+  and completeness follows.
+\end{proof}
