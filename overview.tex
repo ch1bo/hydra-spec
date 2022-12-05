@@ -1,0 +1,222 @@
+\section{Protocol Overview}
+\label{sec:overview}
+
+The Hydra protocol provides functionality to lock a set of UTxOs on a
+blockchain, referred to as the \emph{mainchain}, and evolve it inside a so-called offchain \emph{head}, independently of the
+mainchain.  At any point, the head can be closed with the effect that the
+locked set of UTxOs on the mainchain is replaced by the latest set of UTxOs
+inside the head.
+The protocol guarantees full wealth preservation: no generation
+of funds can happen offchain, % (i.e., inside a head)
+and no responsive
+honest party involved in a head can ever lose any funds other than by
+consenting to give them away.
+
+The advantage of head evolution from a liveness viewpoint is that,
+under good conditions, it can essentially proceed at network speed,
+thereby reducing latency and increasing throughput in an optimal
+way.  At the same time, the head protocol provides the same smart-contract
+capabilities as the mainchain.
+
+To avoid overloading with technical details, the main body of the paper presents a simplified
+version of Hydra to convey the basic concepts and ideas
+of the new protocol. Also in the overview, we focus on the simplified protocol
+and outline the differences of the full protocol
+in Section~\ref{sec:overview_diff}.
+A detailed description of the simplified protocol is given in
+Sections~\ref{sec:hpsetup}--~\ref{sec:hp},
+and Appendix~\ref{sec:hp_cr}. The full protocol is described in
+Appendix~\ref{sec:mainchain_full}.
+
+
+\subsection{The big picture}
+\label{sec:overview_bp}
+
+To create a head-protocol instance, any party may take the role of an
+\emph{initiator} and ask a set parties (including himself),
+the \emph{head members}, to participate in the head by announcing the
+identities of the parties.
+%This happens in a separate offchain subprotocol.
+
+Each party then establishes pairwise authenticated
+channels to all other parties or---if this is not possible---aborts the protocol setup.\footnote{We generally assume that
+  mechanisms for establishing pairwise
+  authenticated channels are in place, e.g., by
+  means of a public-key infrastructure.}
+
+The parties then exchange, via the pairwise authenticated channels,
+some public-key material. This public-key material is used both
+for the authentication of head-related onchain transactions that
+are restricted to head members (e.g., a non-member is not allowed
+to close the head) and for multisignature-based event confirmation
+in the head.
+
+The initiator then establishes the head by submitting an
+\emph{initial} transaction to the mainchain that contains the
+head parameters and forges special \emph{participation tokens}
+identifying the head members by assigning each token to the public key
+distributed by the respective party during the the setup phase.
+The initial transaction also initializes a state machine
+(see Fig.~\ref{fig:SM_states_basic}) for the head instance that manages
+the ``transfer'' of UTxOs between mainchain and head.
+
+Once the initial transaction appears on the mainchain, establishing
+the initial state $\stInitial$, each head member can attach a
+\mtxCom{} transaction, which locks (on the mainchain) the UTxOs that
+the party wants to commit to the head.
+
+The commit transactions are subsequently collected by the \mtxCCom{}
+transaction causing a transition from $\stInitial$ to $\stOpen$.  Once
+the $\stOpen$ state is confirmed, the head members start running the
+offchain \emph{head protocol}, which evolves the initial UTxO set (the
+union over all UTxOs committed by all head members) independently of
+the mainchain.  For the case where some head members fail to post a
+\mtxCom{} transaction, the head can be aborted by going directly from
+$\stInitial$ to $\stFinal$.
+
+The head protocol is designed to allow any head member
+at any point in time to produce, without interaction, a certificate
+for the current head UTxO set.  Using this certificate, the head member
+may advance the state machine to the $\stClosed$ state.
+
+Once in $\stClosed$, the state machine grants parties a
+\emph{contestation period}, during which each party may (one single
+time) contest the closure by providing the certificate for a newer head
+UTxO set.  Contesting leads back to the state $\stClosed$.
+After the contestation period has elapsed, the state machine may proceed
+to the $\stFinal$ state.  The state machine enforces that the
+outputs of the transaction leading to $\stFinal$ correspond exactly to
+the latest UTxO set seen during the contestation period.
+
+
+\subsection{The mainchain state machine}
+\label{sec:overview_mc}
+
+The mainchain part of the Hydra protocol fulfills two principal
+functions: (1) it locks the mainchain UTxOs committed % by head members
+to the head while the head is active and (2) it facilitates the
+settlement of the final head state back to the mainchain after the
+head is closed. In combination, these two functions effectively result
+in replacing the initial head UTxO set by the final head UTxO set on
+the mainchain in a manner that respects but does not persist the
+complete set of head transactions.
+
+\input{fig_SM_states_basic}
+
+The state machine (Fig.~\ref{fig:SM_states_basic}) implementing
+the mainchain protocol comprises the four states $\stInitial$,
+$\stOpen$, $\stClosed$, and $\stFinal$, where the first two realize
+the first function (locking the initial UTxO set) and the
+second two realize the second function (settling the final UTxO set on
+the mainchain).
+
+State machines inherently sequentialize all actions that involve the
+machine state. This simplifies both reasoning about and implementing
+the protocol.
+%
+However, steps that could otherwise be taken in parallel now need to be
+sequentialized, which might hurt performance. For the cases where this
+sequentialization would severely affect protocol performance,
+we employ a (to our knowledge) novel
+technique to parallelize the progression of the state machine on the
+mainchain.
+% MF: was:
+%
+%However, it comes at the cost that steps that could be
+%taken in parallel now need to be sequentialized, which might hurt
+%performance. In cases where this sequentialization severely affects
+%the performance of the protocol we employ a---to our knowledge---novel
+%technique to parallelize the progression of the state machine on the
+%mainchain.
+
+We use this technique % in the simplified protocol
+to parallelize the construction of the initial UTxO set of the head.
+Without parallelization, all $n$ head members would have
+to post their commit transactions (their portion of the
+initial UTxO set) in sequence, requiring a linear chain of $n$
+transactions, %to incrementally build the initial head UTxO set
+each for one state transition at a time.
+Instead, we make the state machine consume all $n$ commit transactions
+in a single state transition. In Fig.~\ref{fig:SM_states_basic}, we
+represent this in the following way:
+the transaction representing state $\stInitial$ connects
+to the transaction representing state $\stOpen$ not just via the
+$\mtxCCom$ state transition, but also via a set of commit transactions
+(one for each head member).
+
+This requires some extra care. We want to ensure that each
+head member posts exactly one commit transaction and that the $\stOpen$
+transaction faithfully collects all commit
+transactions. We gain this assurance by issuing a single non-fungible
+token to each head member---we call this the \emph{participation
+  token}.  This token must flow through the commit transaction of the
+respective head member and the $\stOpen$ transaction, to be valid, must
+collect the full set of participation tokens. We may regard the
+participation token as representing a \emph{capability} and
+\emph{obligation} to participate in the head protocol.
+
+
+\subsection{The head protocol}
+\label{sec:overview_hp}
+
+The head protocol starts with an initial set $\Uinit$ of UTxOs that
+is identical to the UTxOs locked onchain.
+
+\dparagraph{Transactions and local UTxO state.}
+The protocol \emph{confirms} individual transactions in full
+concurrency by collecting and distributing multisignatures on each
+issued transaction separately.
+As soon as such a transaction is confirmed, it irreversibly becomes
+part of the head UTxO state evolution---the transaction's outputs
+are immediately spendable in the head, or can be safely transferred
+back onchain in case of a head closure.
+
+Each party maintains their view of the local UTxO state $\barmL$, which
+represents the current set of UTxOs evolved from the initial UTxO set
+$\Uinit$ by applying all transactions that have been confirmed so far
+in the head. As the protocol is asynchronous the parties' views
+of the local UTxO state generally differ.
+
+\dparagraph{Snapshots.}
+The above transaction handling would be enough to evolve the head state.
+However, an eventual onchain decommit would have to transfer the
+full transaction history onchain as there would be no other way
+to evidence the correctness of the UTxO set to be restored onchain.
+
+To minimize local storage requirements and allow for an
+onchain decommit that is independent of the transaction
+history, UTxO snapshots $\Uset_1,\Uset_2,\ldots$ are continuously
+generated. For this, a \emph{snapshot leader} requests his
+view of the confirmed state $\barmL$ to be multisigned as a new
+snapshot---the first head snapshot corresponding to the initial
+state $\Uinit$. A snapshot is considered \emph{confirmed} if it
+is associated with a valid multisignature.
+
+In contrast to transactions, the snapshots are generated
+sequentially.
+%the new snapshot
+%is the last snapshot whereupon all transactions are
+%applied that the snapshot leader sees as confirmed but not yet
+%processed by the last snapshot.
+To have the new snapshot $\Uset_{i+1}=\barmL$ multisigned, the leader does
+not need to send his local state $\Uset_{i+1}$, but only indicate,
+by hashes, the set of (confirmed) transactions to be applied to $\Uset_i$
+in order to obtain $\Uset_{i+1}$.
+
+The other participants sign the snapshot as soon as they have (also) seen
+the transactions confirmed that are to be processed on top of its predecessor
+snapshot: a party's confirmed state is always ahead of the latest
+confirmed snapshot.
+
+As soon as a snapshot is seen confirmed, a participant can safely
+delete all transactions that have already been processed into it as the
+snapshot's multisignature is now evidence that this state once existed
+during the head evolution.
+
+\dparagraph{Closing the head.}
+A party that wants to close the head decommits his confirmed state
+$\barmL$ by posting, onchain, the latest seen confirmed snapshot
+$\Uset_\ell$ together with those confirmed transactions that have not
+yet been processed by this snapshot.  During the
+subsequent contestation period, other head members can post their own
+local confirmed states onchain.
