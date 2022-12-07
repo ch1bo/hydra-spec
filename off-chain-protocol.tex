@@ -13,16 +13,16 @@ Variables:
 
 \begin{center}
 \begin{tabular}{|l|l|}\hline
-  $\hats$  & Sequence number of latest (possibly unconfirmed) snapshot. \\ \hline
+  $\hats$  & Sequence number of latest seen snapshot. \\ \hline
   $\bars$  & Sequence number of latest confirmed snapshot. \\ \hline
-  $\hatmU$ & Latest (possibly unconfirmed) snapshot object. \\ \hline
+  $\hatmU$ & Latest seen snapshot object. \\ \hline
   $\barmU$ & Latest confirmed snapshot object. \\ \hline
   $\hatmL$ & Local ledger extension by next leader. Only the next leader
   makes use of this variable.\\ \hline
   $\mT$    & Set of all received transactions (independent of their validity).\\  \hline
   $\hatmT$ & Transactions that extend the next leader's $\barmU$ (or $\hatmU$) to form $\hatmL$.\\
            & Only the next leader makes use of this variable.\\  \hline
-  $\barmT$ & Set of all confirmed transactions up to the latest confirmed snapshot.\\  \hline
+  $\barmT$ & Unused!? Set of all confirmed transactions up to the latest confirmed snapshot.\\  \hline
 \end{tabular}
 \end{center}
 
@@ -49,4 +49,7 @@ The following figure visualizes the possible event flows from the view of a sing
                   \label{fig:sim:baselines}
 \end{figure}
 
-
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
