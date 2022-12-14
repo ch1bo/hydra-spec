@@ -1,50 +1,35 @@
-\section{Protocol Overview}
-\label{sec:overview}
+\section{Protocol Overview}\label{sec:overview}
+
+\todo{maybe change terminology (mainchain -> L1, offchain -> L2)}
 
 TODO: Apply marked up changes from remarkable
 
 The Hydra protocol provides functionality to lock a set of UTxOs on a
-blockchain, referred to as the \emph{mainchain}, and evolve it inside a so-called offchain \emph{head}, independently of the
-mainchain.  At any point, the head can be closed with the effect that the
-locked set of UTxOs on the mainchain is replaced by the latest set of UTxOs
-inside the head.
-The protocol guarantees full wealth preservation: no generation
-of funds can happen offchain, % (i.e., inside a head)
-and no responsive
-honest party involved in a head can ever lose any funds other than by
-consenting to give them away.
+blockchain, referred to as the \emph{mainchain}, and evolve it inside a
+so-called offchain \emph{head}, independently of the mainchain. At any point,
+the head can be closed with the effect that the locked set of UTxOs on the
+mainchain is replaced by the latest set of UTxOs inside the head. The protocol
+guarantees full wealth preservation: no generation of funds can happen offchain
+(inside a head) and no responsive honest party involved in a head can ever lose
+any funds other than by consenting to give them away.
 
-The advantage of head evolution from a liveness viewpoint is that,
-under good conditions, it can essentially proceed at network speed,
-thereby reducing latency and increasing throughput in an optimal
-way.  At the same time, the head protocol provides the same smart-contract
-capabilities as the mainchain.
+The advantage of head evolution from a liveness viewpoint is that, under good
+conditions, it can essentially proceed at network speed, thereby reducing
+latency and increasing throughput in an optimal way. At the same time, the head
+protocol provides the same smart-contract capabilities as the mainchain.
 
-To avoid overloading with technical details, the main body of the paper presents a simplified
-version of Hydra to convey the basic concepts and ideas
-of the new protocol. Also in the overview, we focus on the simplified protocol
-and outline the differences of the full protocol
-in Section~\ref{sec:overview_diff}.
-A detailed description of the simplified protocol is given in
-Sections~\ref{sec:hpsetup}--~\ref{sec:hp},
-and Appendix~\ref{sec:hp_cr}. The full protocol is described in
-Appendix~\ref{sec:mainchain_full}.
-
-
-\subsection{The big picture}
-\label{sec:overview_bp}
+\subsection{The big picture}\label{sec:overview_bp}
 
 To create a head-protocol instance, any party may take the role of an
 \emph{initiator} and ask a set parties (including himself),
 the \emph{head members}, to participate in the head by announcing the
 identities of the parties.
-%This happens in a separate offchain subprotocol.
 
-Each party then establishes pairwise authenticated
-channels to all other parties or---if this is not possible---aborts the protocol setup.\footnote{We generally assume that
-  mechanisms for establishing pairwise
-  authenticated channels are in place, e.g., by
-  means of a public-key infrastructure.}
+Each party then establishes pairwise authenticated channels to all other parties
+or---if this is not possible---aborts the protocol setup.\footnote{We generally
+  assume that mechanisms for establishing pairwise authenticated channels are in
+  place, e.g., by means of a public-key infrastructure.}
+\todo{same assumption?}
 
 The parties then exchange, via the pairwise authenticated channels,
 some public-key material. This public-key material is used both
@@ -67,14 +52,13 @@ the initial state $\stInitial$, each head member can attach a
 \mtxCom{} transaction, which locks (on the mainchain) the UTxOs that
 the party wants to commit to the head.
 
-The commit transactions are subsequently collected by the \mtxCCom{}
-transaction causing a transition from $\stInitial$ to $\stOpen$.  Once
-the $\stOpen$ state is confirmed, the head members start running the
-offchain \emph{head protocol}, which evolves the initial UTxO set (the
-union over all UTxOs committed by all head members) independently of
-the mainchain.  For the case where some head members fail to post a
-\mtxCom{} transaction, the head can be aborted by going directly from
-$\stInitial$ to $\stFinal$.
+The commit transactions are subsequently collected by the \mtxCCom{} transaction
+causing a transition from $\stInitial$ to $\stOpen$. Once the $\stOpen$ state is
+confirmed, the head members start running the layer two \emph{head protocol},
+which evolves the initial UTxO set (the union over all UTxOs committed by all
+head members) independently of the mainchain. For the case where some head
+members fail to post a \mtxCom{} transaction, the head can be aborted by going
+directly from $\stInitial$ to $\stFinal$.
 
 The head protocol is designed to allow any head member
 at any point in time to produce, without interaction, a certificate
@@ -91,8 +75,7 @@ outputs of the transaction leading to $\stFinal$ correspond exactly to
 the latest UTxO set seen during the contestation period.
 
 
-\subsection{The mainchain state machine}
-\label{sec:overview_mc}
+\subsection{The \todo{layer one?}mainchain state machine}\label{sec:overview_mc}
 
 The mainchain part of the Hydra protocol fulfills two principal
 functions: (1) it locks the mainchain UTxOs committed % by head members
@@ -112,39 +95,18 @@ the first function (locking the initial UTxO set) and the
 second two realize the second function (settling the final UTxO set on
 the mainchain).
 
-State machines inherently sequentialize all actions that involve the
-machine state. This simplifies both reasoning about and implementing
-the protocol.
-%
-However, steps that could otherwise be taken in parallel now need to be
-sequentialized, which might hurt performance. For the cases where this
-sequentialization would severely affect protocol performance,
-we employ a (to our knowledge) novel
-technique to parallelize the progression of the state machine on the
-mainchain.
-% MF: was:
-%
-%However, it comes at the cost that steps that could be
-%taken in parallel now need to be sequentialized, which might hurt
-%performance. In cases where this sequentialization severely affects
-%the performance of the protocol we employ a---to our knowledge---novel
-%technique to parallelize the progression of the state machine on the
-%mainchain.
-
-We use this technique % in the simplified protocol
-to parallelize the construction of the initial UTxO set of the head.
-Without parallelization, all $n$ head members would have
-to post their commit transactions (their portion of the
-initial UTxO set) in sequence, requiring a linear chain of $n$
+State machines \todo{introduce ST?}sequentialize all actions that involve the machine state. This is
+not a problem for closing and contesting, but would hurt performance for
+initialization. Without parallelization, all $n$ head members would have to post
+their commit transactions (their portion of the initial UTxO set) in sequence,
+requiring a linear chain of $n$
 transactions, %to incrementally build the initial head UTxO set
-each for one state transition at a time.
-Instead, we make the state machine consume all $n$ commit transactions
-in a single state transition. In Fig.~\ref{fig:SM_states_basic}, we
-represent this in the following way:
-the transaction representing state $\stInitial$ connects
-to the transaction representing state $\stOpen$ not just via the
-$\mtxCCom$ state transition, but also via a set of commit transactions
-(one for each head member).
+each for one state transition at a time. Instead, we make the state machine
+consume all $n$ commit transactions in a single state transition. In
+Fig.~\ref{fig:SM_states_basic}, we represent this in the following way: the
+transaction representing state $\stInitial$ connects to the transaction
+representing state $\stOpen$ not just via the $\mtxCCom$ state transition, but
+also via a set of commit transactions (one for each head member).
 
 This requires some extra care. We want to ensure that each
 head member posts exactly one commit transaction and that the $\stOpen$
@@ -158,8 +120,7 @@ participation token as representing a \emph{capability} and
 \emph{obligation} to participate in the head protocol.
 
 
-\subsection{The head protocol}
-\label{sec:overview_hp}
+\subsection{The head protocol}\label{sec:overview_hp}
 
 The head protocol starts with an initial set $\Uinit$ of UTxOs that
 is identical to the UTxOs locked onchain.
@@ -222,3 +183,8 @@ $\Uset_\ell$ together with those confirmed transactions that have not
 yet been processed by this snapshot.  During the
 subsequent contestation period, other head members can post their own
 local confirmed states onchain.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
