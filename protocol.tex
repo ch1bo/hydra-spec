@@ -1,21 +1,19 @@
 \section{Off-Chain Protocol}
 
-We sate the coordinated off-chain protocol in Figure~\ref{fig:head_coordinated}.
-
 Variables:
 
 \begin{center}
 \begin{tabular}{|l|l|}\hline
-  $\hats$  & Sequence number of latest seen snapshot. \\ \hline
+  $\hats$  & Sequence number of latest (possibly unconfirmed) snapshot. \\ \hline
   $\bars$  & Sequence number of latest confirmed snapshot. \\ \hline
-  $\hatmU$ & Latest seen snapshot object. \\ \hline
+  $\hatmU$ & Latest (possibly unconfirmed) snapshot object. \\ \hline
   $\barmU$ & Latest confirmed snapshot object. \\ \hline
   $\hatmL$ & Local ledger extension by next leader. Only the next leader
   makes use of this variable.\\ \hline
-  $\mT$    & Set of all received transactions (independent of their validity).\\  \hline
+  $\mT$    & Set of all transactions ever received via reqTx (independent of their validity or mutual conflicts).\\  \hline
   $\hatmT$ & Transactions that extend the next leader's $\barmU$ (or $\hatmU$) to form $\hatmL$.\\
            & Only the next leader makes use of this variable.\\  \hline
-  $\barmT$ & Unused!? Set of all confirmed transactions up to the latest confirmed snapshot.\\  \hline
+  $\barmT$ & Set of all confirmed transactions up to the latest confirmed snapshot.\\  \hline
 \end{tabular}
 \end{center}
 
@@ -29,7 +27,6 @@ Comments:
 \item Fix: from client or from network: same function called twice should trigger at most one wait.
   For instance, $\hpRS$ called twice must not queue the 'wait' part for multiple execution.
 \item Fix: $\hpNS$ called twice must not trigger local $\hpRS$ twice.
-\item Fix: Concurrency resolution (reqSn stack) for snapshots (see state diagram in \cite{hydraspec22}).
 \item Add: garbage collection ($\hatmT,\barmT$,etc.)
 \item Extensive code explanation (per line of code)
 \end{itemize}
@@ -37,7 +34,8 @@ Comments:
 The following figure visualizes the possible event flows from the view of a single party.
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=\linewidth*2/3]{fig/reqackstates.png}
+  \includegraphics[width=\linewidth*2/3]%
+                  {fig/reqackstates.png}
                   \caption{State diagram of reqSn/ackSn cycles.}
                   \label{fig:sim:baselines}
 \end{figure}

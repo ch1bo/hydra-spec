@@ -18,7 +18,7 @@
             $\msSK \gets \hpPr$ \; %c
 
             $\hats,\bars \gets 0$ \; %
-            $\hatmU, \barmU \gets \Sno (0,\Uinit, \emptyset)$ \; %
+            $\hatmU, \barmU \gets \Sno (0,\Uinit)$ \; %
             % $\hatmL,\barmL \gets \Uinit$ \; %
             $\hatmL \gets \Uinit$ \; %
             % $\hatmT,\barmT \gets \emptyset$ \; %
@@ -32,7 +32,7 @@
           \On{$(\hpNew,\tx)$ %
             from client}{ %
             \Req $\validTx(\tx)$ and %
-            $\barmU \applytx \tx \neq \bot$ \; %
+            $\hatmL \applytx \tx \neq \bot$ \; %
 
             % $\hash \gets \hashF(\tx)$ \; %
 
@@ -59,9 +59,7 @@
 
             %$\hatmT \gets 
             
-            $T \gets \big( \hpMT(\hatmT) \big) \hpProjH$ \; %
-
-            \Multi $(\hpRS,\bars+1,T)$ \; %
+            \Multi $(\hpRS,\bars+1,\hatmT\hpProjH)$ \; %
           }
 
           \vspace{12pt} %
@@ -75,11 +73,10 @@
           
           %%% CONTEST
           \On{$(\hpCont,\eta)$ from client}{ %
-            \Req $s_\eta > \bars$ %
-             
             $(U_\eta,s_\eta) \gets \eta$ \; %
 
-
+            \Req $s_\eta > \bars$ %
+             
             \Return $(U_\eta,s_\eta)$ \; %
           }
 
@@ -118,15 +115,17 @@
           %%% REQ TX
           \On{$(\hpRT,\tx)$ %
             from $\party_j$}{ %
-            \Req $\validTx(\tx)$ %
+            \Req $\validTx(\tx)$ and %
+            $\hatmL \applytx \tx \neq \bot$ \; %
             
-            $\mT[\hash] \gets \Txo(j,\tx)$ \; %
+            $\mT[\hash] \gets \Txo(j,\tx)$ // ever seen %
 
-            \If{$(\hats\in\{\bars,\bars+1\}) \wedge (\hpLdr(\hats+1) = i) \wedge (\hatmL\applytx\tx\not=\bot)$}{
+            % \If{$(\hats\in\{\bars,\bars+1\}) \wedge (\hpLdr(\hats+1) = i) \wedge (\hatmL\applytx\tx\not=\bot)$}{
+              $\hatmT[\hash] \gets \mT[\hash]$ // candidate for SN \; %
+
               $\hatmL \gets \hatmL\applytx\tx$ %
 
-              $\hatmT[\hash] \gets \mT[\hash]$ \; %
-            }
+            % }
             
           }
 
@@ -140,7 +139,7 @@
             and $\hpLdr(s) = j$ \; %
 
             \Wait{$\bars = \hats$ %
-              and $\barmU\applytx\Reach^{\mT}(T) \not= \bot$ % meaning reach is 'complete' for extension
+              and $\barmU\applytx T \not= \bot$ % meaning reach is 'complete' for extension
             }{ %
                $\hats \gets \bars + 1$ \; %
 
@@ -148,18 +147,18 @@
                 \Out $(\hpSeen,\tx)$ \; %
               
                $\hatmU \gets
-               \Sno(\hats,\barmU\applytx\Reach^{\mT}(T))$ \; %
+               \Sno(\hats,\barmU\applytx T )$ \; %
 
                $\msSig_i \gets %
-               \msSign(\hyPr,\hatmU.h \| \hats)$ \; %
+               \msSign(\hyPr, (\hats \| U_{0}.h) \| \hatmU.h)$ \; %
  
                \Send $(\hpAS,\hats,\msSig_i)$ %
                to $\party_j$ \; %
 
-               \If{$\hpLdr(\hats+1) = i$}{
+               % \If{$\hpLdr(\hats+1) = i$}{
                  $\hatmT :\subseteq_{\mbox{max}} \mT$ s.t. $\hatmU\applytx\hatmT\not=\bot$ \; %
                  $\hatmL \gets \hatmU\applytx\hatmT$
-               }
+               % }
             }
            }
           
@@ -179,21 +178,20 @@
             \Wait{$\hats=s$
             }{ %
             
-            \Req $\hatmU.\hpSigs[j] = \eps$ \; %
+            \Req $\hatmU.\hpSigs[j] = \undefined$ \; %
 
             $\hatmU.\hpSigs[j] \gets \msSig_j$ \; %
 
-            \If{$\forall k: \hatmU.\hpSigs[k] \neq \eps$}{ %
+            \If{$\forall k: \hatmU.\hpSigs[k] \neq \undefined$}{ %
               $\msCSig %
-              \gets \msComb(\hatmU.\hash \| s, %
+              \gets \msComb((s \| U_{0}.h) \| \hatmU.\hash, %
               \msVKL, \hatmU.\hpSigs)$ \; %
               
-              \If{$\msVfy(\msCVK, \hatmU.\hash \| \hats,\msCSig)$}{ %
+              \If{$\msVfy(\msCVK, (\hats \| U_{0}.h) \| \hatmU.\hash,\msCSig)$}{ %
               $\bars \gets s$ \; %
               $\hatmU.\msCSig \gets \msCSig$ \; %
               $\barmU \gets \hatmU$ \; %
-              $T \gets \Reach^{\mT}(\barmU.T)$ \; %
-              $\barmT \gets \barmT \cup T$ \; %
+              $\barmT \gets \barmT \cup \barmU.T$ \; %
 
               $\forall \tx\in T$: \Out $(\hpConf,\tx)$ \; %
   
