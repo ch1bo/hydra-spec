@@ -2,8 +2,6 @@
 
 \todo{maybe change terminology (mainchain -> L1, offchain -> L2)}
 
-TODO: Apply marked up changes from remarkable
-
 The Hydra protocol provides functionality to lock a set of UTxOs on a
 blockchain, referred to as the \emph{mainchain}, and evolve it inside a
 so-called offchain \emph{head}, independently of the mainchain. At any point,
@@ -131,7 +129,7 @@ set $\Uinit$ of UTxOs that is identical to the UTxOs locked onchain via the
 
 Each party maintains their view of the local UTxO state $\barmL$, which
 represents the current set of UTxOs evolved from the initial UTxO set $\Uinit$
-by applying all transactions that \todo{transactions are not confirmed} have been confirmed so far in the head. As the
+by applying all transactions that \todo{$\sim$ transactions are not confirmed} have been confirmed so far in the head. As the
 protocol is asynchronous the parties' views of the local UTxO state generally
 differ.
 
@@ -163,6 +161,18 @@ his confirmed by posting, onchain, their last known confirmed snapshot
 $\Uset_\ell$. During the subsequent contestation period, other head members can
 post their own local confirmed states onchain. The latest snapshot, with the
 highest snapshot number, will become the final UTxO set $\Ufinal$.
+
+\subsection{Differences}
+
+In summary, the differences to the original Head protocol in~\cite{hydrahead20} are:
+
+\begin{itemize}
+  \item No hanging transactions due to `coordination'.
+  \item No acknowledgement nor confirmation of transactions.
+  \item No confirmation of snapshots (two-round confirmation by local acknowledgement).
+\end{itemize}
+\todo{explain why?}
+
 
 %%% Local Variables:
 %%% mode: latex
