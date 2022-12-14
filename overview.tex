@@ -120,69 +120,49 @@ participation token as representing a \emph{capability} and
 \emph{obligation} to participate in the head protocol.
 
 
-\subsection{The head protocol}\label{sec:overview_hp}
+\subsection{The Coordinated Head protocol}\label{sec:overview_hp}
 
-The head protocol starts with an initial set $\Uinit$ of UTxOs that
-is identical to the UTxOs locked onchain.
+The actual Head protocol starts after the initialization phase with an initial
+set $\Uinit$ of UTxOs that is identical to the UTxOs locked onchain via the
+\emph{commit} and \emph{collectCom} transactions.
 
-\dparagraph{Transactions and local UTxO state.}
-The protocol \emph{confirms} individual transactions in full
-concurrency by collecting and distributing multisignatures on each
-issued transaction separately.
-As soon as such a transaction is confirmed, it irreversibly becomes
-part of the head UTxO state evolution---the transaction's outputs
-are immediately spendable in the head, or can be safely transferred
-back onchain in case of a head closure.
+\dparagraph{Transactions and local UTxO state.} The protocol distributes and
+\emph{collects} individual transactions in full concurrency.
 
 Each party maintains their view of the local UTxO state $\barmL$, which
-represents the current set of UTxOs evolved from the initial UTxO set
-$\Uinit$ by applying all transactions that have been confirmed so far
-in the head. As the protocol is asynchronous the parties' views
-of the local UTxO state generally differ.
+represents the current set of UTxOs evolved from the initial UTxO set $\Uinit$
+by applying all transactions that \todo{transactions are not confirmed} have been confirmed so far in the head. As the
+protocol is asynchronous the parties' views of the local UTxO state generally
+differ.
 
-\dparagraph{Snapshots.}
-The above transaction handling would be enough to evolve the head state.
-However, an eventual onchain decommit would have to transfer the
-full transaction history onchain as there would be no other way
-to evidence the correctness of the UTxO set to be restored onchain.
+\dparagraph{Snapshots.} To minimize local storage requirements and allow for an
+onchain decommit that is independent of the transaction history (not need to
+transfer whole transactions back onchain), UTxO snapshots $\Uset_1,\Uset_2,\ldots$ are
+continuously generated. For this, a \emph{snapshot leader} requests his view of
+a new confirmed state $\barmL$ to be multisigned as a new snapshot---the first
+head snapshot corresponding to the initial state $\Uinit$. A snapshot is
+considered \emph{confirmed} if it is associated with a valid multisignature.
 
-To minimize local storage requirements and allow for an
-onchain decommit that is independent of the transaction
-history, UTxO snapshots $\Uset_1,\Uset_2,\ldots$ are continuously
-generated. For this, a \emph{snapshot leader} requests his
-view of the confirmed state $\barmL$ to be multisigned as a new
-snapshot---the first head snapshot corresponding to the initial
-state $\Uinit$. A snapshot is considered \emph{confirmed} if it
-is associated with a valid multisignature.
+In contrast to transactions, snapshots are generated in strict sequentially. To
+have the new snapshot $\Uset_{i+1}=\barmL$ multisigned, the leader does not need
+to send his local state $\Uset_{i+1}$, but only indicate, by hashes, the set of
+(confirmed) transactions to be applied to $\Uset_i$ in order to obtain
+$\Uset_{i+1}$.
 
-In contrast to transactions, the snapshots are generated
-sequentially.
-%the new snapshot
-%is the last snapshot whereupon all transactions are
-%applied that the snapshot leader sees as confirmed but not yet
-%processed by the last snapshot.
-To have the new snapshot $\Uset_{i+1}=\barmL$ multisigned, the leader does
-not need to send his local state $\Uset_{i+1}$, but only indicate,
-by hashes, the set of (confirmed) transactions to be applied to $\Uset_i$
-in order to obtain $\Uset_{i+1}$.
-
-The other participants sign the snapshot as soon as they have (also) seen
-the transactions confirmed that are to be processed on top of its predecessor
-snapshot: a party's confirmed state is always ahead of the latest
-confirmed snapshot.
+The other participants sign the snapshot as soon as they have (also) seen the
+transactions that are to be processed on top of its predecessor snapshot: a
+party's local state is always ahead of the latest confirmed snapshot.
 
 As soon as a snapshot is seen confirmed, a participant can safely
 delete all transactions that have already been processed into it as the
 snapshot's multisignature is now evidence that this state once existed
 during the head evolution.
 
-\dparagraph{Closing the head.}
-A party that wants to close the head decommits his confirmed state
-$\barmL$ by posting, onchain, the latest seen confirmed snapshot
-$\Uset_\ell$ together with those confirmed transactions that have not
-yet been processed by this snapshot.  During the
-subsequent contestation period, other head members can post their own
-local confirmed states onchain.
+\dparagraph{Closing the head.} A party that wants to close the head decommits
+his confirmed by posting, onchain, their last known confirmed snapshot
+$\Uset_\ell$. During the subsequent contestation period, other head members can
+post their own local confirmed states onchain. The latest snapshot, with the
+highest snapshot number, will become the final UTxO set $\Ufinal$.
 
 %%% Local Variables:
 %%% mode: latex
