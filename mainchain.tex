@@ -1,0 +1,199 @@
+\section{Mainchain}
+\label{sec:mainchain}
+
+Here we describe the details of the mainchain state
+machine (SM) controlling a Hydra head (see
+Fig.~\ref{fig:SM_states_basic}).  For state transitions, a formal
+description of the conditions in $\cemTxCon$ is foregone in favor of
+the intuitive explanations in the text and the figures.
+
+\dparagraph{Onchain verification algorithms.} The status of the head
+is maintained in a variable $\eta$, which is part of the SM state and
+updated by so-called \emph{onchain verification (OCV) algorithms}
+$\ocvInitial$, $\ocvClose$, $\ocvContest$, and $\ocvFinal$. In the context
+of the mainchain protocol, these OCV algorithms are intentionally kept
+as generic as possible; this keeps the mainchain SM compatible with
+many potential head-protocol variants.
+The concrete OCV algorithms for the head protocol specified in this
+paper are given in context of the head protocol itself as they depend
+on the specific head-protocol internals: verification of head-protocol
+certificates and related onchain state updates.
+As such, the OCV algorithms can be seen as abstract mainchain algorithms
+implemented by the specific head protocol. Consequently, the OCV
+implementation for our head protocol is described in Section~\ref{sec:hpocv}.
+
+\input{fig_SM_commit_tx}
+
+\dparagraph{Initial state.}  After the setup phase of Section~\ref{sec:hpsetup},
+the head initiator posts an \mtxInit{} transaction (see
+Fig.~\ref{fig:SM_commit_tx}).  The \mtxInit{} transaction
+establishes the SM's initial state
+\(
+  (\stInitial,\hpAK,\hMT,\nop,\cPer),
+\)
+where $\stInitial$ is a state identifier, $\hpAK$ is the aggregated multisignature
+key established during the setup phase, $\hMT$ is the root of a Merkle tree for
+the signature verification keys $\hppuv=(k_1,\ldots,k_\nop)$ exchanged during the
+setup phase (identifying the head members), $\nop$
+is the number of head members, and $\cPer$ is the length of the
+contestation period.  The \mtxInit{} transaction also forges $\nop$
+participation tokens $\{p_1,\ldots,p_\nop\} :: \mathsf{cid}$, where
+the currency ID $\mathsf{cid}$ is given by the unique \emph{monetary-policy script}
+consumed by the $\mathsf{cid}$ input. The script is unique as it is bound to
+an output and the ledger prevents double spending. Consequently, we can
+use $\mathsf{cid}$ as a unique identifier for the newly initialized head.
+
+Crucially, the \mtxInit{} transaction has $\nop$ outputs, where each
+output is locked by a validator $\nuSetup$ and the $\ith i$ output has
+$k_i$ in its data field.  Validator $\nuSetup$ ensures the following:
+either the output is consumed by \begin{menumerate} \item  an SM abort transaction (see
+below) or \item a commit transaction (identified by having validator
+$\nuCom$ in its only output), and
+\begin{menumerate}
+\item the transaction is signed and the signature verifies as valid with verification key $k_i$,
+\item the data field of the output of the commit transaction is
+  $U_i = \makeUTxO(o_1,\ldots,o_m)$, where the $o_j$ are the outputs
+  referenced by the commit transaction's inputs and $\makeUTxO$
+  stores pairs $(\txOutRef_j,o_j)$ of outputs $o_j$ with the
+  corresponding output reference $\txOutRef_j$.
+\end{menumerate}
+\end{menumerate}
+
+% Note that all the parameters of the head and all keys are agreed upon
+%out-of-band (see also the head protocol). %
+%\footnote{Note that the head protocol includes algorithms for
+%  generating the keys $k_i$ and an aggregated key $\hpAK$.} %
+The general well-formedness and validity of the \mtxInit{}
+transaction is checked on the mainchain. The head members additionally check whether the head parameters
+match the parameters agreed on during the setup phase. In case of a
+mismatch the head opening is considered as failed.
+
+
+\dparagraph{Committing outputs to a head.}
+To lock outputs % designated
+for a Hydra head, the $\ith i$
+head member will attach a \mtxCom{} transaction (see
+Fig.~\ref{fig:SM_commit_tx}) to the $\ith i$ output of the
+\mtxInit{} transaction.  Validator $\nuCom$ ensures that the \mtxCom{}
+transaction correctly records the partial UTxO set $U_i$ committed
+by the party.
+
+All \mtxCom{} transactions will in turn be collected by an SM
+transaction---either \mtxCCom{} or \mtxAbort{} (see below).
+
+
+\dparagraph{Collecting commits.} The SM transition from $\stInitial$
+to $\stOpen$ is achieved by posting the \mtxCCom{} transaction (see
+Fig.~\ref{fig:SM_initial_open}).  All parameters $\hpAK$, $\hMT$,
+$\nop$, and $\cPer$ remain part of the state, but in addition, a value
+$\eta \gets \ocvInitial(U_1,\ldots,U_n)$ is stored in the state.
+The idea is that $\eta$ stores information about the initial UTxO set,
+which is made up of the individual UTxO sets $U_i$ collected from the
+commit transactions, in order to verify head-status information later
+(see below).
+
+It is also required that all $\nop$ participation tokens be present in
+the SM output of the \mtxCCom{} transaction.  This ensures that the
+\mtxCCom{} transaction collects all $\nop$ commit transactions.  Note
+that since $\nuSetup$ does not allow an SM commit transaction to
+consume the outputs of the initial transaction, the only way to post
+the \mtxCCom{} transaction is if each head member has posted a commit
+transaction.
+
+
+\input{fig_SM_initial_open}
+
+
+Finally, note that the transition requires a proof $\piMT$ that the
+signer $k'$ is in the Merkle Tree belonging to $\hMT$, which ensures
+that only head members can post SM transactions.  This will be the
+case for all transitions considered in this paper (and will not be
+pointed out any further).
+
+
+\dparagraph{Aborting a head.} The \mtxAbort{} transaction
+(see Fig.~\ref{fig:SM_initial_final}) allows a party to abort the
+creation of a head in case some parties fail to post a commit
+transaction.  The final state does not contain any information (beyond
+its identifier), but it is ensured that (1) the outputs $U$ correspond
+to the union of all committed UTxO sets $U_i$ and (2) all
+participation tokens are burned.
+
+
+\input{fig_SM_initial_final}
+
+
+\dparagraph{Close transaction.} In order to close a head, a head
+member may post the \mtxClose{} transaction (see
+Fig.~\ref{fig:SM_open_closed}), which results in a state transition
+from the $\stOpen$ state to the $\stClosed$ state.  For a successful
+close, a head member must provide valid information $\xi$ about (their
+view of) the current head state.  This information is passed through
+OCV algorithm $\ocvClose$, resulting in a new OCV status
+$\eta' \gets \ocvClose(\hpAK,\eta,\xi)$.  OCV algorithm $\ocvClose$
+uses the previous OCV status $\eta$ and $\hpAK$ to check the head
+information~$\xi$.  Note that if a check fails, $\ocvClose$ may output
+$\bot$, but in order for a \mtxClose{} transaction to be valid,
+$\eta' \neq \bot$ is required.
+
+Once a \mtxClose{} transaction has been posted, a \emph{contestation period}
+begins which should last at least $\cPer$ slots.  Hence, the last slot
+$\Tfinal$ of the contestation period is recorded in the state, and it
+is ensured that $\Tfinal \geq \txRmax' + \cPer$.
+
+Finally, the SM state is extended by a set $\contesters$
+initialized to the poster's signing key, i.e.,
+$\contesters \gets \{k'\}$.   $\contesters$ is used to ensure that no party
+posts more than once during the contestation period.
+
+
+\input{fig_SM_open_closed}
+
+
+\dparagraph{Contestation.} If the party first closing a head posts
+outdated/incomplete information about the current state of the head,
+any other party may post a \mtxContest{} transaction (see
+Fig.~\ref{fig:SM_closed_closed}), which causes a state transition from
+the $\stClosed$ state to itself.  The transition handles update
+information $\xi$ by passing it through OCV algorithm $\ocvContest$,
+resulting in a new OCV status
+$\eta' \gets \ocvContest (\hpAK,\eta,\xi)$.  OCV algorithm
+$\ocvContest$ uses the previous OCV status $\eta$ and $\hpAK$ to check
+the update information $\xi$.  Similarly to $\ocvClose$, $\ocvContest$
+may output $\bot$, but in order for a \mtxContest{} transaction to be
+valid $\eta' \neq \bot$ is required.
+
+The \mtxContest{} transaction is only valid if the old set
+$\contesters$ of parties who have contested (or closed) so far does not yet
+include the poster, i.e., $k' \notin \contesters$.  If this check
+passes, the set is extended to include the poster of the \mtxContest{}
+transaction, i.e., $\contesters' \gets \contesters \cup \{k'\}$.
+Furthermore, \mtxContest{} transactions may only be posted up until
+$\Tfinal$, i.e., it is required that $\txRmax' \leq \Tfinal$.
+
+Observe that during the contestation period, up to $\nop-1$
+\mtxContest{} transactions may be posted (of course, the parameter
+$\cPer$ has to be chosen large enough as to allow each head member to
+potentially post a \mtxClose{}/\mtxContest{} transaction).
+
+
+\input{fig_SM_closed_closed}
+
+\input{fig_SM_closed_final}
+
+\dparagraph{Final state.}  Once the contestation phase is over, a head
+may be finalized by posting a \mtxFanout{} transaction, taking the SM
+from $\stClosed$ to $\stFinal$.  The \mtxFanout{} transaction must
+have outputs that correspond to the most recent head state.  To that
+end, OCV predicate $\ocvFinal$ checks the transaction's output set $U$
+against the information recorded in $\eta$.  The \mtxFanout{}
+transaction is only valid if $\ocvFinal$ outputs $\true$.  Moreover,
+to ensure that the \mtxFanout{} transaction is not posted too early,
+$\txRmin' > \Tfinal$ is required.  Finally, all participation tokens
+must be burned.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
