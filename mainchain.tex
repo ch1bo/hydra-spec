@@ -1,72 +1,81 @@
-\section{Mainchain}
-\label{sec:mainchain}
+\section{Mainchain}\label{sec:mainchain}
 
-Here we describe the details of the mainchain state
-machine (SM) controlling a Hydra head (see
-Fig.~\ref{fig:SM_states_basic}).  For state transitions, a formal
-description of the conditions in $\cemTxCon$ is foregone in favor of
-the intuitive explanations in the text and the figures.
+Here we describe the details of the mainchain state machine (SM) controlling a
+Hydra head (see Fig.~\ref{fig:SM_states_basic}) using the CEM abstraction \&
+notation (see Section~\ref{sec:cem}). In addition of standard CEM modelling, we
+also provide the formal conditions $\cemTxCon$ which a transition need to
+satisfy and also include them in the accompanying text.
 
-\dparagraph{Onchain verification algorithms.} The status of the head
-is maintained in a variable $\eta$, which is part of the SM state and
-updated by so-called \emph{onchain verification (OCV) algorithms}
-$\ocvInitial$, $\ocvClose$, $\ocvContest$, and $\ocvFinal$. In the context
-of the mainchain protocol, these OCV algorithms are intentionally kept
-as generic as possible; this keeps the mainchain SM compatible with
-many potential head-protocol variants.
-The concrete OCV algorithms for the head protocol specified in this
-paper are given in context of the head protocol itself as they depend
-on the specific head-protocol internals: verification of head-protocol
-certificates and related onchain state updates.
-As such, the OCV algorithms can be seen as abstract mainchain algorithms
-implemented by the specific head protocol. Consequently, the OCV
-implementation for our head protocol is described in Section~\ref{sec:hpocv}.
+% TODO: no generic OCV anymore
+% \dparagraph{Onchain verification algorithms.} The status of the head
+% is maintained in a variable $\eta$, which is part of the SM state and
+% updated by so-called \emph{onchain verification (OCV) algorithms}
+% $\ocvInitial$, $\ocvClose$, $\ocvContest$, and $\ocvFinal$. In the context
+% of the mainchain protocol, these OCV algorithms are intentionally kept
+% as generic as possible; this keeps the mainchain SM compatible with
+% many potential head-protocol variants.
+% The concrete OCV algorithms for the head protocol specified in this
+% paper are given in context of the head protocol itself as they depend
+% on the specific head-protocol internals: verification of head-protocol
+% certificates and related onchain state updates.
+% As such, the OCV algorithms can be seen as abstract mainchain algorithms
+% implemented by the specific head protocol. Consequently, the OCV
+% implementation for our head protocol is described in Section~\ref{sec:hpocv}.
 
 \input{fig_SM_commit_tx}
 
-\dparagraph{Initial state.}  After the setup phase of Section~\ref{sec:hpsetup},
+\dparagraph{Initial state.} After the setup phase of Section~\ref{sec:hpsetup},
 the head initiator posts an \mtxInit{} transaction (see
-Fig.~\ref{fig:SM_commit_tx}).  The \mtxInit{} transaction
-establishes the SM's initial state
-\(
-  (\stInitial,\hpAK,\hMT,\nop,\cPer),
-\)
-where $\stInitial$ is a state identifier, $\hpAK$ is the aggregated multisignature
-key established during the setup phase, $\hMT$ is the root of a Merkle tree for
-the signature verification keys $\hppuv=(k_1,\ldots,k_\nop)$ exchanged during the
-setup phase (identifying the head members), $\nop$
-is the number of head members, and $\cPer$ is the length of the
-contestation period.  The \mtxInit{} transaction also forges $\nop$
-participation tokens $\{p_1,\ldots,p_\nop\} :: \mathsf{cid}$, where
-the currency ID $\mathsf{cid}$ is given by the unique \emph{monetary-policy script}
-consumed by the $\mathsf{cid}$ input. The script is unique as it is bound to
-an output and the ledger prevents double spending. Consequently, we can
-use $\mathsf{cid}$ as a unique identifier for the newly initialized head.
+Fig.~\ref{fig:SM_commit_tx}). The \mtxInit{} transaction establishes the SM's
+initial state \( (\stInitial,\hpAK,\hppuv,\nop,\cPer), \) where $\stInitial$ is
+a state identifier, $\hpAK$ is the aggregated multisignature key established
+during the setup phase, $\hppuv$ is the list of all participants verification
+keys $(k_1,\ldots,k_\nop)$ exchanged during the setup phase and identifying the
+head members, $\nop$ is the number of head members, and $\cPer$ is the length of
+the contestation period. The \mtxInit{} transaction also mints $\nop$
+participation tokens $\{p_1,\ldots,p_\nop\} :: \mathsf{cid}$, where the currency
+ID $\mathsf{cid}$ is defined by the unique \emph{monetary-policy script}
+$\muHead$.
 
-Crucially, the \mtxInit{} transaction has $\nop$ outputs, where each
-output is locked by a validator $\nuSetup$ and the $\ith i$ output has
-$k_i$ in its data field.  Validator $\nuSetup$ ensures the following:
-either the output is consumed by \begin{menumerate} \item  an SM abort transaction (see
-below) or \item a commit transaction (identified by having validator
-$\nuCom$ in its only output), and
+The script is unique as it is parameterized by a \emph{seed} input, which is
+checked to be spent in the script \todo{add formal notation} and the ledger
+prevents double spending. Consequently, we can use $\mathsf{cid}$ as a unique
+identifier for the newly initialized head. Two kinds of tokens are minted using
+$\muHead$:
+\begin{itemize}
+\item ST: A single state thread token to ensure contract continuity \todo{ref}, the token name is a well known string, e.g. “HydraHeadV1”
+\item PT: One participation token per participant, where the token name is the participant's verifikation key hash $H(k_i)$. This will be used to authenticate participants in protocol transactions.
+\end{itemize}
+
+
+Crucially, the \mtxInit{} transaction has $\nop$ outputs, where each output is
+locked by a validator $\nuInitial$ and the $\ith i$ output has the participation
+token $p_i$ in its value, while the datum is unused. Validator $\nuInitial$
+then ensures that the output is consumed by
+
 \begin{menumerate}
-\item the transaction is signed and the signature verifies as valid with verification key $k_i$,
-\item the data field of the output of the commit transaction is
-  $U_i = \makeUTxO(o_1,\ldots,o_m)$, where the $o_j$ are the outputs
-  referenced by the commit transaction's inputs and $\makeUTxO$
-  stores pairs $(\txOutRef_j,o_j)$ of outputs $o_j$ with the
-  corresponding output reference $\txOutRef_j$.
-\end{menumerate}
+  \item an \mtxAbort{} transaction (see below) or
+  \item a \mtxCom{} transaction (identified by having validator $\nuCom$ in its
+  only output), and
+  \begin{menumerate}
+    \item the transaction is signed and the signature verifies as valid with
+    verification key corresponding to the asset name in $p_i$,
+    \item the redeemer for $\nuInitial$ is referencing the output to commit $ \rho = \txOutRef_{commit}$, with output $o_{commit}$ holding value $val_{commit}$
+    \item the committed value is in the output $val' = \{p_{i}\} \cup val_{commit} $,
+    \item the data field of the single commit transaction output includes
+    $U_i = \recordUTxO(\txOutRef_{commit},o_{commit})$, where and $\recordUTxO$
+    stores $(\txOutRef_{commit},o_{commit})$ in a canonical way, \todo{define recordUTxO}
+    \item the data field includes $\mathsf{cid}$, \todo{from GDoc}
+    \item no minting or burning happens.
+  \end{menumerate}
 \end{menumerate}
 
-% Note that all the parameters of the head and all keys are agreed upon
-%out-of-band (see also the head protocol). %
-%\footnote{Note that the head protocol includes algorithms for
-%  generating the keys $k_i$ and an aggregated key $\hpAK$.} %
-The general well-formedness and validity of the \mtxInit{}
-transaction is checked on the mainchain. The head members additionally check whether the head parameters
-match the parameters agreed on during the setup phase. In case of a
+The general well-formedness and validity of the \mtxInit{} transaction is
+checked on the mainchain, including the fact that the committed output
+$o_{commit}$ can be spent. The head members additionally check whether the head
+parameters match the parameters agreed on during the setup phase. In case of a
 mismatch the head opening is considered as failed.
+
 
 
 \dparagraph{Committing outputs to a head.}
@@ -82,6 +91,8 @@ All \mtxCom{} transactions will in turn be collected by an SM
 transaction---either \mtxCCom{} or \mtxAbort{} (see below).
 
 
+\input{fig_SM_initial_open}
+
 \dparagraph{Collecting commits.} The SM transition from $\stInitial$
 to $\stOpen$ is achieved by posting the \mtxCCom{} transaction (see
 Fig.~\ref{fig:SM_initial_open}).  All parameters $\hpAK$, $\hMT$,
@@ -95,13 +106,11 @@ commit transactions, in order to verify head-status information later
 It is also required that all $\nop$ participation tokens be present in
 the SM output of the \mtxCCom{} transaction.  This ensures that the
 \mtxCCom{} transaction collects all $\nop$ commit transactions.  Note
-that since $\nuSetup$ does not allow an SM commit transaction to
+that since $\nuInitial$ does not allow an SM commit transaction to
 consume the outputs of the initial transaction, the only way to post
 the \mtxCCom{} transaction is if each head member has posted a commit
 transaction.
 
-
-\input{fig_SM_initial_open}
 
 
 Finally, note that the transition requires a proof $\piMT$ that the
