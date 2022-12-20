@@ -116,9 +116,10 @@
             }{ %
                $\hats \gets \bars + 1$ \; %
 
-               $\forall\tx\in\Reach^{\mT}(T)$:
-                \Out $(\hpSeen,\tx)$ \; %
-              
+               % TODO: update security definition to observe without output keyword
+               % $\forall\tx\in\Reach^{\mT}(T)$:
+               %  \Out $(\hpSeen,\tx)$ \; %
+
                $\hatmU \gets
                \Sno(\hats,\barmU\applytx T )$ \; %
 
@@ -166,7 +167,9 @@
               $\barmU \gets \hatmU$ \; %
               $\barmT \gets \barmT \cup \barmU.T$ \; %
 
-              $\forall \tx\in T$: \Out $(\hpConf,\tx)$ \; %
+              % TODO: update security definition to observe without output
+              % keyword
+              % $\forall \tx\in T$: \Out $(\hpConf,\tx)$ \; %
 
               % issue snapshot?
               \If{$\hats = \bars \land \hpLdr(\bars + 1) = i \land \hatmT \neq \emptyset$}{%
