@@ -76,20 +76,32 @@ $o_{commit}$ can be spent. The head members additionally check whether the head
 parameters match the parameters agreed on during the setup phase. In case of a
 mismatch the head opening is considered as failed.
 
+\dparagraph{Committing outputs to a head.} To lock outputs for a Hydra head, the
+$\ith i$ head member will attach a \mtxCom{} transaction (see
+Fig.~\ref{fig:SM_commit_tx}) to the $\ith i$ output of the \mtxInit{}
+transaction, by picking a UTxO to commit via the redeemer $\rho$ which pinpoints
+to the output to commit\footnote{Note that in this specified version of the Head
+  protocol, only one output can be committed by a head participant. This is to
+  avoid too big / expensive \mtxCollect{} transactions.}. The \mtxCom{}
+transaction has a single output which is locked by the $\nuCom$ validator.
 
+While the $\nuInitial$ validator ensured that the \mtxCommit{} transaction
+correctly records the committed UTxO set $U_i$, the $\nuCom$ validator only
+checks that the output is collected by a Hydra head transaction -- either
+\mtxCCom{} or \mtxAbort{} -- using the state thread (ST) token:
 
-\dparagraph{Committing outputs to a head.}
-To lock outputs % designated
-for a Hydra head, the $\ith i$
-head member will attach a \mtxCom{} transaction (see
-Fig.~\ref{fig:SM_commit_tx}) to the $\ith i$ output of the
-\mtxInit{} transaction.  Validator $\nuCom$ ensures that the \mtxCom{}
-transaction correctly records the partial UTxO set $U_i$ committed
-by the party.
-
-All \mtxCom{} transactions will in turn be collected by an SM
-transaction---either \mtxCCom{} or \mtxAbort{} (see below).
-
+\begin{menumerate}
+  \item for spending via \mtxCom{} transaction
+    \begin{menumerate}
+      \item the ST token is present in the output value $\{cid \rightarrow ST \rightarrow 1\} \subseteq val'$
+      \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
+    \end{menumerate}
+  \item for spending via \mtxAbort{} transaction
+    \begin{menumerate}
+      \item the ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$
+      \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
+    \end{menumerate}
+\end{menumerate}
 
 \input{fig_SM_initial_open}
 
