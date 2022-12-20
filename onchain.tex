@@ -66,7 +66,7 @@ Two kinds of tokens are minted:
 
 The \mtxInit{} transaction has $\nop$ outputs, where each output is
 locked by validator $\nuInitial$ and the $\ith i$ output has the participation
-token $\mathsf{PT}_i$ in its value, while the datum is unused. Validator $\nuInitial$
+token $\mathsf{PT}_i$ in its value, and $\mathsf{cid}$ as a datum. Validator $\nuInitial$
 ensures that the output is consumed by either by \mtxAbort{} (see section \ref{sec:abort-tx} below) or \mtxCom{} (see section \ref{sec:commit-tx} below).
 
 The general well-formedness and validity of the \mtxInit{} transaction is
@@ -84,12 +84,11 @@ The $\nuInitial$ validator ensures the transaction has the following structure:
     \item the transaction is signed with verification key corresponding to the asset name in $\mathsf{PT}_i$,
     \item the redeemer for $\nuInitial$ is referencing the output to commit $ \rho = \txOutRef_{commit}$, with output $o_{commit}$ holding value $\val_{commit}$
     \item the committed value is in the output $\val' = \{\mathsf{PT}_{i}\} \cup \val_{commit} $,
-    \item the data field $\delta$ of the output locked by $\nuCom$ includes 
-    $U_i = \recordUTxO(\txOutRef_{commit},o_{commit})$, where 
-    $$\recordUTxO (\txOutRef, o) = (\txOutRef, \bits(o)),
-    $$
-    \todo{removed the part about the cid being  in the datum as it's not what we implement and it 
-    does not make sense with how we say we construct the output earlier.}
+    \item the data field $\delta$ of the output locked by $\nuCom$ is $(\mathsf{cid}, U)$ with:
+    \begin{menumerate}
+        \item $U = \recordUTxO(\txOutRef_{commit},o_{commit})$, and 
+        \item $\recordUTxO (\txOutRef, o) = (\txOutRef, \bits(o))$,
+    \end{menumerate}        
     \item no minting or burning happens.
 \end{menumerate}
 
@@ -98,22 +97,25 @@ The $\nuCom$ validator ensures the output is collected by either a \mtxCCom{} or
 The \mtxCom{} transaction does not take part in the state machine logic.
 \end{boxM}
 
-
-\subsection{CollectCom Transaction} 
+\subsection{CollectCom Transaction}
 
 \input{fig_SM_initial_open}
 
-The \mtxCCom{} transaction collects all outputs from \mtxCom{} transactions participating in the same head and advances the state of the CEM state machine:
+The \mtxCCom{} transaction collects all outputs from \mtxCom{} transactions participating in the same head and advances the state of the CEM state machine
+$$
+   (\stInitial,\hpAK,\hppuv,\nop,\cPer) \longrightarrow (\stOpen,\hpAK,\eta,\hppuv,\nop,\cPer),
+$$
+where
+$$
+\eta = \mathsf{Combine}(U_{1}, \ldots, U_{n}).
+$$
 
-
+The $\nuHead$ validator additionally checks that:
 \begin{menumerate}
-  \item committed UTxOs (datums) are recorded correctly in
-  $\eta = \mathsf{Combine}(U_{1}, \ldots, U_{n})$,
   \item all committed value captured and no additional funds ``enter'' or ``leave''
-  $\val' = \bigcup_{i=1}^{n} p_{i} \cup \val_{i}$,
+  $\val' = \bigcup_{i=1}^{n} \mathsf{PT}_{i} \cup \val_{i}$,
   \item all tokens present in output
-  $|\{cid \rightarrow . \rightarrow 1\} ~ \mathsf{in} ~ \val'| = \nop + 1$
-  \todo{really count?},
+  $|\{cid \rightarrow . \rightarrow 1\} ~ \mathsf{in} ~ \val'| = \nop + 1$,
   \item the transaction is signed by a verification key $k' \in \hppuv$ with its
   hash corresponding to the asset name of one of the participation tokens
   $\{p_1 \dots p_n\}$,
@@ -122,27 +124,11 @@ The \mtxCCom{} transaction collects all outputs from \mtxCom{} transactions part
   \item no minting or burning happens.
 \end{menumerate}
 
-Each of the $\nuCom$ validators, for $i \in \{ 1\dots n\}$, checks:
-    \begin{menumerate}
-      \item the ST token is present in the output value $\{cid \rightarrow ST \rightarrow 1\} \subseteq \val'$
-      \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
-    \end{menumerate}
-
-
-All parameters $\hpAK$, $\hppuv$, $\nop$, and $\cPer$ remain part of the state,
-but in addition, a value $\eta \gets \ocvInitial(U_1,\ldots,U_n)$ is stored in
-the state. The idea is that $\eta$ stores information about the initial UTxO
-set, which is made up of the individual UTxO sets $U_i$ collected from the
-commit transactions, in order to verify head-status information later (see
-below).
-
-It is also required that all $\nop$ participation tokens be present in the SM
-output of the \mtxCollect{} transaction. This ensures that the \mtxCollect{}
-transaction collects all $\nop$ commit transactions, because $\nuInitial$ does
-not allow a \mtxCollect{} transaction to consume the outputs of the \mtxInit{}
-transaction directly. The only way to post the \mtxCollect{} transaction is if
-each head member has posted a \mtxCommit{} transaction.
-
+Each of the $\nuCom^i$ validators, for $i \in \{ 1\dots n\}$, checks:
+\begin{menumerate}
+    \item the ST token is present in the output value $\{cid \rightarrow ST \rightarrow 1\} \subseteq \val'$
+    \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
+\end{menumerate}
 
 \todo{WIP after here}
 
