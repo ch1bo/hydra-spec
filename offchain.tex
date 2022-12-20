@@ -4,15 +4,14 @@ Variables:
 
 \begin{center}
 \begin{tabular}{|l|l|}\hline
-  $\hats$  & Sequence number of latest (possibly unconfirmed) snapshot. \\ \hline
-  $\bars$  & Sequence number of latest confirmed snapshot. \\ \hline
-  $\hatmU$ & Latest (possibly unconfirmed) snapshot object. \\ \hline
-  $\barmU$ & Latest confirmed snapshot object. \\ \hline
-  $\hatmL$ & Local ledger extension by next leader. Only the next leader
-  makes use of this variable.\\ \hline
+  $\hats$  & Sequence number of seen snapshot. \\ \hline
+  $\bars$  & Sequence number of confirmed snapshot. \\ \hline
+  $\hatmU$ & Seen snapshot object. \\ \hline
+  $\barmU$ & Confirmed snapshot object. \\ \hline
+  $\hatmL$ & Local ledger extension using seen transactions to prepare the next snapshot.\\ \hline
   $\mT$    & Set of all transactions ever received via reqTx (independent of their validity or mutual conflicts).\\  \hline
-  $\hatmT$ & Transactions that extend the next leader's $\barmU$ (or $\hatmU$) to form $\hatmL$.\\
-           & Only the next leader makes use of this variable.\\  \hline
+  $\hatmT$ & Set of transactions that extend the $\barmU$ (or $\hatmU$\todo{??}) to form $\hatmL$. \\
+           & Transaction candidates that go into the next snapshot (if this party is the next leader).\\ \hline
   $\barmT$ & Set of all confirmed transactions up to the latest confirmed snapshot.\\  \hline
 \end{tabular}
 \end{center}

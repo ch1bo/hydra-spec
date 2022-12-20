@@ -2,21 +2,25 @@
 \section{Protocol Setup}\label{sec:hpsetup}
 In order to create a head-protocol instance, an initiator invites a set of
 participants (himself being one of them) to join by announcing to them the
-protocol parameters: the list of participants, the parameters of the
-(multi-)signature scheme to be used, etc.
+protocol parameters.
 
 \begin{itemize}
+  \item \todo{Define $\nop$, $\cPer$ etc.}
+
   \item Each party establishes pairwise communication channels to all other parties. That is, every network message received from a specific party is checked for (channel) authentication. It is the implementer’s duty to find a suitable authentication process for the communication channels.
 
-  \item For some digital-signature scheme, each party $\party_i$ generates a
-        (``Cardano'') key pair $(\sVKI{i},\sSKI{i})$ and sends his respective
-        verification key $\sVKI{i}$ to all other parties. This standard
-        digital-signature scheme will be used to authenticate mainchain
-        transactions that are restricted to members of the head-protocol
-        instance. In the case of Cardano, these are Ed25519 keys.
+  \item For onchain transaction authentication (Cardano) purposes, each party $\party_i$ generates a
+        coressponding key pair $(\sVKI{i},\sSKI{i})$ and sends their verification key $\sVKI{i}$ to all other parties. In the case of Cardano, these are Ed25519 keys.
 
-  \item For the multisignature scheme (MS) \todo{see Section~\ref{sec:multisig}}
-        each party $\party_i$ generates a (``Hydra'') key pair
+  \item For offchain signing (Hydra) purposes, a multisignature scheme (MS, as defined in Section~\ref{sec:multisig}) we define to use a naiive instantiation:
+        \begin{itemize}
+          \item Using Ed25519 keys and key verification
+          \item $\msKeyGen(\msParams)$ is Ed25519 key generation (requires no parameters)
+          \item $\msCombVK$ is concatenation of verification keys
+          \item \todo{...continue}
+        \end{itemize}
+  
+        Each party $\party_i$ generates a hydra key pair
         \[
           (\daPuI{i},\daPrI{i})  \gets \ \msKeyGen(\msParams)
         \]
@@ -24,9 +28,7 @@ protocol parameters: the list of participants, the parameters of the
         multi-signature scheme may or may not be compatible with the standard
         signature scheme above. The multisignature scheme will be used for the
         offchain confirmation (and offchain and onchain verification) of
-        head-protocol events.
-
-  \item Each party then computes the aggregate key from the received
+        head-protocol events. Each party then computes the aggregate key from the received
         verification keys:
         \[
           \hpAK \ \gets \ \msCombVK(\msParams,(\daPuI{j})_{j\in[n]}) \,.

@@ -36,6 +36,20 @@
 
 \newcommand{\fail}{\mbox{fail}}
 
+% from https://www.overleaf.com/latex/examples/simple-stylish-box-design/stzmmcshxdng
+\definecolor{main}{HTML}{5989cf}    % setting main color to be used
+\definecolor{sub}{HTML}{cde4ff}     % setting sub color to be used
+\newtcolorbox{boxM}{
+    fontupper = \color{white},
+    rounded corners,
+    arc = 6pt,
+    colback = main!80, 
+    colframe = main, 
+    boxrule = 0pt, 
+    bottomrule = 4.5pt,
+    enhanced,
+    fuzzy shadow = {0pt}{-3pt}{-0.5pt}{0.5pt}{black!35}
+}
 
 % In figures, this makes algorithms work with option [H] despite
 % double-column format
@@ -61,7 +75,10 @@
 % === General ===
 \newcommand{\ol}[1]{\overline{#1}}
 
-\newcommand{\true}{\mathtt{true}}
+\newcommand{\true}This standard
+        digital-signature scheme will be used to authenticate mainchain
+        transactions that are restricted to members of the head-protocol
+        instance. {\mathtt{true}}
 \newcommand{\false}{\mathtt{false}}
 
 \newcommand{\spara}{k}
@@ -387,6 +404,8 @@
 \newcommand{\conf}{\mathsf{conflict}}
 \newcommand{\confTx}{\mathsf{conflict\md{}tx}}
 
+% serialisation
+\newcommand{\bits}{\mathsf{bits}}
 
 % == Projectors ==
 

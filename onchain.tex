@@ -31,8 +31,7 @@ Following the eUTxO model, this structure is enforced on-chain through \emph{val
 \subsection{Initial transaction} 
 
 The \mtxInit{} transaction (see
-Fig.~\ref{fig:SM_commit_tx}) establishes the protocol's initial state
-initial state as a tuple
+Fig.~\ref{fig:SM_commit_tx}) establishes the initial state of the protocol as the tuple
 $$
 (\stInitial,\hpAK,\hppuv,\nop,\cPer),
 $$ 
@@ -49,77 +48,65 @@ head members,
   \item $\cPer$ is the length of the contestation period.
 \end{menumerate} 
 
-The \mtxInit{} transaction also mints $\nop$
-participation tokens $\{p_1,\ldots,p_\nop\} :: \mathsf{cid}$, where the currency
-ID $\mathsf{cid}$ is defined by the unique \emph{monetary-policy script}
-$\muHead$.
+\subsubsection{Head Tokens}
 
-The script is unique as it is parameterized by a \emph{seed} input, which is
-checked to be spent in the script \todo{add formal notation} and the ledger
-prevents double spending. Consequently, we can use $\mathsf{cid}$ as a unique
-identifier for the newly initialized head. Two kinds of tokens are minted using
-$\muHead$:
+The \mtxInit{} transaction also mints tokens whose \emph{Minting Policy} is $\mathsf{cid}$, defined as 
+$$
+\mathsf{cid} = H(\muHead(\mathsf{tx_{in}})),
+$$
+where $\mathsf{tx_{in}}$ is one of the inputs spent in the \mtxInit{} transaction. From the ledger preventing double-spending and the uniqueness of $\mathsf{tx_{in}}$, $\mathsf{cid}$ is guaranteed to be unique and can be used to identify the newly initialized head. 
+
+Two kinds of tokens are minted:
 \begin{itemize}
-\item ST: A single state thread token to ensure contract continuity\todo{ref}, the token name is a well known string, e.g. “HydraHeadV1”
-\item PT: One participation token per participant, where the token name is the participant's verification key hash $H(k_i)$. This will be used to authenticate participants in protocol transactions.
+\item $\mathsf{ST}$: A single \emph{State Thread} token marking the output carrying the state of the protocol on-chain, whose name is the well known string \texttt{HydraHeadV1},
+\item $\mathsf{PT}_i,\ i\in \{1 \dots \nop \}$: One participation token per participant, where the token name is the participant's verification key hash $H(k_i)$. This will be used to authenticate participants in protocol transactions.
 \end{itemize}
 
+\subsubsection{Initial Outputs}
 
 The \mtxInit{} transaction has $\nop$ outputs, where each output is
-locked by a validator $\nuInitial$ and the $\ith i$ output has the participation
-token $p_i$ in its value, while the datum is unused. Validator $\nuInitial$
-then ensures that the output is consumed by either by \mtxAbort{} (see section \ref{sec:abort-tx} below) or \mtxCom{} (see section \ref{sec:commit-tx} below).
+locked by validator $\nuInitial$ and the $\ith i$ output has the participation
+token $\mathsf{PT}_i$ in its value, while the datum is unused. Validator $\nuInitial$
+ensures that the output is consumed by either by \mtxAbort{} (see section \ref{sec:abort-tx} below) or \mtxCom{} (see section \ref{sec:commit-tx} below).
 
 The general well-formedness and validity of the \mtxInit{} transaction is
-checked on the mainchain, including the fact that the committed output
-$o_{commit}$ can be spent. The head members additionally check whether the head
-parameters match the parameters agreed on during the setup phase. In case of a
-mismatch the head opening is considered as failed.
+checked on the mainchain. The head members can additionally check whether the head
+parameters match the parameters agreed on during the setup phase.
 
 \subsection{Commit Transaction}\label{sec:commit-tx}
 
 \input{fig_SM_commit_tx}
 
-A \mtxCom{} transaction is identified by having validator $\nuCom$ in its
-  only output and has the following structure:
+A \mtxCom{} transaction consumes one $\nuInitial$ UTxO and zero or one \emph{committed} UTxO, and has one output locked by validator $\nuCom$. 
+
+The $\nuInitial$ validator ensures the transaction has the following structure:
 \begin{menumerate}
-    \item the transaction is signed and the signature verifies as valid with
-    verification key corresponding to the asset name in $p_i$,
+    \item the transaction is signed with verification key corresponding to the asset name in $\mathsf{PT}_i$,
     \item the redeemer for $\nuInitial$ is referencing the output to commit $ \rho = \txOutRef_{commit}$, with output $o_{commit}$ holding value $\val_{commit}$
-    \item the committed value is in the output $\val' = \{p_{i}\} \cup \val_{commit} $,
-    \item the data field $\delta$ of the single commit transaction output includes\todo{also cid} \\
-    $U_i = \recordUTxO(\txOutRef_{commit},o_{commit})$, where and $\recordUTxO$
-    stores output references and outputs in a canonical way, \todo{define
-      recordUTxO}
-    \item the data field includes $\mathsf{cid}$, \todo{from GDoc}
+    \item the committed value is in the output $\val' = \{\mathsf{PT}_{i}\} \cup \val_{commit} $,
+    \item the data field $\delta$ of the output locked by $\nuCom$ includes 
+    $U_i = \recordUTxO(\txOutRef_{commit},o_{commit})$, where 
+    $$\recordUTxO (\txOutRef, o) = (\txOutRef, \bits(o)),
+    $$
+    \todo{removed the part about the cid being  in the datum as it's not what we implement and it 
+    does not make sense with how we say we construct the output earlier.}
     \item no minting or burning happens.
 \end{menumerate}
 
-While the $\nuInitial$ validator ensured that the \mtxCommit{} transaction
-correctly records the committed UTxO set $U_i$, the $\nuCom$ validator only
-checks that the output is collected by a Hydra head transaction -- either
-\mtxCCom{} or \mtxAbort{} -- using the state thread (ST) token:
+The $\nuCom$ validator ensures the output is collected by either a \mtxCCom{} or \mtxAbort{} transaction.
+\begin{boxM}
+The \mtxCom{} transaction does not take part in the state machine logic.
+\end{boxM}
 
-\begin{menumerate}
-  \item for spending via \mtxCom{} transaction
-    \begin{menumerate}
-      \item the ST token is present in the output value $\{cid \rightarrow ST \rightarrow 1\} \subseteq \val'$
-      \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
-    \end{menumerate}
-  \item for spending via \mtxAbort{} transaction
-    \begin{menumerate}
-      \item the ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$
-      \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
-    \end{menumerate}
-\end{menumerate}
 
 \subsection{CollectCom Transaction} 
 
 \input{fig_SM_initial_open}
 
-The SM transition from $\stInitial$ to
-$\stOpen$ is achieved by posting the \mtxCCom{} transaction (see
-Fig.~\ref{fig:SM_initial_open}). It needs to collect all previously committed
+The \mtxCCom{} transaction collects all outputs from \mtxCom{} transactions participating in the same head and advances the state of the CEM state machine:
+SM transition from $\stInitial$ to
+$\stOpen$ is achieved by posting the (see
+Fig.~\ref{fig:SM_initial_open}). It needs to previously committed
 outputs (as well as the Head state input implied by the CEM model) and checks:
 
 \begin{menumerate}
@@ -137,6 +124,13 @@ outputs (as well as the Head state input implied by the CEM model) and checks:
   $\cPer$ in the data field,
   \item no minting or burning happens.
 \end{menumerate}
+
+Each of the $\nuCom_i$ validators, for $i \in \{ 1\dots n\}$, checks: 
+    \begin{menumerate}
+      \item the ST token is present in the output value $\{cid \rightarrow ST \rightarrow 1\} \subseteq \val'$
+      \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
+    \end{menumerate}
+
 
 All parameters $\hpAK$, $\hppuv$, $\nop$, and $\cPer$ remain part of the state,
 but in addition, a value $\eta \gets \ocvInitial(U_1,\ldots,U_n)$ is stored in
@@ -165,6 +159,13 @@ its identifier), but it is ensured that (1) the outputs $U$ correspond
 to the union of all committed UTxO sets $U_i$ and (2) all
 participation tokens are burned.
 
+Each of the $\nuCom_i$ validators, for $i \in \{ 1\dots n\}$, checks: 
+
+\begin{menumerate}
+  \item the ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$
+  \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
+\end{menumerate}
+
 
 \input{fig_SM_initial_final}
 
@@ -174,26 +175,19 @@ participation tokens are burned.
 In order to close a head, a head
 member may post the \mtxClose{} transaction (see
 Fig.~\ref{fig:SM_open_closed}), which results in a SM transition
-from the $\stOpen$ state to the $\stClosed$ state.
+from the $\stOpen$ state to the $\stClosed$ state.\newline
+
 Description of performed validator checks:
- - Transition “close” from “open” to “closed”
- - Verify off-chain signature on snapshot or keep recorded UTxO data unchanged if no snapshot
- - Record contestation deadline: at least L slots after close and ensure T_max - T_min not too large
- - Record public key hash of participant who posts in a set C
- - Value preservation
- - Nothing minted
 
+\begin{enumerate}
+  \item Verify off-chain signatures on a snapshot or keep recorded UTxO data unchanged if there is no snapshot 
+  \item Ensure that the close transaction validity is bounded by contestation period: $Tmax - Tmin <= CP$  
+  \item Make sure deadline $DL$ is $CP$ time added to the close transaction upper bound: $DL' = Tmax + CP$
+  \item Record contestation period in the datum 
+  \item Check that close transaction is signed by one of the valid participants
+\end{enumerate}
+\newline
 
-
-For a successful
-close, a head member must provide valid information $\xi$ about (their
-view of) the current head state.  This information is passed through
-OCV algorithm $\ocvClose$, resulting in a new OCV status
-$\eta' \gets \ocvClose(\hpAK,\eta,\xi)$.  OCV algorithm $\ocvClose$
-uses the previous OCV status $\eta$ and $\hpAK$ to check the head
-information~$\xi$.  Note that if a check fails, $\ocvClose$ may output
-$\bot$, but in order for a \mtxClose{} transaction to be valid,
-$\eta' \neq \bot$ is required.
 
 Once a \mtxClose{} transaction has been posted, a \emph{contestation period}
 begins which should last at least $\cPer$ slots.  Hence, the last slot

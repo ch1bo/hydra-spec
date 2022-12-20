@@ -8,18 +8,21 @@
 % understanding of their security.  More details can be found in
 % \cite[Section 4.1]{sidechains}.
 A multisignature scheme~\cite{itakura1983public,CCS:MicOhtRey01} is a
-tuple of algorithms 
-$\ms = (\msSetup,\allowbreak\msKeyGen,\allowbreak\msCombVK,\allowbreak
-\msSign,\msComb,\msVfy)$ such that
+tuple of algorithms:
+
+\vspace{5mm}$\ms = (\msSetup \times \allowbreak\msKeyGen \times \allowbreak\msCombVK \times \allowbreak
+\msSign \times \allowbreak\msComb \times \allowbreak\msVfy)$
+\vspace{5mm}\\*such that
 $\msParams \gets \msSetup(1^\spara)$ generates public parameters;
 %$\msParams$;
 % with security parameter $k$;
-with these in place,
+\\*with these in place,
 $(\msVK,\msSK) \gets \msKeyGen(\msParams)$ can be used to generate
-fresh key pairs. Then
+fresh key pairs. 
+\vspace{5mm}\\*Then
 %Signatures are managed with the remaining algorithms:
 \begin{mitemize}
-%\begin{enumerate*}[label=(\roman*)]
+%\hspace{5mm}begin{enumerate*}[label=(\roman*)]
   \item $\msSig \gets \msSign(\msParams,\msSK,\msMsg)$ signs 
     a message $\msMsg$ using key $\msSK$;
   \item $\msCSig \gets \msComb(\msParams,\msMsg,\msVKL,\msSigL)$ aggregates a
@@ -38,8 +41,7 @@ fresh key pairs. Then
   that, if $\msCVK$ is produced from a tuple of verification keys
   $\msVKL$ via $\msCombVK$, then no aggregate signature $\msCSig$ can
   pass verification $\msVfy(\msCVK,\msMsg,\msCSig)$ unless all
-  honest parties holding keys in $\msVKL$ signed $m$. A full treatment
-  appears in Appendix~\ref{app:multisig}.
+  honest parties holding keys in $\msVKL$ signed $m$.
 
 \subsection{Extended UTxO model \& state machines}
 \label{sec:prel_tx}

@@ -118,14 +118,18 @@
             \Req $\validTx(\tx)$ and %
             $\hatmL \applytx \tx \neq \bot$ \; %
             
-            $\mT[\hash] \gets \Txo(j,\tx)$ // ever seen %
+            $\mT[\hash] \gets \tx$ % all seen txs
 
             % \If{$(\hats\in\{\bars,\bars+1\}) \wedge (\hpLdr(\hats+1) = i) \wedge (\hatmL\applytx\tx\not=\bot)$}{
-              $\hatmT[\hash] \gets \mT[\hash]$ // candidate for SN \; %
+              $\hatmT[\hash] \gets \mT[\hash]$ % candidates for next snapshot \; %
 
               $\hatmL \gets \hatmL\applytx\tx$ %
 
-            % }
+            \If{
+                \Req $\hpLdr(\bars + 1) = i$ %
+                and $\hats = \bars$ \;
+                \Multi $(\hpRS,\bars+1,\hatmT\hpProjH)$ \; %
+                }
             
           }
 
