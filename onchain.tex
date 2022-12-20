@@ -104,10 +104,7 @@ The \mtxCom{} transaction does not take part in the state machine logic.
 \input{fig_SM_initial_open}
 
 The \mtxCCom{} transaction collects all outputs from \mtxCom{} transactions participating in the same head and advances the state of the CEM state machine:
-SM transition from $\stInitial$ to
-$\stOpen$ is achieved by posting the (see
-Fig.~\ref{fig:SM_initial_open}). It needs to previously committed
-outputs (as well as the Head state input implied by the CEM model) and checks:
+
 
 \begin{menumerate}
   \item committed UTxOs (datums) are recorded correctly in
