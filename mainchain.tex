@@ -56,15 +56,16 @@ then ensures that the output is consumed by
 \begin{menumerate}
   \item an \mtxAbort{} transaction (see below) or
   \item a \mtxCom{} transaction (identified by having validator $\nuCom$ in its
-  only output), and
+  only output\todo{highlight this?}), and
   \begin{menumerate}
     \item the transaction is signed and the signature verifies as valid with
     verification key corresponding to the asset name in $p_i$,
-    \item the redeemer for $\nuInitial$ is referencing the output to commit $ \rho = \txOutRef_{commit}$, with output $o_{commit}$ holding value $val_{commit}$
-    \item the committed value is in the output $val' = \{p_{i}\} \cup val_{commit} $,
-    \item the data field of the single commit transaction output includes
+    \item the redeemer for $\nuInitial$ is referencing the output to commit $ \rho = \txOutRef_{commit}$, with output $o_{commit}$ holding value $\val_{commit}$
+    \item the committed value is in the output $\val' = \{p_{i}\} \cup \val_{commit} $,
+    \item the data field $\delta$ of the single commit transaction output includes\todo{also cid} \\
     $U_i = \recordUTxO(\txOutRef_{commit},o_{commit})$, where and $\recordUTxO$
-    stores $(\txOutRef_{commit},o_{commit})$ in a canonical way, \todo{define recordUTxO}
+    stores output references and outputs in a canonical way, \todo{define
+      recordUTxO}
     \item the data field includes $\mathsf{cid}$, \todo{from GDoc}
     \item no minting or burning happens.
   \end{menumerate}
@@ -93,7 +94,7 @@ checks that the output is collected by a Hydra head transaction -- either
 \begin{menumerate}
   \item for spending via \mtxCom{} transaction
     \begin{menumerate}
-      \item the ST token is present in the output value $\{cid \rightarrow ST \rightarrow 1\} \subseteq val'$
+      \item the ST token is present in the output value $\{cid \rightarrow ST \rightarrow 1\} \subseteq \val'$
       \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
     \end{menumerate}
   \item for spending via \mtxAbort{} transaction
@@ -105,31 +106,40 @@ checks that the output is collected by a Hydra head transaction -- either
 
 \input{fig_SM_initial_open}
 
-\dparagraph{Collecting commits.} The SM transition from $\stInitial$
-to $\stOpen$ is achieved by posting the \mtxCCom{} transaction (see
-Fig.~\ref{fig:SM_initial_open}).  All parameters $\hpAK$, $\hMT$,
-$\nop$, and $\cPer$ remain part of the state, but in addition, a value
-$\eta \gets \ocvInitial(U_1,\ldots,U_n)$ is stored in the state.
-The idea is that $\eta$ stores information about the initial UTxO set,
-which is made up of the individual UTxO sets $U_i$ collected from the
-commit transactions, in order to verify head-status information later
-(see below).
+\dparagraph{Collecting commits.} The SM transition from $\stInitial$ to
+$\stOpen$ is achieved by posting the \mtxCCom{} transaction (see
+Fig.~\ref{fig:SM_initial_open}). It needs to collect all previously committed
+outputs (as well as the Head state input implied by the CEM model) and checks:
 
-It is also required that all $\nop$ participation tokens be present in
-the SM output of the \mtxCCom{} transaction.  This ensures that the
-\mtxCCom{} transaction collects all $\nop$ commit transactions.  Note
-that since $\nuInitial$ does not allow an SM commit transaction to
-consume the outputs of the initial transaction, the only way to post
-the \mtxCCom{} transaction is if each head member has posted a commit
-transaction.
+\begin{menumerate}
+  \item committed UTxOs (datums) are recorded correctly in
+  $\eta = \mathsf{Combine}(U_{1}, \ldots, U_{n})$,
+  \item all committed value captured and no additional funds ``enter'' or ``leave''
+  $\val' = \bigcup_{i=1}^{n} p_{i} \cup \val_{i}$,
+  \item all tokens present in output
+  $|\{cid \rightarrow . \rightarrow 1\} ~ \mathsf{in} ~ \val'| = \nop + 1$
+  \todo{really count?},
+  \item the transaction is signed by a verification key $k' \in \hppuv$ with its
+  hash corresponding to the asset name of one of the participation tokens
+  $\{p_1 \dots p_n\}$,
+  \item unchanged parameters $\mathsf{cid}$, $\hpAK$, $\hppuv$, $\nop$, and
+  $\cPer$ in the data field,
+  \item no minting or burning happens.
+\end{menumerate}
 
+All parameters $\hpAK$, $\hppuv$, $\nop$, and $\cPer$ remain part of the state,
+but in addition, a value $\eta \gets \ocvInitial(U_1,\ldots,U_n)$ is stored in
+the state. The idea is that $\eta$ stores information about the initial UTxO
+set, which is made up of the individual UTxO sets $U_i$ collected from the
+commit transactions, in order to verify head-status information later (see
+below).
 
-
-Finally, note that the transition requires a proof $\piMT$ that the
-signer $k'$ is in the Merkle Tree belonging to $\hMT$, which ensures
-that only head members can post SM transactions.  This will be the
-case for all transitions considered in this paper (and will not be
-pointed out any further).
+It is also required that all $\nop$ participation tokens be present in the SM
+output of the \mtxCollect{} transaction. This ensures that the \mtxCollect{}
+transaction collects all $\nop$ commit transactions, because $\nuInitial$ does
+not allow a \mtxCollect{} transaction to consume the outputs of the \mtxInit{}
+transaction directly. The only way to post the \mtxCollect{} transaction is if
+each head member has posted a \mtxCommit{} transaction.
 
 
 \dparagraph{Aborting a head.} The \mtxAbort{} transaction
