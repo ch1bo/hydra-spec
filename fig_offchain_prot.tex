@@ -5,6 +5,7 @@
   \begin{algobox}{Coordinated Hydra Head}
     \medskip
     \begin{tabular}{c}
+      % CLIENT EVENTS
       \begin{tabular}{cc}
         \adjustbox{valign=t,scale=\sfact}{
          \begin{walgo}{0.65}
@@ -23,16 +24,14 @@
             $\hatmL \gets \Uinit$ \; %
             % $\hatmT,\barmT \gets \emptyset$ \; %
             $\mT, \hatmT,  \barmT \gets \emptyset$ \; % all, seenforsnap, confirmedforsnap
+
+            % TODO: this should also postTx init?
           }
 
-          
+          % TODO: commit from client
+          % TODO: abort from client
+
           \vspace{12pt} %
-          
-          %%% NEW TX
-          \On{$(\hpNew,\tx)$ from client}{%
-            \Req{} $\validTx(\tx) \land \hatmL \applytx \tx \neq \bot$\;
-            \Multi{} $(\hpRT,\tx)$%
-          }
 
         \end{walgo}
         }
@@ -40,32 +39,19 @@
 
         \adjustbox{valign=t,scale=\sfact}{
         \begin{walgo}{0.6}
-          %%% CLOSE
-          \On{$(\hpClose)$ from client}{ %
-            \Return $(\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
-          }
-          
-          \vspace{12pt} %
-          
-          %%% CONTEST
-          \On{$(\hpCont,\eta)$ from client}{ %
-            $(U_\eta,s_\eta) \gets \eta$ \; %
-
-            % FIXME: this was completely wrong? check with researchers
-            % \Req{} $s_\eta > \bars$ %
-            % \Return $(U_\eta,s_\eta)$ \; %
-
-            \Req{} $\bars > s_\eta $ \; %
-            \Return $(\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
-
+          %%% NEW TX
+          \On{$(\hpNew,\tx)$ from client}{%
+            \Req{} $\validTx(\tx) \land \hatmL \applytx \tx \neq \bot$\;
+            \Multi{} $(\hpRT,\tx)$%
           }
 
           \vspace{12pt}
 
-          % \On{$(\hpFinalize,\eta)$ from client}{ %
-          %   $(\hash,s,T) \gets \eta$ \; %            
-          % }    
-          
+          % CLOSE from client
+          \On{$(\hpClose)$ from client}{ %
+            $\xi \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
+            $\gcChainPost(\mtxClose,\xi)$ \; %
+          }
 
         \end{walgo}
           }
@@ -80,15 +66,11 @@
 
       \end{tabular}
       
-      \vspace{-10pt}
       \\
-      % \ifdefined\IsLLNCS %
-        \multicolumn{1}{l}{\line(1,0){490}} %
-      % \else %
-      %   \multicolumn{1}{l}{\line(1,0){465}} %
-      % \fi %
+      \multicolumn{1}{l}{\line(1,0){490}} %
       \\
 
+      % NETWORK EVENTS
       \begin{tabular}{c@{}c}
         \adjustbox{valign=t,scale=\sfact}{
         \begin{walgo}{0.65}
@@ -202,8 +184,73 @@
 
       \end{tabular}
 
+      \\
+      \multicolumn{1}{l}{\line(1,0){490}} %
+      \\
+
+      % CHAIN EVENTS
+      \begin{tabular}{c c}
+        \adjustbox{valign=t,scale=\sfact}{
+        \begin{walgo}{0.6}
+          \vspace{12pt} %
+
+          \On{$(\gcChainInitial)$}{ %
+           \Req $\hpAKchain=\hpAKinit$\; %
+           \Req $\hMT=H_{\mathsf{Merkle}}(\hppuv)$ \; %
+           $\gcChainRef.\gcChainPost(\mtxCom,U)$ \; %
+          }
+
+          \vspace{12pt}
+
+          \On{$(\gcChainInitialTO)$}{ %
+            \eIf{(all members committed)}{
+              $\gcChainRef.\gcChainPost(\mtxCCom)$ \; %
+            }{
+              $\gcChainRef.\gcChainPost(\mtxAbort)$ \; %
+            }
+          }
+
+        \end{walgo}
+        }
+        & \adjustbox{valign=t,scale=\sfact}{
+          \begin{walgo}{0.6}
+
+          \On{$(\gcChainCollectCom)$}{ %
+            $(\Uinit,\cdot,\cdot)\gets\ocvInitial(U_{p_1},\dots,U_{p_n})$ \; %
+            $\gcHeadRef.(\hpInit,i,\hpPuv,\hpPri{i},\Uinit)$ \; %
+          }
+
+          \vspace{12pt} %
+
+          \On{$(\gcChainClose)$}{ %
+            $\eta'=(\cdot,s') \gets \ocvClose(\hpAK,\eta,\xi)$ \;
+            \If{$\bars > s'$}{%
+              $\xi \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
+              $\gcChainPost(\mtxContest,\xi)$ \; %
+            } }
+
+          \vspace{12pt} %
+
+          \On{$(\gcChainContest)$}{ %
+            $\eta'=(\cdot,s') \gets \ocvContest(\hpAK,\eta,\xi)$ \; %
+            \If{$s>s'$}{
+              $\xi \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
+              $\gcChainPost(\mtxContest,\xi)$ \; %
+            }
+          }
+
+          \vspace{12pt} %
+
+          \On{$(\gcChainClosedTO)$}{ %
+            $\gcChainRef.\gcChainPost(\mtxFanout)$ \; %
+          }
+          \end{walgo}
+          }
+
+      \end{tabular}
 
     \end{tabular}
+
     \bigskip
   \end{algobox}
   
