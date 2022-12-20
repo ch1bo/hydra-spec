@@ -59,7 +59,7 @@ members fail to post a \mtxCom{} transaction, the head can be aborted by going
 directly from $\stInitial$ to $\stFinal$.
 
 The head protocol is designed to allow any head member
-at any point in time to produce, without interaction, a certificate
+at any point in time to produce, without interaction, a certificate \todo{Should we use more technical term here? What is certificate?}
 for the current head UTxO set.  Using this certificate, the head member
 may advance the state machine to the $\stClosed$ state.
 
@@ -141,7 +141,7 @@ a new confirmed state $\barmL$ to be multisigned as a new snapshot---the first
 head snapshot corresponding to the initial state $\Uinit$. A snapshot is
 considered \emph{confirmed} if it is associated with a valid multisignature.
 
-In contrast to transactions, snapshots are generated in strict sequentially. To
+In contrast to transactions, snapshots are generated strictly sequentially. To
 have the new snapshot $\Uset_{i+1}=\barmL$ multisigned, the leader does not need
 to send his local state $\Uset_{i+1}$, but only indicate, by hashes, the set of
 (confirmed) transactions to be applied to $\Uset_i$ in order to obtain
@@ -156,11 +156,7 @@ delete all transactions that have already been processed into it as the
 snapshot's multisignature is now evidence that this state once existed
 during the head evolution.
 
-\dparagraph{Closing the head.} A party that wants to close the head decommits
-his confirmed by posting, onchain, their last known confirmed snapshot
-$\Uset_\ell$. During the subsequent contestation period, other head members can
-post their own local confirmed states onchain. The latest snapshot, with the
-highest snapshot number, will become the final UTxO set $\Ufinal$.
+\dparagraph{Closing the head.} A party that wants to close the head using their last known confirmed snapshot $\Uset_\ell$. During the subsequent contestation period, other head members can post their own local confirmed states onchain. The latest snapshot, with the highest snapshot number, will become the final UTxO set $\Ufinal$.
 
 \subsection{Differences}
 

@@ -6,8 +6,7 @@ protocol parameters: the list of participants, the parameters of the
 (multi-)signature scheme to be used, etc.
 
 \begin{itemize}
-  \item Each party establishes pairwise authenticated channels to all other
-        parties.
+  \item Each party establishes pairwise communication channels to all other parties. That is, every network message received from a specific party is checked for (channel) authentication. It is the implementer’s duty to find a suitable authentication process for the communication channels.
 
   \item For some digital-signature scheme, each party $\party_i$ generates a
         (``Cardano'') key pair $(\sVKI{i},\sSKI{i})$ and sends his respective
@@ -21,7 +20,7 @@ protocol parameters: the list of participants, the parameters of the
         \[
           (\daPuI{i},\daPrI{i})  \gets \ \msKeyGen(\msParams)
         \]
-        and sends their verification key $\daPuI{i}$ to all other parties. This
+        and sends their hydra verification key $\daPuI{i}$ to all other parties. This
         multi-signature scheme may or may not be compatible with the standard
         signature scheme above. The multisignature scheme will be used for the
         offchain confirmation (and offchain and onchain verification) of
@@ -35,8 +34,8 @@ protocol parameters: the list of participants, the parameters of the
         Note that this aggregation may be a simple concatenation.
 
   \item Each party $\party_i$ stores their signing key and all received
-        verification keys for the both, the Cardano (standard) and Hydra
-        (multi-)signature scheme.
+        verification keys for both the Cardano (standard) and Hydra
+        (multi-)signature schemes.
 \end{itemize}
 
 If any of the above fails (or the party does not agree to join the head in the
