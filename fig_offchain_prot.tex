@@ -29,17 +29,10 @@
           \vspace{12pt} %
           
           %%% NEW TX
-          \On{$(\hpNew,\tx)$ %
-            from client}{ %
-            \Req $\validTx(\tx)$ and %
-            $\hatmL \applytx \tx \neq \bot$ \; %
-
-            % $\hash \gets \hashF(\tx)$ \; %
-
-            % $\hySignedT[\hash] \gets \hyTxo(i,\tx)$ \; %
-            
-            \Multi $(\hpRT,\tx)$ \; %
-          }           
+          \On{$(\hpNew,\tx)$ from client}{%
+            \Req{} $\validTx(\tx) \land \hatmL \applytx \tx \neq \bot$\;
+            \Multi{} $(\hpRT,\tx)$%
+          }
 
         \end{walgo}
         }
@@ -47,23 +40,6 @@
 
         \adjustbox{valign=t,scale=\sfact}{
         \begin{walgo}{0.6}
-          %%% NEW SN  
-          \On{$(\hpNS)$ %
-            from client}{ // assumed to be called only once%%
-              
-            \Req $\hpLdr(\bars + 1) = i$ %
-            and $\hats = \bars$ \;
-             
-            % $\hySignedU \gets %
-            % \hySto(\hyConfSN + 1,\hyConfL,\hyConfT)$ \; %
-
-            %$\hatmT \gets 
-            
-            \Multi $(\hpRS,\bars+1,\hatmT\hpProjH)$ \; %
-          }
-
-          \vspace{12pt} %
-
           %%% CLOSE
           \On{$(\hpClose)$ from client}{ %
             \Return $(\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
@@ -75,7 +51,7 @@
           \On{$(\hpCont,\eta)$ from client}{ %
             $(U_\eta,s_\eta) \gets \eta$ \; %
 
-            \Req $s_\eta > \bars$ %
+            \Req{} $s_\eta > \bars$ %
              
             \Return $(U_\eta,s_\eta)$ \; %
           }
@@ -113,37 +89,30 @@
         \adjustbox{valign=t,scale=\sfact}{
         \begin{walgo}{0.65}
           %%% REQ TX
-          \On{$(\hpRT,\tx)$ %
-            from $\party_j$}{ %
-            \Req $\validTx(\tx)$ and %
-            $\hatmL \applytx \tx \neq \bot$ \; %
+          \On{$(\hpRT,\tx)$ from $\party_j$}{%
+            \Req{} $\validTx(\tx) \land \hatmL \applytx \tx \neq \bot$ \;
             
             $\mT[\hash] \gets \tx$ % all seen txs
 
-            % \If{$(\hats\in\{\bars,\bars+1\}) \wedge (\hpLdr(\hats+1) = i) \wedge (\hatmL\applytx\tx\not=\bot)$}{
-              $\hatmT[\hash] \gets \mT[\hash]$ % candidates for next snapshot \; %
+            $\hatmT[\hash] \gets \mT[\hash]$ % candidates for next snapshot \; %
 
-              $\hatmL \gets \hatmL\applytx\tx$ %
+            $\hatmL \gets \hatmL\applytx\tx$ %
 
-            \If{
-                \Req $\hpLdr(\bars + 1) = i$ %
-                and $\hats = \bars$ \;
-                \Multi $(\hpRS,\bars+1,\hatmT\hpProjH)$ \; %
-                }
+            % issue snapshot?
+            \If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
+              \Multi{} $(\hpRS,\bars+1,\hatmT\hpProjH)$ \;%
+            }
             
           }
 
           \vspace{12pt} %
 
           %%% REQ SN
-          \On{$(\hpRS,s,T)$ %
-            from $\party_j$}{ %
+          \On{$(\hpRS,s,T)$ from $\party_j$}{ %
 
-            \Req $s = \hats + 1$ %
-            and $\hpLdr(s) = j$ \; %
+            \Req{} $s = \hats + 1 \land \hpLdr(s) = j$ \; %
 
-            \Wait{$\bars = \hats$ %
-              and $\barmU\applytx T \not= \bot$ % meaning reach is 'complete' for extension
+            \Wait{$\bars = \hats \land \barmU\applytx T \not= \bot$ % meaning reach is 'complete' for extension
             }{ %
                $\hats \gets \bars + 1$ \; %
 
@@ -176,13 +145,13 @@
           \On{$(\hpAS,s,\msSig_j)$ %
             from $\party_j$}{ %
 
-            \Req $s \in \{\hats,\hats+1\}$ \; % 2-round ack/confirmation
+            \Req{} $s \in \{\hats,\hats+1\}$ \; % 2-round ack/confirmation
             % and $\hySignedU.\hySN = \hySN$ \; %
 
             \Wait{$\hats=s$
             }{ %
             
-            \Req $\hatmU.\hpSigs[j] = \undefined$ \; %
+            \Req{} $\hatmU.\hpSigs[j] = \undefined$ \; %
 
             $\hatmU.\hpSigs[j] \gets \msSig_j$ \; %
 
@@ -198,6 +167,12 @@
               $\barmT \gets \barmT \cup \barmU.T$ \; %
 
               $\forall \tx\in T$: \Out $(\hpConf,\tx)$ \; %
+
+              % issue snapshot?
+              \If{$\hats = \bars \land \hpLdr(\bars + 1) = i \land \hatmT \neq \emptyset$}{%
+                \Multi{} $(\hpRS,\bars+1,\hatmT\hpProjH)$ \;%
+              }
+
   
             }\Else{
              \fail
