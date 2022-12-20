@@ -51,9 +51,13 @@
           \On{$(\hpCont,\eta)$ from client}{ %
             $(U_\eta,s_\eta) \gets \eta$ \; %
 
-            \Req{} $s_\eta > \bars$ %
-             
-            \Return $(U_\eta,s_\eta)$ \; %
+            % FIXME: this was completely wrong? check with researchers
+            % \Req{} $s_\eta > \bars$ %
+            % \Return $(U_\eta,s_\eta)$ \; %
+
+            \Req{} $\bars > s_\eta $ \; %
+            \Return $(\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
+
           }
 
           \vspace{12pt}
