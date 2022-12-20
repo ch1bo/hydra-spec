@@ -125,7 +125,7 @@ outputs (as well as the Head state input implied by the CEM model) and checks:
   \item no minting or burning happens.
 \end{menumerate}
 
-Each of the $\nuCom_i$ validators, for $i \in \{ 1\dots n\}$, checks: 
+Each of the $\nuCom$ validators, for $i \in \{ 1\dots n\}$, checks:
     \begin{menumerate}
       \item the ST token is present in the output value $\{cid \rightarrow ST \rightarrow 1\} \subseteq \val'$
       \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
@@ -159,7 +159,7 @@ its identifier), but it is ensured that (1) the outputs $U$ correspond
 to the union of all committed UTxO sets $U_i$ and (2) all
 participation tokens are burned.
 
-Each of the $\nuCom_i$ validators, for $i \in \{ 1\dots n\}$, checks: 
+Each of the $\nuCom$ validators, for $i \in \{ 1\dots n\}$, checks:
 
 \begin{menumerate}
   \item the ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$
@@ -186,8 +186,6 @@ Description of performed validator checks:
   \item Record contestation period in the datum 
   \item Check that close transaction is signed by one of the valid participants
 \end{enumerate}
-\newline
-
 
 Once a \mtxClose{} transaction has been posted, a \emph{contestation period}
 begins which should last at least $\cPer$ slots.  Hence, the last slot
