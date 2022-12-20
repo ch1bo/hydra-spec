@@ -173,8 +173,19 @@ participation tokens are burned.
 
 In order to close a head, a head
 member may post the \mtxClose{} transaction (see
-Fig.~\ref{fig:SM_open_closed}), which results in a head state transition
-from the $\stOpen$ state to the $\stClosed$ state.  For a successful
+Fig.~\ref{fig:SM_open_closed}), which results in a SM transition
+from the $\stOpen$ state to the $\stClosed$ state.
+Description of performed validator checks:
+ - Transition “close” from “open” to “closed”
+ - Verify off-chain signature on snapshot or keep recorded UTxO data unchanged if no snapshot
+ - Record contestation deadline: at least L slots after close and ensure T_max - T_min not too large
+ - Record public key hash of participant who posts in a set C
+ - Value preservation
+ - Nothing minted
+
+
+
+For a successful
 close, a head member must provide valid information $\xi$ about (their
 view of) the current head state.  This information is passed through
 OCV algorithm $\ocvClose$, resulting in a new OCV status
