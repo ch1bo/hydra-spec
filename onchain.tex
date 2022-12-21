@@ -33,7 +33,7 @@ Following the eUTxO model, this structure is enforced on-chain through \emph{val
 The \mtxInit{} transaction (see
 Fig.~\ref{fig:SM_commit_tx}) establishes the initial state of the protocol as the tuple
 $$
-(\stInitial,\hpAK,\hppuv,\nop,\cPer),
+(\stInitial,\hpAK,\hppuv,\nop,\cPer)
 $$ 
 where:
 \begin{menumerate}
@@ -103,7 +103,7 @@ The \mtxCom{} transaction does not take part in the state machine logic.
 
 The \mtxCCom{} transaction collects all outputs from \mtxCom{} transactions participating in the same head and advances the state of the CEM state machine
 $$
-   (\stInitial,\hpAK,\hppuv,\nop,\cPer) \longrightarrow (\stOpen,\hpAK,\eta,\hppuv,\nop,\cPer),
+   (\stInitial,\hpAK,\hppuv,\nop,\cPer) \xrightarrow{\mathsf{collectCom}} (\stOpen,\hpAK,\eta,\hppuv,\nop,\cPer),
 $$
 where
 $$
@@ -130,28 +130,29 @@ Each of the $\nuCom^i$ validators, for $i \in \{ 1\dots n\}$, checks:
     \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
 \end{menumerate}
 
-\todo{WIP after here}
-
 \subsection{Abort Transaction}\label{sec:abort-tx} 
+
+\input{fig_SM_initial_final.tex}
 
 The \mtxAbort{} transaction
 (see Fig.~\ref{fig:SM_initial_final}) allows a party to abort the
-creation of a head in case some parties fail to post a commit
-transaction.  The final state does not contain any information (beyond
-its identifier), but it is ensured that (1) the outputs $U$ correspond
-to the union of all committed UTxO sets $U_i$ and (2) all
-participation tokens are burned.
-
-Each of the $\nuCom$ validators, for $i \in \{ 1\dots n\}$, checks:
-
+creation of a head.  The state is transitioned to $\mathsf{final}$ and the $\nuHead$ validator ensures that:
 \begin{menumerate}
-  \item the ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$
-  \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
+ \item All outputs committed into the head are recreated as is: $\forall i \in \{1\dots\nop\}, \mathcal{H}(O[i]) = \delta_i$,
+ \item All participation tokens are burnt: $\forall i \in \{1\dots\nop\}, \{\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1\} \subseteq Mint.$
+\end{menumerate} 
+
+For each of the $\nuInitial$ validators consumed, checks:
+\begin{menumerate}
+  \item The data field $\delta$ of the output locked is $(\mathsf{cid}$,
+  \item The ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}.$ 
 \end{menumerate}
 
-
-\input{fig_SM_initial_final}
-
+For each of the $\nuCom$ validators consumed, checks:
+\begin{menumerate}
+  \item The ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$
+  \item The correct $\mathsf{cid}$ is in the datum $(cid,.) = \delta$.
+\end{menumerate}
 
 \subsection{Close Transaction} 
 
@@ -164,14 +165,17 @@ Description of performed validator checks:
 
 \begin{enumerate}
   \item Verify off-chain signatures on a snapshot or keep recorded UTxO data unchanged if there is no snapshot 
+  \item Record contestation deadline: at least $DL$ time after close transction and ensure $Tmax - Tmin <= DL$ is not too large
   \item Ensure that the close transaction validity is bounded by contestation period: $Tmax - Tmin <= CP$  
-  \item Make sure deadline $DL$ is $CP$ time added to the close transaction upper bound: $DL' = Tmax + CP$
+  \item Make sure deadline $DL$ is $CP$ time added to the close transaction upper bound: $DL = Tmax + CP$
   \item Record contestation period in the datum 
   \item Check that close transaction is signed by one of the valid participants
 \end{enumerate}
 
 Once a \mtxClose{} transaction has been posted, a \emph{contestation period}
-begins which should last at least $\cPer$ slots.  Hence, the last slot
+begins which should last for $DL$ time.
+
+Hence, the last slot
 $\Tfinal$ of the contestation period is recorded in the state, and it
 is ensured that $\Tfinal \geq \txRmax' + \cPer$.
 
@@ -186,11 +190,29 @@ posts more than once during the contestation period.
 
 \subsection{Contest Transaction} 
 
-If the party first closing a head posts
-outdated/incomplete information about the current state of the head,
-any other party may post a \mtxContest{} transaction (see
-Fig.~\ref{fig:SM_closed_closed}), which causes a state transition from
-the $\stClosed$ state to itself.  The transition handles update
+The \mtxContest{} transaction (see
+Fig.~\ref{fig:SM_closed_closed}) is posted by a party to prove the currently $\stClosed$ state is not the latest one. This causes the following transition in the CEM state machine:
+
+$$
+   (\stClosed,\hpAK,\eta,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\hpAK,\eta',\mathcal{C}', \hppuv,\nop,\cPer,\Tfinal'),
+$$
+where
+\begin{menumerate}
+    \item 
+\end{menumerate}
+
+The $\nuHead$ validator additionally checks that:
+\begin{menumerate}
+  \item Value is preserved $\val' = \val$,
+  \item the transaction is signed by a verification key $k' \in \hppuv$ with its
+  hash corresponding to the asset name of one of the participation tokens
+  $\{p_1 \dots p_n\}$,
+  \item unchanged parameters $\mathsf{cid}$, $\hpAK$, $\hppuv$, $\nop$, and
+  $\cPer$ in the data field,
+  \item no minting or burning happens.
+\end{menumerate}
+
+The transition handles update
 information $\xi$ by passing it through OCV algorithm $\ocvContest$,
 resulting in a new OCV status
 $\eta' \gets \ocvContest (\hpAK,\eta,\xi)$.  OCV algorithm
