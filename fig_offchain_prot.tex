@@ -222,22 +222,12 @@
         & \adjustbox{valign=t,scale=\sfact}{
           \begin{walgo}{0.6}
 
-          \On{$(\gcChainClose)$}{ %
-            $\eta'=(\cdot,s') \gets \ocvClose(\hpAK,\eta,\xi)$ \;
+          \On{$(\gcChainClose, \xi) \lor (\gcChainContest, \xi)$}{ %
+            $(\cdot, s', \cdot) \gets \xi$ \;
             \If{$\bars > s'$}{%
-              $\xi \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
-              $\gcChainPost(\mtxContest,\xi)$ \; %
+              $\xi' \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
+              $\gcChainPost(\mtxContest,\xi')$ \; %
             } }
-
-          \vspace{12pt} %
-
-          \On{$(\gcChainContest)$}{ %
-            $\eta'=(\cdot,s') \gets \ocvContest(\hpAK,\eta,\xi)$ \; %
-            \If{$s>s'$}{
-              $\xi \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
-              $\gcChainPost(\mtxContest,\xi)$ \; %
-            }
-          }
 
           \vspace{12pt} %
 
