@@ -186,12 +186,15 @@
 
           \vspace{12pt}
 
-          \On{$(\gcChainInitialTO)$}{ %
-            \eIf{(all members committed)}{
-              $\gcChainRef.\gcChainPost(\mtxCCom)$ \; %
-            }{
-              $\gcChainRef.\gcChainPost(\mtxAbort)$ \; %
-            }
+          \On{$(\gcChainCommit, j, U)$}{ %
+            % TODO: make committed U simpler to read?
+            $U_{p_{j}} \gets U $
+
+            \If{$\forall k \in [1..n]: U_{p_{k}} \neq \undefined$}{ %
+              % TODO: Is Combine() producing eta or U0?
+              $\eta \gets \mathsf{Combine}(U_{p_1}, \ldots, U_{p_n})$ \; %
+              $\gcChainPost(\mtxCCom)$ \; %
+            } %
           }
 
           \vspace{12pt} %
@@ -199,12 +202,14 @@
           % TODO: params? \hpPuv,\hpPr
           \On{$(\gcChainCollectCom)$}{ %
             % TODO: unclear where U_p1..U_pn are from (observed so far)
-            $(\Uinit,\cdot,\cdot)\gets\ocvInitial(U_{p_1},\dots,U_{p_n})$ \; %
+            \Req{} $\forall k \in [1..n]: U_{p_{k}} \neq \undefined$ \; %
+            $(\Uinit, \cdot) \gets \mathsf{Combine}(U_{p_1}, \ldots, U_{p_n})$ \; %
             $\msVKL \gets \hpPuv$ \; %
             $\msCVK \gets \msCombVK(\msVKL)$ \; %
             $\msSK \gets \hpPr$ \; %c
 
             $\hats,\bars \gets 0$ \; %
+            % TODO: Sno undefined
             $\hatmU, \barmU \gets \Sno (0,\Uinit)$ \; %
             $\hatmL \gets \Uinit$ \; %
             $\mT, \hatmT, \barmT \gets \emptyset$ \;
