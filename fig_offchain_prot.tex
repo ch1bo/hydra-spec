@@ -9,11 +9,21 @@
       \begin{tabular}{cc}
         \adjustbox{valign=t,scale=\sfact}{
          \begin{walgo}{0.6}
-          % TODO: commit from client
-          % TODO: abort from client
+          %%% INIT
+          \On{$(\hpInit,\hpPuv,\hpPr,\cPer)$ from client}{ %
+            $\msVKL \gets \hpPuv$ \; %
+            % TODO: keys are confusing
+            $\hpAK^{setup} \gets \msCombVK(\msVKL)$ \; %
+            % TODO unused?
+            $\msSK \gets \hpPr$ \; %
+            $\cPer^{setup} \gets \cPer$ \; %
 
-          \vspace{12pt} %
+            % Always post init
+            $\gcChainPost(\mtxInit,\hpAK,\hppuv,\cPer)$ \; %
+          }
 
+          % TODO: commit from client?
+          % TODO: abort from client?
         \end{walgo}
         }
         &
@@ -110,8 +120,7 @@
         \adjustbox{valign=t,scale=\sfact}{
         \begin{walgo}{0.6}
           %%% ACK SN
-          \On{$(\hpAS,s,\msSig_j)$ %
-            from $\party_j$}{ %
+          \On{$(\hpAS,s,\msSig_j)$ from $\party_j$}{ %
 
             \Req{} $s \in \{\hats,\hats+1\}$ \; % 2-round ack/confirmation
             % and $\hySignedU.\hySN = \hySN$ \; %
@@ -173,10 +182,11 @@
       \begin{tabular}{c c}
         \adjustbox{valign=t,scale=\sfact}{
         \begin{walgo}{0.6}
-          \On{$(\gcChainInitial, i)$}{ %
-           \Req $\hpAKchain=\hpAKinit$\; %
-           \Req $\hppuv^{chain}=\hppuv^{setup}$\; %
-           \Req $\cPer^{chain}=\cPer^{setup}$\; %
+          % TODO: explain that i is our index
+          \On{$(\gcChainInitial, i, \hpAK, \hppuv, \cPer)$ from chain}{ %
+           \Req $\hpAK=\hpAK^{setup}$\; %
+           \Req $\hppuv=\hppuv^{setup}$\; %
+           \Req $\cPer=\cPer^{setup}$\; %
            % \Req $\hMT=H_{\mathsf{Merkle}}(\hppuv)$ \; %
            % TODO: which U? client would need to select it
            $\gcChainPost(\mtxCom,U_{p_i})$ \; %
@@ -184,7 +194,7 @@
 
           \vspace{12pt}
 
-          \On{$(\gcChainCommit, j, U)$}{ %
+          \On{$(\gcChainCommit, j, U)$ from chain}{ %
             % TODO: make committed U simpler to read?
             $U_{p_{j}} \gets U $
 
@@ -200,13 +210,9 @@
         & \adjustbox{valign=t,scale=\sfact}{
           \begin{walgo}{0.6}
           % TODO: params? \hpPuv,\hpPr
-          \On{$(\gcChainCollectCom)$}{ %
+          \On{$(\gcChainCollectCom)$ from chain}{ %
             % TODO: unclear where U_p1..U_pn are from (observed so far)
             \Req{} $\forall k \in [1..n]: U_{p_{k}} \neq \undefined$ \; %
-            $\msVKL \gets \hpPuv$ \; %
-            $\msCVK \gets \msCombVK(\msVKL)$ \; %
-            $\msSK \gets \hpPr$ \; %c
-
             $\hats,\bars \gets 0$ \; %
             $\Uinit \gets \bigcup_{i=1}^{n} U_{p_1}$ \; %
             % TODO: Sno undefined
@@ -217,7 +223,7 @@
 
           \vspace{12pt} %
 
-          \On{$(\gcChainClose, \xi) \lor (\gcChainContest, \xi)$}{ %
+          \On{$(\gcChainClose, \xi) \lor (\gcChainContest, \xi)$ from chain}{ %
             $(\cdot, s', \cdot) \gets \xi$ \;
             \If{$\bars > s'$}{%
               $\xi' \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
