@@ -8,26 +8,7 @@
       % CLIENT EVENTS
       \begin{tabular}{cc}
         \adjustbox{valign=t,scale=\sfact}{
-         \begin{walgo}{0.65}
-          %%% INIT
-          \On{$(\hpInit,i,\hpPuv,\hpPr,\Uinit)$ %
-            from client}{ %
-            % let $i$ be position of $\hpPr$'s public key in $\hpPuv$
-            % \; %
-            $\msVKL \gets \hpPuv$ \; %
-            $\msCVK \gets \msCombVK(\msVKL)$ \; %
-            $\msSK \gets \hpPr$ \; %c
-
-            $\hats,\bars \gets 0$ \; %
-            $\hatmU, \barmU \gets \Sno (0,\Uinit)$ \; %
-            % $\hatmL,\barmL \gets \Uinit$ \; %
-            $\hatmL \gets \Uinit$ \; %
-            % $\hatmT,\barmT \gets \emptyset$ \; %
-            $\mT, \hatmT,  \barmT \gets \emptyset$ \; % all, seenforsnap, confirmedforsnap
-
-            % TODO: this should also postTx init?
-          }
-
+         \begin{walgo}{0.6}
           % TODO: commit from client
           % TODO: abort from client
 
@@ -194,10 +175,13 @@
         \begin{walgo}{0.6}
           \vspace{12pt} %
 
-          \On{$(\gcChainInitial)$}{ %
+          \On{$(\gcChainInitial, i)$}{ %
            \Req $\hpAKchain=\hpAKinit$\; %
-           \Req $\hMT=H_{\mathsf{Merkle}}(\hppuv)$ \; %
-           $\gcChainRef.\gcChainPost(\mtxCom,U)$ \; %
+           \Req $\hppuv^{chain}=\hppuv^{setup}$\; %
+           \Req $\cPer^{chain}=\cPer^{setup}$\; %
+           % \Req $\hMT=H_{\mathsf{Merkle}}(\hppuv)$ \; %
+           % TODO: which U? client would need to select it
+           $\gcChainPost(\mtxCom,U_{p_i})$ \; %
           }
 
           \vspace{12pt}
@@ -210,17 +194,28 @@
             }
           }
 
+          \vspace{12pt} %
+
+          % TODO: params? \hpPuv,\hpPr
+          \On{$(\gcChainCollectCom)$}{ %
+            % TODO: unclear where U_p1..U_pn are from (observed so far)
+            $(\Uinit,\cdot,\cdot)\gets\ocvInitial(U_{p_1},\dots,U_{p_n})$ \; %
+            $\msVKL \gets \hpPuv$ \; %
+            $\msCVK \gets \msCombVK(\msVKL)$ \; %
+            $\msSK \gets \hpPr$ \; %c
+
+            $\hats,\bars \gets 0$ \; %
+            $\hatmU, \barmU \gets \Sno (0,\Uinit)$ \; %
+            $\hatmL \gets \Uinit$ \; %
+            $\mT, \hatmT, \barmT \gets \emptyset$ \;
+
+            % TODO: this should also postTx init?
+          }
+
         \end{walgo}
         }
         & \adjustbox{valign=t,scale=\sfact}{
           \begin{walgo}{0.6}
-
-          \On{$(\gcChainCollectCom)$}{ %
-            $(\Uinit,\cdot,\cdot)\gets\ocvInitial(U_{p_1},\dots,U_{p_n})$ \; %
-            $\gcHeadRef.(\hpInit,i,\hpPuv,\hpPri{i},\Uinit)$ \; %
-          }
-
-          \vspace{12pt} %
 
           \On{$(\gcChainClose)$}{ %
             $\eta'=(\cdot,s') \gets \ocvClose(\hpAK,\eta,\xi)$ \;
