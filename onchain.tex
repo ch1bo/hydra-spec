@@ -159,26 +159,26 @@ For each of the $\nuCom$ validators consumed, checks:
 In order to close a head, a head
 member may post the \mtxClose{} transaction (see
 Fig.~\ref{fig:SM_open_closed}), which results in a SM transition
-from the $\stOpen$ state to the $\stClosed$ state.\newline
+from the $\stOpen$ state to the $\stClosed$ state.
+\newline
 
-Description of performed validator checks:
+Performed $\nuHead$ validator checks:
 
 \begin{enumerate}
   \item Verify off-chain signatures on a snapshot or keep recorded UTxO data unchanged if there is no snapshot 
-  \item Record contestation deadline: at least $DL$ time after close transction and ensure $Tmax - Tmin <= DL$ is not too large
-  \item Ensure that the close transaction validity is bounded by contestation period: $Tmax - Tmin <= CP$  
-  \item Make sure deadline $DL$ is $CP$ time added to the close transaction upper bound: $DL = Tmax + CP$
-  \item Record contestation period in the datum 
-  \item Check that close transaction is signed by one of the valid participants
+  \item Record contestation deadline: at least $L$ time after close transaction and ensure $Tmax - Tmin <= L$ 
+  \item Record public key hash of participant who posts in a set C
+  \item Value preservation
+  \item Nothing minted or burned
 \end{enumerate}
 
+Off-chain transaction construction needs to make sure that the transaction validity is well bounded and it can be at most $L$ time.
+\newline
+\newline
 Once a \mtxClose{} transaction has been posted, a \emph{contestation period}
-begins which should last for $DL$ time.
-
-Hence, the last slot
-$\Tfinal$ of the contestation period is recorded in the state, and it
-is ensured that $\Tfinal \geq \txRmax' + \cPer$.
-
+begins which should last for $L$ time. Hence, the deadline is recorded in the state, and it is bounded such that $Tmax - Tmin \leq L$.
+\newline
+\newline
 Finally, the SM state is extended by a set $\contesters$
 initialized to the poster's signing key, i.e.,
 $\contesters \gets \{k'\}$.   $\contesters$ is used to ensure that no party
@@ -191,26 +191,54 @@ posts more than once during the contestation period.
 \subsection{Contest Transaction} 
 
 The \mtxContest{} transaction (see
-Fig.~\ref{fig:SM_closed_closed}) is posted by a party to prove the currently $\stClosed$ state is not the latest one. This causes the following transition in the CEM state machine:
+Fig.~\ref{fig:SM_closed_closed}) is posted by a party to prove the currently $\stClosed$ state is not the latest one. 
+\newline
+\newline
+Performed $\nuHead$ validator checks:
+\begin{enumerate}
+   \item Verify off-chain snapshot signature
+   \item Record contestation deadline: at least L time after this contest
+   \item Record public key hash of participant who posts in a set C
+   \item Ensure there is no contest by someone in C
+   \item Value preservation
+   \item Nothing minted or burned
+\end{enumerate}
+\newline
+\newline
 
+This causes the following transition in the CEM state machine (eg. change datum of output locked by $\nuHead$ script):
 $$
-   (\stClosed,\hpAK,\eta,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\hpAK,\eta',\mathcal{C}', \hppuv,\nop,\cPer,\Tfinal'),
+   (\stClosed,\hpAK,\eta,\eta_0,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\hpAK,\eta',\eta_0,\mathcal{C}', \hppuv,\nop,\cPer,\Tfinal'),
 $$
-where
-\begin{menumerate}
-    \item 
-\end{menumerate}
 
 The $\nuHead$ validator additionally checks that:
 \begin{menumerate}
   \item Value is preserved $\val' = \val$,
-  \item the transaction is signed by a verification key $k' \in \hppuv$ with its
+  \item The transaction is signed by a verification key $k' \in \hppuv$ with its
   hash corresponding to the asset name of one of the participation tokens
-  $\{p_1 \dots p_n\}$,
-  \item unchanged parameters $\mathsf{cid}$, $\hpAK$, $\hppuv$, $\nop$, and
-  $\cPer$ in the data field,
+  $\{\mathsf{PT}_1 \dots \mathsf{PT}_\nop\}$,
+  \item The signer has not already contested $k' \not\in \mathcal{C},$  and it's added to the signers set: $\mathcal{C}' = \mathcal{C} \cup k',$
+  \item $\eta'$ is valid w.r.t. to previous state (see below), 
+  \item Transaction is posted before deadline: $T_{\mathsf{max}} \leq \Tfinal$,
+  \item Contestation deadline is updated:
+     $$
+     \Tfinal' = 
+        \left\{\begin{array}{ll}
+             \Tfinal     &  |\mathcal{C}'| = n, \\
+             \Tfinal + T &  \mathit{otherwise} \\
+        \end{array}
+        \right,
+     $$
+  \item Values for $\hpAK$, $\hppuv$, $\nop$, $\eta_0$, and $\cPer$ are unchanged,
   \item no minting or burning happens.
 \end{menumerate}
+
+\subsubsection{Contested State Verification}
+
+The $\nuHead$ validator uses auxiliary function $\mathsf{VerifyMultiSignature}$ to check that $\xi$ is 
+$$
+\xi = (s,U, \mathsf{sig})
+$$
 
 The transition handles update
 information $\xi$ by passing it through OCV algorithm $\ocvContest$,
@@ -244,11 +272,18 @@ potentially post a \mtxClose{}/\mtxContest{} transaction).
 Once the contestation phase is over, a head
 may be finalized by posting a \mtxFanout{} transaction, taking the SM
 from $\stClosed$ to $\stFinal$.  The \mtxFanout{} transaction must
-have outputs that correspond to the most recent head state.  To that
-end, OCV predicate $\ocvFinal$ checks the transaction's output set $U$
-against the information recorded in $\eta$.  The \mtxFanout{}
-transaction is only valid if $\ocvFinal$ outputs $\true$.  Moreover,
-to ensure that the \mtxFanout{} transaction is not posted too early,
+have outputs that correspond to the most recent head state. 
+\newline
+\newline 
+Performed $\nuHead$ validator checks:
+\begin{enumerate}
+  \item Correct outputs are created
+  \item All tokens are burned
+\end{enumerate}
+\newline
+To that
+end, $\nuHead$ validator checks the transaction's output set $U$
+against the information recorded in $\eta$. To ensure that the \mtxFanout{} transaction is not posted too early,
 $\txRmin' > \Tfinal$ is required.  Finally, all participation tokens
 must be burned.
 
