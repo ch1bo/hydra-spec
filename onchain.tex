@@ -54,8 +54,8 @@ The \mtxInit{} transaction also mints tokens whose \emph{Minting Policy} is $\ma
 $$
 \mathsf{cid} = H(\muHead(\mathsf{tx_{in}})),
 $$
-where $\mathsf{tx_{in}}$ is one of the inputs spent in the \mtxInit{} transaction. From the ledger preventing double-spending and the uniqueness of $\mathsf{tx_{in}}$, $\mathsf{cid}$ is guaranteed to be unique and can be used to identify the newly initialized head. 
-
+where $\mathsf{tx_{in}}$ is one of the inputs spent in the \mtxInit{} transaction. From the ledger preventing double-spending and the uniqueness of $\mathsf{tx_{in}}$, $\mathsf{cid}$ is guaranteed to be unique and can be used to identify the newly initialized head. \\
+\\
 Two kinds of tokens are minted:
 \begin{itemize}
 \item $\mathsf{ST}$: A single \emph{State Thread} token marking the output carrying the state of the protocol on-chain, whose name is the well known string \texttt{HydraHeadV1},
@@ -77,9 +77,9 @@ parameters match the parameters agreed on during the setup phase.
 
 \input{fig_SM_commit_tx}
 
-A \mtxCom{} transaction consumes one $\nuInitial$ UTxO and zero or one \emph{committed} UTxO, and has one output locked by validator $\nuCom$. 
+A \mtxCom{} transaction consumes one $\nuInitial$ UTxO and zero or one \emph{committed} UTxO, and has one output locked by validator $\nuCom$.
 
-The $\nuInitial$ validator ensures the transaction has the following structure:
+\noindent The $\nuInitial$ validator ensures the transaction has the following structure:
 \begin{menumerate}
     \item the transaction is signed with verification key corresponding to the asset name in $\mathsf{PT}_i$,
     \item the redeemer for $\nuInitial$ is referencing the output to commit $ \rho = \txOutRef_{commit}$, with output $o_{commit}$ holding value $\val_{commit}$
@@ -92,7 +92,7 @@ The $\nuInitial$ validator ensures the transaction has the following structure:
     \item no minting or burning happens.
 \end{menumerate}
 
-The $\nuCom$ validator ensures the output is collected by either a \mtxCCom{} or \mtxAbort{} transaction.
+\noindent The $\nuCom$ validator ensures the output is collected by either a \mtxCCom{} or \mtxAbort{} transaction.
 \begin{boxM}
 The \mtxCom{} transaction does not take part in the state machine logic.
 \end{boxM}
@@ -124,7 +124,7 @@ The $\nuHead$ validator additionally checks that:
   \item no minting or burning happens.
 \end{menumerate}
 
-Each of the $\nuCom^i$ validators, for $i \in \{ 1\dots n\}$, checks:
+\noindent Each of the $\nuCom^i$ validators, for $i \in \{ 1\dots n\}$, checks:
 \begin{menumerate}
     \item the ST token is present in the output value $\{cid \rightarrow ST \rightarrow 1\} \subseteq \val'$
     \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
@@ -142,13 +142,13 @@ creation of a head.  The state is transitioned to $\mathsf{final}$ and the $\nuH
  \item All participation tokens are burnt: $\forall i \in \{1\dots\nop\}, \{\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1\} \subseteq Mint.$
 \end{menumerate} 
 
-For each of the $\nuInitial$ validators consumed, checks:
+\noindent For each of the $\nuInitial$ validators consumed, checks:
 \begin{menumerate}
   \item The data field $\delta$ of the output locked is $(\mathsf{cid}$,
   \item The ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}.$ 
 \end{menumerate}
 
-For each of the $\nuCom$ validators consumed, checks:
+\noindent For each of the $\nuCom$ validators consumed, checks:
 \begin{menumerate}
   \item The ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$
   \item The correct $\mathsf{cid}$ is in the datum $(cid,.) = \delta$.
@@ -160,8 +160,8 @@ In order to close a head, a head
 member may post the \mtxClose{} transaction (see
 Fig.~\ref{fig:SM_open_closed}), which results in a SM transition
 from the $\stOpen$ state to the $\stClosed$ state.
-\newline
-
+\\
+\\
 Performed $\nuHead$ validator checks:
 
 \begin{enumerate}
@@ -172,13 +172,13 @@ Performed $\nuHead$ validator checks:
   \item Nothing minted or burned
 \end{enumerate}
 
-Off-chain transaction construction needs to make sure that the transaction validity is well bounded and it can be at most $L$ time.
-\newline
-\newline
+\noindent Off-chain transaction construction needs to make sure that the transaction validity is well bounded and it can be at most $L$ time.
+\\
+\\
 Once a \mtxClose{} transaction has been posted, a \emph{contestation period}
 begins which should last for $L$ time. Hence, the deadline is recorded in the state, and it is bounded such that $Tmax - Tmin \leq L$.
-\newline
-\newline
+\\
+\\
 Finally, the SM state is extended by a set $\contesters$
 initialized to the poster's signing key, i.e.,
 $\contesters \gets \{k'\}$.   $\contesters$ is used to ensure that no party
@@ -192,9 +192,8 @@ posts more than once during the contestation period.
 
 The \mtxContest{} transaction (see
 Fig.~\ref{fig:SM_closed_closed}) is posted by a party to prove the currently $\stClosed$ state is not the latest one. 
-\newline
-\newline
-Performed $\nuHead$ validator checks:
+
+\noindent Performed $\nuHead$ validator checks:
 \begin{enumerate}
    \item Verify off-chain snapshot signature
    \item Record contestation deadline: at least L time after this contest
@@ -203,15 +202,13 @@ Performed $\nuHead$ validator checks:
    \item Value preservation
    \item Nothing minted or burned
 \end{enumerate}
-\newline
-\newline
 
-This causes the following transition in the CEM state machine (eg. change datum of output locked by $\nuHead$ script):
+\noindent This causes the following transition in the CEM state machine (eg. change datum of output locked by $\nuHead$ script):
 $$
    (\stClosed,\hpAK,\eta,\eta_0,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\hpAK,\eta',\eta_0,\mathcal{C}', \hppuv,\nop,\cPer,\Tfinal'),
 $$
 
-The $\nuHead$ validator additionally checks that:
+\noindent The $\nuHead$ validator additionally checks that:
 \begin{menumerate}
   \item Value is preserved $\val' = \val$,
   \item The transaction is signed by a verification key $k' \in \hppuv$ with its
@@ -223,11 +220,10 @@ The $\nuHead$ validator additionally checks that:
   \item Contestation deadline is updated:
      $$
      \Tfinal' = 
-        \left\{\begin{array}{ll}
+        \{\begin{array}{ll}
              \Tfinal     &  |\mathcal{C}'| = n, \\
              \Tfinal + T &  \mathit{otherwise} \\
-        \end{array}
-        \right,
+        \end{array},
      $$
   \item Values for $\hpAK$, $\hppuv$, $\nop$, $\eta_0$, and $\cPer$ are unchanged,
   \item no minting or burning happens.
@@ -280,9 +276,8 @@ Performed $\nuHead$ validator checks:
   \item Correct outputs are created
   \item All tokens are burned
 \end{enumerate}
-\newline
-To that
-end, $\nuHead$ validator checks the transaction's output set $U$
+
+\noindent To that end, $\nuHead$ validator checks the transaction's output set $U$
 against the information recorded in $\eta$. To ensure that the \mtxFanout{} transaction is not posted too early,
 $\txRmin' > \Tfinal$ is required.  Finally, all participation tokens
 must be burned.

@@ -32,7 +32,6 @@ Where $\msSetup$ generates public parameters $\msParams$, such that
 
 \begin{figure}[t]
   \centering
-  \includegraphics[scale=.2,width=\textwidth/2]{figures/utxo-graph.pdf}
   \caption{Example of a plain UTxO graph}
   \label{fig:utxo-graph}
 \end{figure}
@@ -50,63 +49,10 @@ The set of dangling (unconnected) outputs are the \emph{unspent transaction outp
 
 \begin{definition}[Outputs]
 $$
-o \in O = (\matchsf{Val} \times \kappa)
+o \in O = (\mathsf{Val} \times V \times \Delta)
 $$
-$$\bigcup$$
-$$
-o \in O = (\matchsf{Val} \times V \times \Delta)
-$$
-
-Each output \(o\in O\) is either (1) a normal output, a pair \((\txVal, \kappa)\)
-of a value $\txVal$ and a public key $\kappa$ (\emph{pubkey
-output}), or (2) a script output, a triple \((\txVal, \nu, \delta)\) consisting of a value
-$\txVal$, a validator script $\nu$, and a data value $\delta$ (\emph{datum}).
-\end{definition}
-
-\begin{definition}[Validator Script]
-A predicate $\nu$ that checks only authorized inputs of subsequent transactions can
-connect and consume the locked funds by the script output.
-
-Validator scripts $\nu$ are the ledger-level basis for smart
-contracts as they programmatically determine whether a script output
-may be spend by a given script input or not. To this end, validator
-scripts represent functions of the following type:
-
-ν(val, δ, ρ, σ)
-\[
-  \nu : (\txValTy, \txDataTy, \txDataTy, \txPendingTxTy)
-  \to\txBoolTy
-\]
-where $\txDataTy$ is a universal data type used to encode data
-values and redeemers (i.e., we have got \(\delta : \txDataTy\) and
-\(\rho : \txDataTy\)) and $\txBoolTy = \{\bot, \top\}$. We also
-write $\emptyset$ for an empty value of type $\txDataTy$.  
-% Moreover,
-% $\txPendingTxTy$ is an enriched transaction type that provides
-% validators with additional context pertaining to the transaction,
-% which is being validated.  Specifically, for
-% $\txPendingTx \in \txPendingTxTy$,
-% \(\txPendingTx = (\txIpendSet, O, \txValForge, r, \txKeys)\), where
-% for each \(\txIpend \in \txIpendSet\), \(\txIpend = (i, o)\) with
-% \(i = (\txOutRef, \rho)\), such that $o$ is the output of the
-% consumed transaction referred to by $\txOutRef$.
-
-In Figure~\ref{fig:utxo-graph}, we use pairs \((n, \nu)\) to indicate that a given output locks $n$ cryptocurrency with validator predicate $\nu$.
-\end{definition}
-
-\begin{definition}[Inputs]
-$$\txOutRef = (\matchsf{txId} \times \matchsf{outIx})$$
-$$i \in I = (\txOutRef \times \rho)$$
-
-Each input \(i\in I\) is a pair consisting of an \emph{output reference} $\txOutRef$ and a \emph{redeemer} $\rho$, where $\txOutRef$ consists of a transaction ID ($\matchsf{txId}$) and an index identifying an output in the transaction ($\matchsf{outIx}$).
-\end{definition}
-
-\begin{definition}[Redeemer]
-Where outputs carry validators, each input comes with a \emph{redeemer} value $\rho$, used to supply data for validation. 
-
-To determine whether a given input of the currently validated transaction $\txTx$ is permitted to connect to a, as of yet, unspent output, we determine whether the validator predicate $\nu$ of that output applies for the redeemer $\rho$; or more formally, we check that \(\nu(\rho, \sigma) = \true\), where the \emph{validation context} $\sigma$ represents some properties of the transaction that the spending input belongs to, such as the transaction's cryptographic hash value. 
-
-For example, the validator may require the redeemer to be a signature on the transaction hash contained in the context $\sigma$ for a specific key pair, such that only the owner of the private key can spend an output locked by that validator.
+For the purpose of this specification, each output \(o \in O\) is a triple of a value
+$\txVal$, a validator script $\nu$, and a datum $\delta$.
 \end{definition}
 
 \begin{definition}[Values]
@@ -128,6 +74,58 @@ are both of currency $c$.  Values can be added naturally, e.g.,
 Note that $\varnothing$ is the empty value, and
 \(\{t_1, \ldots, t_n\} :: c\) is used as a shorthand for
 \(\{c \mapsto \{t_1 \mapsto 1, \ldots, t_n \mapsto 1\}\}\). 
+\end{definition}
+
+\begin{definition}[Validator Script]
+A predicate $\nu$ that checks only authorized inputs of subsequent transactions can
+connect and consume the locked funds by the script output.
+
+Validator scripts $\nu$ are the ledger-level basis for smart
+contracts as they programmatically determine whether a script output
+may be spend by a given script input or not. To this end, validator
+scripts represent functions of the following type:
+\[
+  \nu : (\txValTy, \txDataTy, \txDataTy, \txPendingTxTy)
+  \to\txBoolTy
+\]
+Where: $\txDataTy$ is a universal data type used to encode data
+values ($\delta$) and redeemers ($\rho$), $\txBoolTy = \{\bot, \top\}$, and $\txPendingTxTy$ is the validation context. We also
+write $\emptyset$ for an empty value of type $\txDataTy$.  
+
+Moreover,
+$\txPendingTxTy$ is an enriched transaction type that provides
+validators with additional context pertaining to the transaction,
+which is being validated.  
+
+Specifically
+\[
+  i = (\txOutRef, \rho)
+\]
+\[
+ \txIpend \in \txIpendSet = (i, o)
+\]
+\[
+ \txPendingTx \in \txPendingTxTy = (\txIpendSet \times O \times \txValForge \times r \times \txKeys) 
+\]
+such that $o$ is the output of the
+consumed transaction referred to by $\txOutRef$.
+
+In Figure~\ref{fig:utxo-graph}, we use pairs \((n, \nu)\) to indicate that a given output locks $n$ cryptocurrency with validator predicate $\nu$.
+\end{definition}
+
+\begin{definition}[Inputs]
+$$\txOutRef = (\mathsf{txId} \times \mathsf{outIx})$$
+$$i \in I = (\txOutRef \times \rho)$$
+
+Each input \(i\in I\) is a pair consisting of an \emph{output reference} $\txOutRef$ and a \emph{redeemer} $\rho$, where $\txOutRef$ consists of a transaction ID ($\mathsf{txId}$) and an index identifying an output in the transaction ($\mathsf{outIx}$).
+\end{definition}
+
+\begin{definition}[Redeemer]
+Where outputs carry validators, each input comes with a \emph{redeemer} value $\rho$, used to supply data for validation. 
+
+To determine whether a given input of the currently validated transaction $\txTx$ is permitted to connect to a, as of yet, unspent output, we determine whether the validator predicate $\nu$ of that output applies for the redeemer $\rho$; or more formally, we check that \(\nu(\rho, \sigma) = \true\), where the \emph{validation context} $\sigma$ represents some properties of the transaction that the spending input belongs to, such as the transaction's cryptographic hash value. 
+
+For example, the validator may require the redeemer to be a signature on the transaction hash contained in the context $\sigma$ for a specific key pair, such that only the owner of the private key can spend an output locked by that validator.
 \end{definition}
 
 \begin{definition}[Transactions]
@@ -171,8 +169,6 @@ Although formal results about EUTxO are rather recent, extended UTxO models alre
 \subsection{User-defined tokens}
 
 In addition to the basic EUTxO extension, we generalize the currency \emph{values} recorded on the ledger from integral numbers to \emph{generalized user-defined tokens}~\cite{eutxo-2}.
-
-%Note that transactions naturally form a directed acyclic graph.
 
 % \begin{definition}[Validator Validity]
 %   Given a pending transaction $\txPendingTx$, the script-controlled
