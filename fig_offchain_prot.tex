@@ -171,15 +171,6 @@
         \end{walgo}
 
           }
-          
-        % &
-        
-        % \adjustbox{valign=t,scale=\sfact}{
-        % \begin{walgo}{0.3}
-        %   \If{bla}{
-        %     bla \; %
-        %   }      
-        % \end{walgo}} %
 
       \end{tabular}
 
@@ -194,8 +185,10 @@
 
           % CLOSE from client
           \On{$(\hpClose)$ from client}{ %
-            $\xi \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
-            $\PostTx{}~(\mtxClose,\xi)$ \; %
+            $(U, s, \msCSig) \gets \barmU$ \; %
+            $\eta' \gets (s, H(U))$ \; %
+            $\xi \gets \msCSig$ \; %
+            $\PostTx{}~(\mtxClose, \eta', \xi)$ \; %
           }
 
         \end{walgo}
@@ -203,11 +196,13 @@
         & \adjustbox{valign=t,scale=\sfact}{
           \begin{walgo}{0.6}
 
-          \On{$(\gcChainClose, \xi) \lor (\gcChainContest, \xi)$ from chain}{ %
-            $(\cdot, s', \cdot) \gets \xi$ \;
-            \If{$\bars > s'$}{%
-              $\xi' \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
-              $\PostTx{}~(\mtxContest,\xi')$ \; %
+          \On{$(\gcChainClose, \eta) \lor (\gcChainContest, \eta)$ from chain}{ %
+            $(U, s, \msCSig) \gets \barmU$ \; %
+            $(s_{c}, \cdot) \gets \eta$ \;
+            \If{$s > s_{c}$}{%
+              $\eta' \gets (s, H(U))$ \; %
+              $\xi \gets \msCSig$ \; %
+              $\PostTx{}~(\mtxContest, \eta', \xi)$ \; %
             } }
 
           \end{walgo}

@@ -111,9 +111,9 @@ The following figure visualizes the possible event flows from the view of a sing
 parties need to exchange \& agree on protocol parameters during the protocol
 setup phase (see Section~\ref{sec:setup}), so we can assume the public Cardano
 keys $\hppuv^{setup}$, Hydra keys $\hpAK^{setup}$, as well as the contestation
-period $\cPer^{setup}$ are available. One of the clients then can start head initialization using the $\hpInit$ command, which will result in an $\mtxInit$ transaction being posted.
+period $\cPer^{setup}$ are available. One of the clients then can start head initialization using the $\hpInit$ command, which will result in an $\mtxInit$ transaction being posted.\\
 
-\dparagraph{$\mathtt{initialTx}$.}\quad All parties will receive this $\mtxInit$ transaction and validate announced parameters against the pre-agreed $setup$ parameters.
+\dparagraph{$\mathtt{initialTx}$.}\quad All parties will receive this $\mtxInit$ transaction and validate announced parameters against the pre-agreed $setup$ parameters.\\
 
 \dparagraph{$\mathtt{commitTx}$.}\quad As each party $p_{j}$ posts a
 $\mtxCommit$ transaction, the protocol records observed committed UTxO
@@ -122,9 +122,14 @@ $\mathsf{Combine}$ and the $\mtxCollect$ transaction is posted. Note that while
 each participant might post this transaction, only one of them will be included
 in the blockchain as the mainchain ledger prevents double spending. Should any
 party want to abort, they would post an $\mtxAbort$ transaction and the protocol
-would end at this point.
+would end at this point.\\
 
-\dparagraph{$\mathtt{collectComTx}$.}\quad Upon observing the $\mtxCollect$ transaction, the parties compute $\Uinit \gets \bigcup_{j=1}^{n} U_{p_j}$ using previously observed committed UTxOs $U_{p_j}$ and initialize $\hatmU = \barmU = \hatmL = \Uinit$ with it\todo{check $\eta$ against $\Uinit$?}. The initial transaction sets are empty $\mT = \barmT =\hatmT =\emptyset$, and $\bars = \hats = 0$.
+\dparagraph{$\mathtt{collectComTx}$.}\quad Upon observing the $\mtxCollect$
+transaction, the parties compute $\Uinit \gets \bigcup_{j=1}^{n} U_{p_j}$ using
+previously observed committed UTxOs $U_{p_j}$ and initialize
+$\hatmU = \barmU = \hatmL = \Uinit$ with it\todo{check $\eta$ against
+  $\Uinit$?}. The initial transaction sets are empty
+$\mT = \barmT =\hatmT =\emptyset$, and $\bars = \hats = 0$.
 
 \subsubsection{Processing transactions off-chain}
 
@@ -133,19 +138,19 @@ snapshots in a strictly sequential round-robin manner. The party responsible for
 issuing the $\ith i$ snapshot is the \emph{leader} of the $\ith i$ snapshot.
 While the frequency of snapshots in the general Head protocol~\cite{hydrahead20}
 was configurable, the Coordinated Head protocol does specify a snapshot to be
-created after each transaction.
+created after each transaction.\\
 
 \dparagraph{$\hpNew$.}\quad At any time, by calling $(\hpNew,\tx)$, a head
 party can (asynchronously) inject a new transaction $\tx$ to the head protocol.
 For this, the transaction must be well-formed ($\validTx$) and applicable to the
 current local ledger state: $\hatmL \applytx \tx \neq \bot$. If the checks
-pass, a $(\hpRT,\tx)$ request is sent out to all parties.
+pass, a $(\hpRT,\tx)$ request is sent out to all parties.\\
 
 \dparagraph{$\hpRT$.}\quad Upon receiving request $(\hpRT,\tx)$, the transaction
 gets recorded in $\mT$ and $\barmT$ using the tx hash $h = H(tx)$ and applied
 to the local \emph{seen} ledger state: $\hatmL \applytx \tx$. If there is no
 current snapshot ``in flight'' ($\hats = \bars$) and the receiving party $i$ is
-the next snapshot leader, a request for the next snapshot $\hpRS$ is sent. Note that only transaction hashes are submitted in this message.
+the next snapshot leader, a request for the next snapshot $\hpRS$ is sent. Note that only transaction hashes are submitted in this message.\\
 
 \dparagraph{$\hpRS$.}\quad Upon receiving request $(\hpRS,s,T)$ from party
 $\party_j$, the receiver $\party_i$ checks that $s$ is the next snapshot number
@@ -162,7 +167,7 @@ members via message $(\hpAS,\hats,\msSig_i)$. Note that no UTxO sets have to be
 exchanged in this process as the parties all locally compute a new snapshot by
 the given transaction hashes. Finally, the pending transaction set $\hatmT$ gets
 pruned by the just requested transactions $T$ and the local ledger state
-$\hatmL$ is updated accordingly.
+$\hatmL$ is updated accordingly.\\
 
 \dparagraph{$\hpAS$.}\quad Upon receiving acknowledgment $(\hpAS,s,\msSig_j)$,
 all participants $\Req$ that it is from an expected snapshot (either the last
@@ -173,6 +178,28 @@ each party has been collected, $\party_i$ aggregates the multisignature
 $\msCSig$ and $\Req$s it to be valid. \todo{detect cheating (fail) here?} If
 everything is fine, the snapshot can be considered confirmed by updating
 $\bars=s$ and storing everything for later reference in $\barmU$ \todo{different variable name?}. Similar to the $\hpRT$, if $\party_i$ is the next snapshot leader and there are already transactions to snapshot in $\hatmT$, a corresponding $\hpRS$ is to be distributed.
+
+\subsubsection{Closing the head}
+
+\dparagraph{$\hpClose$.}\quad In order to close a head, a client issues the
+$\hpClose$ event which uses the latest confirmed snapshot $\barmU$ to create
+\begin{itemize}
+  \item the new $\eta$-state from the last confirmed UTxO set (a hash of it) and
+        snapshot number, and
+  \item the certifiate $\xi$ using the corresponding multi-signature.
+\end{itemize}
+With $\eta'$ and $\xi$, the $\mtxClose$ transaction can be constructed and
+posted. See Section~\ref{sec:close-tx} for details about this transaction.
+\todo{check paper for more relevant info (CHI)}\\
+
+\dparagraph{$\mathtt{closeTx}/\mathtt{contestTx}$.}\quad When a party observes
+the head getting closed or contested, the $\eta$-state extracted from the
+\mtxClose{} or \mtxContest{} transaction represents the latest head status that
+has been aggregated onchain so far (by a sequence of \mtxClose{} and
+\mtxContest{} transactions). If the last confirmed (off-chain) snapshot is newer
+than the observed (on-chain) snapshot number $s_{c}$, an updated $\eta$-state
+and certificate $\xi$ is constructed posted in a \mtxContest{} transaction (see
+Section~\ref{sec:contest-tx}).
 
 \input{fig_offchain_prot}
 
