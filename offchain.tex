@@ -61,36 +61,40 @@ following paragraphs.
 \end{itemize}
 
 \subsection{Notation}
-\todo{map access notation}
+\todo{missing: apply tx, projection, map access}
 \begin{itemize}
-  \item $\KwOn~(event,\ldots)$ specifies how the protocol reacts on a given event. Further information may be available via arguments and origin of the event.
-  \item $\Req~P$ means that logic expression $P$ must be satisfied for the further execution of
-        a routine, while discontinued on $\neg P$.
+  \item $\KwOn~(event,\ldots)$ specifies how the protocol reacts on a given
+        event. Further information may be available via arguments and origin of
+        the event.
+  \item $\Req~P$ means that logic expression $P$ must be satisfied for the
+        further execution of a routine, while discontinued on $\neg P$.
   \item $\KwWait~P$ is a \todo{blocking in GDoc?} non-blocking wait for
-predicate $P$ to be satisfied. On $\neg P$, the execution of the
-routine is stopped, queued, and reactivated at latest when $P$ is
-satisfied.
-  \item $\Multi{}$ means that a message is (channel-) authenticated and sent to all participants of this head, including the sender.
-  \item $\PostTx{}$ has a party create and submit the given transaction on-chain. See Section~\ref{sec:on-chain} for individual transaction details.
+        predicate $P$ to be satisfied. On $\neg P$, the execution of the routine
+        is stopped, queued, and reactivated at latest when $P$ is satisfied.
+  \item $\Multi{}$ means that a message is (channel-) authenticated and sent to
+        all participants of this head, including the sender.
+  \item $\PostTx{}$ has a party create and submit the given transaction
+        on-chain. See Section~\ref{sec:on-chain} for individual transaction
+        details.
 \end{itemize}
 
-
 \subsection{Variables}
-\todo{todo}
 
-\begin{center}
-\begin{tabular}{|l|l|}\hline
-  $\hats$  & Sequence number of seen snapshot. \\ \hline
-  $\bars$  & Sequence number of confirmed snapshot. \\ \hline
-  $\hatmU$ & Seen snapshot object. \\ \hline
-  $\barmU$ & Confirmed snapshot object. \\ \hline
-  $\hatmL$ & Local ledger extension using seen transactions to prepare the next snapshot.\\ \hline
-  $\mT$    & Set of all transactions ever received via reqTx (independent of their validity or mutual conflicts).\\  \hline
-  $\hatmT$ & Set of transactions that extend the $\barmU$ (or $\hatmU$) to form $\hatmL$. \\
-           & Transaction candidates that go into the next snapshot (if this party is the next leader).\\ \hline
-  $\barmT$ & Set of all confirmed transactions up to the latest confirmed snapshot.\\  \hline
-\end{tabular}
-\end{center}
+Besides parameters agreed in the protocol setup (see Section~\ref{sec:setup}), a
+party's local state consists of the following variables:
+
+\begin{itemize}
+  \item $\hats$: Sequence number of seen snapshot.
+  \item $\bars$: Sequence number of confirmed snapshot.
+  \item $\hatmL$: Local ledger state used to validate new and requested
+        transactions against.
+  \item $\mT$: Set of all transactions ever received via $\mathtt{reqTx}$
+        (independent of their validity).
+  \item $\hatmT$: Set of transactions that extend from the last confirmed
+        snapshot $\barmU$ to form $\hatmL$. These are also the transactions that
+        would go into the next snapshot (if this party is the next leader).
+  \item $\Sigma$: Accumulator of signatures, indexed by parties.
+\end{itemize}
 
 \subsection{Protocol flow}
 
