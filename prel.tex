@@ -53,23 +53,26 @@ The set of dangling (unconnected) outputs are the \emph{unspent transaction outp
 In the rest of this document, we use of the following loosely specified functions and values: 
 \begin{itemize}
    \item  $\mathbb{B} = \{0,1\}^k$ denotes a string of $k$ bits, eg. an arbitrary string of bytes, 
-    \item $\mathbb{H} : \alphat \to \mathbb{B}$ denotes a \emph{hashing} function mapping arbitrary data to bytes, 
-    \item $\mathsf{bits} : \alpha \to \mathbb{B}$ denotes a \emph{serialisation} function mapping arbitrary data to bytes,
+    \item $\mathbb{H} : \alpha \to \mathbb{B}$ denotes a \emph{hashing} function mapping arbitrary data to bytes, 
+    \item $\mathsf{bits} : \alpha \to \mathbb{B}$ denotes an invertible \emph{serialisation} function mapping arbitrary data to bytes, 
     \item $k$, $k'$, $k_i$ denote \emph{verification keys},
+   \item  $\mathcal{S}$ denotes the set of possible \emph{slot} values. 
 \end{itemize}
 
 \subsubsection{Definitions}
 
-\begin{definition}[Values]
+\begin{definition}[Value]
 
-$\mathsf{Val}$ is a \emph{set} of \emph{tokens} represented as a tuple $(\mathsf{pid} \rightarrow \mathsf{tok} \rightarrow q)$ where
+A \emph{value} $\mathsf{val}$ is a \emph{set} of \emph{tokens} represented as a tuple $(\mathsf{pid} \rightarrow \mathsf{tok} \rightarrow q)$ where
 \begin{itemize}
     \item $\mathsf{pid} \in \{0,1\}^k$ is the \emph{Minting Policy identifier}, an arbitrary string of bytes corresponding to the \emph{hash} of a corresponding \emph{Minting Policy script},
     \item $\mathsf{tok} \in \{0,1\}^k$ is the \emph{Token name}, an arbitrary string of bytes,
     \item $q \in \mathbb{Z}$ is the quantity of this particular token.
 \end{itemize}
-Minting policy scripts are denoted $\mu$ and specific values are denoted $\mathsf{val}_{x}$ where $x$ identifies the output holding the value.
+
 \end{definition}
+
+We use $\mathsf{Val}$ to denote the set of all possible values and  $\mu_x$ for minting policy scripts.
 
 \begin{definition}[Validator Script]
 A validator script $\nu$ is a pure function whose type is:
@@ -92,102 +95,30 @@ Validator scripts are called \emph{phase-2} scripts in the Alonzo Ledger specifi
 We denote by $V$ the set of all validator scripts.
 
 \begin{definition}[Outputs]
-An \emph{output} $o$ is a triple $\mathsf{Val} \times V \times \txDataTy$ 
-For the purpose of this specification, each output \(o \in O\) is a triple of a value
-$\txVal$, a validator script $\nu$, and a datum $\delta$.
+\label{def:outputs}
+An \emph{output} $o$ is a triple $\mathsf{Val} \times V \times \txDataTy.$
+We denote by $O$ the set of all possible outputs, and by $O_x$ the outputs in some context $x$.
 \end{definition}
 
-
 \begin{definition}[Inputs]
-$$\txOutRef = (\mathsf{txId} \times \mathsf{outIx})$$
-$$i \in I = (\txOutRef \times \rho)$$
-
-Each input \(i\in I\) is a pair consisting of an \emph{output reference} $\txOutRef$ and a \emph{redeemer} $\rho$, where $\txOutRef$ consists of a transaction ID ($\mathsf{txId}$) and an index identifying an output in the transaction ($\mathsf{outIx}$).
+An input $i$ is pair $(\txOutRef, \rho)$ where 
+$\txOutRef \in (\mathsf{TxId} \times \mathbb{N})$ is the input reference with $\mathsf{TxId} \subseteq \mathbb{B},$ and $\rho \in \txDataTy$ is the \emph{input}'s redeemer.  We denote by $I$ the set of all possible inputs, and by $I_x$ the outputs in some context $x$.
 \end{definition}
 
 \begin{definition}[Validation Context]
 
-$\txPendingTxTy$ provides validators with additional context pertaining to the transaction being validated. More specifically, it provides:
-\[
-  i = (\txOutRef, \rho)
-\]
-\[
- \txIpend \in \txIpendSet = (i, o)
-\]
-\[
- \txPendingTx \in \txPendingTxTy = (\txIpendSet \times O \times \txValForge \times r \times \txKeys) 
-\]
-such that $o$ is the output of the
-consumed transaction referred to by $\txOutRef$.
-
-In Figure~\ref{fig:utxo-graph}, we use pairs \((n, \nu)\) to indicate that a given output locks $n$ cryptocurrency with validator predicate $\nu$.
-\end{definition}
-
-
-\begin{definition}[Transactions]
-$$
-\tx = (I \times O \times \txValForge \times r \times \txKeys)
-$$ 
-comprising a set of
-\emph{inputs} $I$, a list of \emph{outputs} $O$, values of
-\emph{minted/burned tokens} $\txValForge$, a \emph{slot range}
-\(r = (\txRmin, \txRmax)\), and a set of public keys $\txKeys$.
-
-The slot range $r$ indicates the slots within which $\tx$ may be
-confirmed and, finally, $\txKeys$ are the public keys under which
-$\tx$ is signed.
-
-In order to validate a transaction $\tx$ with input set $I$, for each
-output $o = (\txVal,\nu,\delta)$ referenced by an
-$i = (\txOutRef,\rho) \in I$, the corresponding validator $\nu$ is run
-on the following inputs:
-\(
-  \nu(\txVal,\delta,\rho,\txPendingTx),
-\)
-where the validation context $\txPendingTx$ consists of $\tx$ and \emph{all} outputs
-referenced by some $i \in I$ (not just $o$). Ultimately, $\tx$ is
-valid if and only if all validators return $\true$.
-\end{definition}
-
-\vspace{5mm} The \emph{Extended UTxO Model (EUTxO)}~\cite{eutxo} preserves this structure, while adding support for more expressive smart contracts and, in particular, for multi-transaction state machines, which serve as the basis for the mainchain portion of the Hydra protocol. 
-
-This additional expressiveness is achieved by two changes to the plain UTxO scheme outlined before: 
-
+A validation context $\txPendingTx$ is a tuple  
+$$(I_\sigma, O_\sigma, \mathsf{Mint}, \txRmin, \txRmax, \txKeys)$$
+where:
 \begin{itemize}
-\item Outputs carry, in addition to a cryptocurrency value $n$ and a validator $\nu$, now also a \emph{datum} $\delta$, which can, among other things, be used to maintain the state of long running smart contracts.
-\item The validation context $\sigma$ is extended to contain the entire validated transaction $\txTx$ as well as the UTxOs consumed by the inputs of that transaction.
+    \item $I_\sigma \in I^w$ is a list of inputs of length $w$,
+    \item $O_\sigma \in O^y$ is a list of outputs of length $y$,
+    \item $\mathsf{Mint} \subset \mathsf{Val}$ is the \emph{Minted} values,
+    \item $(\txRmin, \txRmax) \in \mathcal{S} \times \mathcal{S}$ are the lower and upper validity bounds of the enclosing transaction,
+    \item $\txKeys$ is the set of public keys signing the enclosing transaction.
 \end{itemize}
 
-In this extended model, evaluation of the validator predicate implies checking \(\nu(\rho, \delta, \sigma) = \true\). Besides maintaining contract state in $\delta$, the fact that the validator can inspect the entire validated transaction $\txTx$ through $\sigma$ enables validators to enforce that contract invariants are maintained across entire chains of transactions.
-
-Although formal results about EUTxO are rather recent, extended UTxO models already form the basis for the smart-contract platforms of existing blockchains --- in particular, Cardano~\cite{plutus-platform} and Ergo~\cite{ergo-platform}. Consequently, the Hydra head protocol as presented in this paper is of immediate practical relevance to these existing systems.
-
-\subsection{User-defined tokens}
-
-In addition to the basic EUTxO extension, we generalize the currency \emph{values} recorded on the ledger from integral numbers to \emph{generalized user-defined tokens}~\cite{eutxo-2}.
-
-% \begin{definition}[Validator Validity]
-%   Given a pending transaction $\txPendingTx$, the script-controlled
-%   spending conditions are fulfilled iff the following holds, for
-%   each \(\txIpend\in\txIpendSet\) with
-%   \(\txIpend = ((\txOutRef, \rho), (\txVal, \nu, \delta))\)
-%   \[
-%     \nu(\txVal, \delta, \rho, \txPendingTx) = \top
-%   \]
-%   Note that the above ignores all inputs that spend pay-to-pubkey
-%   outputs due to the required format for referenced outputs.
-% \end{definition}
-
-% Validators may make use of the following two helper functions:
-% \(\txUTxO{\txIpendSet} = \{ o \mathbin| (i, o) \in \txIpendSet \}\)
-% and
-% %
-% \begin{align*}
-%   &\txValue{\txIpendSet}         & &= \txValue{\txUTxO{\txIpendSet}} \\
-%   &\txValue{O}                   & &= \Sigma_{o \in O} \txValue{o} \\
-%   &\txValue{\txVal, \kappa}      & &= \txVal \\
-%   &\txValue{\txVal, \nu, \delta} & &= \txVal 
-% \end{align*}
+\end{definition}
 
 \subsection{State Machines}
 %\label{sec:state_machines}

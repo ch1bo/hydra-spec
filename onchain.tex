@@ -13,22 +13,6 @@ The following sections describe the structure of each of the transactions compri
     \item $\nuCom$ controls the collecting of \emph{committed} UTxO for use in the Head. 
 \end{itemize}
 
-% TODO: no generic OCV anymore
-% \dparagraph{Onchain verification algorithms.} The status of the head
-% is maintained in a variable $\eta$, which is part of the SM state and
-% updated by so-called \emph{onchain verification (OCV) algorithms}
-% $\ocvInitial$, $\ocvClose$, $\ocvContest$, and $\ocvFinal$. In the context
-% of the mainchain protocol, these OCV algorithms are intentionally kept
-% as generic as possible; this keeps the mainchain SM compatible with
-% many potential head-protocol variants.
-% The concrete OCV algorithms for the head protocol specified in this
-% paper are given in context of the head protocol itself as they depend
-% on the specific head-protocol internals: verification of head-protocol
-% certificates and related onchain state updates.
-% As such, the OCV algorithms can be seen as abstract mainchain algorithms
-% implemented by the specific head protocol. Consequently, the OCV
-% implementation for our head protocol is described in Section~\ref{sec:hpocv}.
-
 \subsection{Initial transaction} 
 
 The \mtxInit{} transaction (see
@@ -55,7 +39,7 @@ The \mtxInit{} transaction also mints tokens whose \emph{Minting Policy} is $\ma
 $$
 \mathsf{cid} = \mathbb{H}(\muHead(\mathsf{tx_{in}})),
 $$
-where $\mathsf{tx_{in}}$ is one of the inputs spent in the \mtxInit{} transaction. From the ledger preventing double-spending and the uniqueness of $\mathsf{tx_{in}}$, $\mathsf{cid}$ is guaranteed to be unique and can be used to identify the newly initialized head. \\
+where $\mathsf{tx_{in}} \in I_\sigma$ is one of the inputs spent in the \mtxInit{} transaction. From the ledger preventing double-spending and the uniqueness of $\mathsf{tx_{in}}$, $\mathsf{cid}$ is guaranteed to be unique and can be used to identify the newly initialized head. \\
 \\
 Two kinds of tokens are minted:
 \begin{itemize}
@@ -78,18 +62,30 @@ parameters match the parameters agreed on during the setup phase.
 
 \input{fig_SM_commit_tx}
 
-A \mtxCom{} transaction consumes one $\nuInitial$ UTxO and zero or one \emph{committed} UTxO, and has one output locked by validator $\nuCom$.
+A \mtxCom{} transaction has the following structure:
+\begin{itemize}
+    \item One input $i_{\mathsf{initial}} = (\txOutRef_{initial}, \rho_{initial})$ consuming $o_{initial} = (\val_{initial}, \nuInitial, \delta_{initial})$,
+    \item Zero or one input with reference $\txOutRef_{commit}$ consuming output $o_{commit} = (.,\val_{commit},.)$,
+    \item One output $o_{com} =  (\val_{com}, \nuCom, \delta_{com}).$ 
+\end{itemize}
 
 The $\nuInitial$ validator ensures the transaction has the following structure:
 \begin{menumerate}
-    \item The transaction is signed with a verification key $\mathsf{vk}$ such that 
-    $$ 
-    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val_{commit}, \mathbb{H}(\mathsf{vk}) = \mathsf{PT}_i,
-    $$
-    \item The redeemer for $\nuInitial$ is referencing the output to commit $ \rho = \txOutRef_{commit}$, with output $o_{commit}$ holding value $\val_{commit},$
-    \item The committed value is in the output $\val' = \{(\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1)\} \cup \val_{commit} $,
-    \item The data field $\delta$ of the output locked by $\nuCom$ is $(\mathsf{cid}, U)$ with:
-        $$U = (\txOutRef_{commit},\bits(o_{commit})),$$
+    \item Transaction is signed by correct participant: $\txKeys = \{\mathsf{k}\}$ s.t.
+    $
+    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val_{com}, \mathbb{H}(\mathsf{k}) = \mathsf{PT}_i,
+    $
+    \item The initial redeemer references the committed output, $\rho_{initial} = \txOutRef_{commit}$,
+    \item The initial datum is $\mathsf{cid}$,
+    \item The committed value is in the output $\val_{com} = \{(\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1)\} \cup \val_{commit} $,
+    \item The committed output is serialised as the datum of $o_{com}$:
+        $$
+        \begin{array}{c}
+        \delta_{com} = (\mathsf{cid}, U), \\
+        \mathrm{with}\\
+        U = (\txOutRef_{commit},\bits(o_{commit})),
+        \end{array}
+        $$
     \item No minting or burning happens.
 \end{menumerate}
 
@@ -117,9 +113,10 @@ The $\nuHead$ validator additionally checks that:
   $\val' = \{\mathsf{ST}\} \cup \bigcup_{i=1}^{n} \mathsf{PT}_{i} \cup \val_{i}$,
   \item All tokens present in output
   $|\{cid \rightarrow . \rightarrow 1\} ~ \mathsf{in} ~ \val'| = \nop + 1$,
-  \item The transaction is signed by a verification key $k' \in \hppuv$ with its
-  hash corresponding to the asset name of one of the participation tokens
-  $\{\mathsf{PT}_1 \dots \mathsf{PT}_n\}$,
+  \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
+    $
+    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \mathbb{H}(\mathsf{k'}) = \mathsf{PT}_i,
+    $
   \item Unchanged parameters $\mathsf{cid}$, $\hpAK$, $\hppuv$, $\nop$, and
   $\cPer$ in the data field,
   \item No minting or burning happens.
@@ -146,13 +143,17 @@ $$
 
 \noindent The $\nuHead$ validator ensures that:
 \begin{menumerate}
- \item All outputs committed into the head are recreated as is: $\forall i \in \{1\dots\nop\}, \mathbb{H}(O[i]) = \delta_i$,
+ \item All outputs committed into the head are recreated as is: $\forall i \in \{1\dots\nop\}, \mathbb{H}(O_\sigma[i]) = \delta_i$,
+  \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
+    $
+    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \mathbb{H}(\mathsf{k'}) = \mathsf{PT}_i,
+    $
  \item All participation tokens are burnt: $\forall i \in \{1\dots\nop\}, \{\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1\} \subseteq \mathsf{Mint}.$
 \end{menumerate} 
 
 \noindent For each of the $\nuInitial$ validators consumed, checks:
 \begin{menumerate}
-  \item The data field $\delta$ of the output locked is $\mathsf{cid}$,
+  \item The data field $\delta_{initial}$ of the output locked is $\mathsf{cid}$,
   \item The ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}.$ 
 \end{menumerate}
 
@@ -175,8 +176,11 @@ with $\eta_0 = \eta$.
 
 The $\nuHead$ validator perform those additional checks:
 \begin{enumerate}
-  \item Signer is one of the participants, $k' \in \hppuv,$
-  \item $\xi$ is a valid signature of $\eta'$ w.r.t. to $\hpAK$,
+  \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
+    $
+    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \mathbb{H}(\mathsf{k'}) = \mathsf{PT}_i,
+    $
+  \item $\xi$ is a valid multi-signature of $\eta'$ w.r.t. to $\hpAK$,
   \item Recorded snapshot state is consistent:
     $$
     \eta' = \left\{\begin{array}{ll}
@@ -184,10 +188,10 @@ The $\nuHead$ validator perform those additional checks:
          (0, \eta_0) & \mathit{otherwise} 
     \end{array}\right.,
     $$
-  \item Record contestation deadline, $\Tfinal = T_{\mathsf{max}} + T$,
-  \item Ensure timeliness of the transaction $T_{max} - T_{min}\leq T$ 
+  \item Record contestation deadline, $\Tfinal = \txRmax + T$,
+  \item Ensure timeliness of the transaction $\txRmax - \txRmin \leq T$ 
   \item Record public key hash of participant, $\mathcal{C} = \{k'\},$
-  \item Value is preserved, $val' = val,$
+  \item Value is preserved, $val' = val.$
   \item Nothing minted or burned.
 \end{enumerate}
 
@@ -205,12 +209,14 @@ with $\eta = (s, \mathbb{H}(U))$ and $\eta' = (s', \mathbb{H}(U')).$
 \noindent The $\nuHead$ validator additionally checks that:
 \begin{menumerate}
   \item Value is preserved $\val' = \val$,
-  \item The transaction is signed by a verification key $k' \in \hppuv$ such that 
-  $\exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \mathsf{val}, \mathsf{PT}_i = H(k'),$
+  \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
+    $
+    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \mathbb{H}(\mathsf{k'}) = \mathsf{PT}_i,
+    $
   \item The signer has not already contested $k' \not\in \mathcal{C},$  and it's added to the signers set: $\mathcal{C}' = \mathcal{C} \cup k',$
-  \item $\xi$ is a valid signature of $(\eta_0 || \eta')$ with respect to $\hpAK$, 
+  \item $\xi$ is a valid multi-signature of $(\eta_0 || \eta')$ with respect to $\hpAK$, 
   \item $s' > s$, 
-  \item Transaction is posted before deadline: $T_{\mathsf{max}} \leq \Tfinal$,
+  \item Transaction is posted before deadline: $\txRmax \leq \Tfinal$,
   \item Contestation deadline is updated:
      $$
      \Tfinal' = 
@@ -249,7 +255,7 @@ The $\nuHead$ validator performs the following checks:
   $$
   \item All tokens are burnt: 
      $\mathsf{ST} \cup \{(\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1) \mid i \in \{1\dots\nop\}\} \subseteq \mathsf{Mint},$
-  \item Transaction is posted after contestation deadline $\txRmin' > \Tfinal.$
+  \item Transaction is posted after contestation deadline $\txRmin > \Tfinal.$
 \end{enumerate}
 
 %%% Local Variables:
