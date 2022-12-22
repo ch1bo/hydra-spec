@@ -5,7 +5,7 @@
   \begin{algobox}{Coordinated Hydra Head}
     \medskip
     \begin{tabular}{c}
-      % CLIENT EVENTS
+      %%% Initializing the head
       \begin{tabular}{cc}
         \adjustbox{valign=t,scale=\sfact}{
          \begin{walgo}{0.6}
@@ -21,15 +21,57 @@
             % Always post init
             $\PostTx{}~(\mtxInit,\hpAK,\hppuv,\cPer)$ \; %
           }
+          \vspace{12pt}
 
-          % TODO: commit from client?
-          % TODO: abort from client?
+          % TODO: explain that i is our index
+          \On{$(\gcChainInitial, i, \hpAK, \hppuv, \cPer)$ from chain}{ %
+           \Req{} $\hpAK=\hpAK^{setup}$\; %
+           \Req{} $\hppuv=\hppuv^{setup}$\; %
+           \Req{} $\cPer=\cPer^{setup}$\; %
+           % TODO: missing cid check
+          }
         \end{walgo}
         }
         &
 
         \adjustbox{valign=t,scale=\sfact}{
         \begin{walgo}{0.6}
+          \On{$(\gcChainCommit, j, U)$ from chain}{ %
+            % TODO: make committed U simpler to read?
+            $U_{p_{j}} \gets U $
+
+            \If{$\forall k \in [1..n]: U_{p_{k}} \neq \undefined$}{ %
+              % TODO: Is Combine() producing eta or U0?
+              $\eta \gets \mathsf{Combine}(U_{p_1}, \ldots, U_{p_n})$ \; %
+              $\PostTx{}~(\mtxCCom, \eta)$ \; %
+            } %
+          }
+
+          \vspace{12pt}
+
+          % TODO: params? \hpPuv,\hpPr
+          \On{$(\gcChainCollectCom)$ from chain}{ %
+            % TODO: unclear where U_p1..U_pn are from (observed so far)
+            \Req{} $\forall j \in [1..n]: U_{p_j} \neq \undefined$ \; %
+            $\Uinit \gets \bigcup_{j=1}^{n} U_{p_j}$ \; %
+            $\hatmU, \barmU, \hatmL \gets \Uinit$ \; %
+            $\hats,\bars \gets 0$ \; %
+            $\mT, \hatmT, \barmT \gets \emptyset$ \;
+          }
+
+        \end{walgo}
+      }
+      \end{tabular}
+      
+      \\
+      \multicolumn{1}{l}{\line(1,0){490}} %
+      \\
+
+      %%% Open head
+      \begin{tabular}{c@{}c}
+        \adjustbox{valign=t,scale=\sfact}{
+        \begin{walgo}{0.65}
+
           %%% NEW TX
           \On{$(\hpNew,\tx)$ from client}{%
             \Req{} $\validTx(\tx) \land \hatmL \applytx \tx \neq \bot$\;
@@ -38,33 +80,6 @@
 
           \vspace{12pt}
 
-          % CLOSE from client
-          \On{$(\hpClose)$ from client}{ %
-            $\xi \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
-            $\PostTx{}~(\mtxClose,\xi)$ \; %
-          }
-
-        \end{walgo}
-          }
-        % &
-        
-        % \adjustbox{valign=t,scale=\sfact}{
-        % \begin{walgo}{0.3}
-        %   \If{bla}{
-        %     bla \; %
-        %   }      
-        % \end{walgo}} %
-
-      \end{tabular}
-      
-      \\
-      \multicolumn{1}{l}{\line(1,0){490}} %
-      \\
-
-      % NETWORK EVENTS
-      \begin{tabular}{c@{}c}
-        \adjustbox{valign=t,scale=\sfact}{
-        \begin{walgo}{0.65}
           %%% REQ TX
           \On{$(\hpRT,\tx)$ from $\party_j$}{%
             \Req{} $\validTx(\tx) \land \hatmL \applytx \tx \neq \bot$ \;
@@ -173,46 +188,21 @@
       \multicolumn{1}{l}{\line(1,0){490}} %
       \\
 
-      % CHAIN EVENTS
+      %%% Closing the head
       \begin{tabular}{c c}
         \adjustbox{valign=t,scale=\sfact}{
         \begin{walgo}{0.6}
-          % TODO: explain that i is our index
-          \On{$(\gcChainInitial, i, \hpAK, \hppuv, \cPer)$ from chain}{ %
-           \Req $\hpAK=\hpAK^{setup}$\; %
-           \Req $\hppuv=\hppuv^{setup}$\; %
-           \Req $\cPer=\cPer^{setup}$\; %
-           % TODO: missing cid check
-          }
 
-          \vspace{12pt}
-
-          \On{$(\gcChainCommit, j, U)$ from chain}{ %
-            % TODO: make committed U simpler to read?
-            $U_{p_{j}} \gets U $
-
-            \If{$\forall k \in [1..n]: U_{p_{k}} \neq \undefined$}{ %
-              % TODO: Is Combine() producing eta or U0?
-              $\eta \gets \mathsf{Combine}(U_{p_1}, \ldots, U_{p_n})$ \; %
-              $\PostTx{}~(\mtxCCom, \eta)$ \; %
-            } %
+          % CLOSE from client
+          \On{$(\hpClose)$ from client}{ %
+            $\xi \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
+            $\PostTx{}~(\mtxClose,\xi)$ \; %
           }
 
         \end{walgo}
         }
         & \adjustbox{valign=t,scale=\sfact}{
           \begin{walgo}{0.6}
-          % TODO: params? \hpPuv,\hpPr
-          \On{$(\gcChainCollectCom)$ from chain}{ %
-            % TODO: unclear where U_p1..U_pn are from (observed so far)
-            \Req{} $\forall j \in [1..n]: U_{p_j} \neq \undefined$ \; %
-            $\Uinit \gets \bigcup_{j=1}^{n} U_{p_j}$ \; %
-            $\hatmU, \barmU, \hatmL \gets \Uinit$ \; %
-            $\hats,\bars \gets 0$ \; %
-            $\mT, \hatmT, \barmT \gets \emptyset$ \;
-          }
-
-          \vspace{12pt} %
 
           \On{$(\gcChainClose, \xi) \lor (\gcChainContest, \xi)$ from chain}{ %
             $(\cdot, s', \cdot) \gets \xi$ \;
@@ -220,19 +210,16 @@
               $\xi' \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
               $\PostTx{}~(\mtxContest,\xi')$ \; %
             } }
+
           \end{walgo}
           }
-
       \end{tabular}
-
     \end{tabular}
-
     \bigskip
   \end{algobox}
   
-  \caption{Head-protocol machine for the \emph{coordinated head} from the perspective of party
-    $\party_i$.}
-  \label{fig:head_coordinated}
+  \caption{Head-protocol machine for the \emph{coordinated head} from the
+    perspective of party $\party_i$.}\label{fig:head_coordinated}
 
 \end{figure*}
 
