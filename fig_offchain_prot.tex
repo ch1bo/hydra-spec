@@ -19,7 +19,7 @@
             $\cPer^{setup} \gets \cPer$ \; %
 
             % Always post init
-            $\gcChainPost(\mtxInit,\hpAK,\hppuv,\cPer)$ \; %
+            $\PostTx{}~(\mtxInit,\hpAK,\hppuv,\cPer)$ \; %
           }
 
           % TODO: commit from client?
@@ -41,7 +41,7 @@
           % CLOSE from client
           \On{$(\hpClose)$ from client}{ %
             $\xi \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
-            $\gcChainPost(\mtxClose,\xi)$ \; %
+            $\PostTx{}~(\mtxClose,\xi)$ \; %
           }
 
         \end{walgo}
@@ -103,8 +103,7 @@
                $\msSig_i \gets %
                \msSign(\hyPr, (\hats \| U_{0}.h) \| \hatmU.h)$ \; %
  
-               \Send $(\hpAS,\hats,\msSig_i)$ %
-               to $\party_j$ \; %
+               $\Multi{}~(\hpAS,\hats,\msSig_i)$ %
 
                % \If{$\hpLdr(\hats+1) = i$}{
                  $\hatmT :\subseteq_{\mbox{max}} \mT$ s.t. $\hatmU\applytx\hatmT\not=\bot$ \; %
@@ -151,14 +150,10 @@
               \If{$\hats = \bars \land \hpLdr(\bars + 1) = i \land \hatmT \neq \emptyset$}{%
                 \Multi{} $(\hpRS,\bars+1,\hatmT\hpProjH)$ \;%
               }
-
-  
-            }\Else{
-             \fail
+            }\Else{%
+              \Fail{}%
             }%
-            }
-           }
-          }  
+          } } }
         \end{walgo}
 
           }
@@ -199,7 +194,7 @@
             \If{$\forall k \in [1..n]: U_{p_{k}} \neq \undefined$}{ %
               % TODO: Is Combine() producing eta or U0?
               $\eta \gets \mathsf{Combine}(U_{p_1}, \ldots, U_{p_n})$ \; %
-              $\gcChainPost(\mtxCCom, \eta)$ \; %
+              $\PostTx{}~(\mtxCCom, \eta)$ \; %
             } %
           }
 
@@ -225,7 +220,7 @@
             $(\cdot, s', \cdot) \gets \xi$ \;
             \If{$\bars > s'$}{%
               $\xi' \gets (\barmU.U, \barmU.s, \barmU.\msCSig)$ \; %
-              $\gcChainPost(\mtxContest,\xi')$ \; %
+              $\PostTx{}~(\mtxContest,\xi')$ \; %
             } }
           \end{walgo}
           }

@@ -1,14 +1,25 @@
 \section{Off-Chain Protocol}\label{sec:offchain}
 
-This section describes the actual Coordinated Hydra Head protocol, an even more simplified version of the original publication \cite{hydrahead20}. See the protocol overview in Section \ref{sec:overview} for an introduction and notable changes to the original protocol.\\
+This section describes the actual Coordinated Hydra Head protocol, an even more simplified version of the original publication~\cite{hydrahead20}. See the protocol overview in Section~\ref{sec:overview} for an introduction and notable changes to the original protocol.\\
 \\
 The protocol is specified as a reactive system that processes three kinds of events:
 \begin{enumerate}
-  \item on-chain protocol transactions introduced in the previous section (\ref{sec:on-chain}),
-  \item off-chain network messages sent between protocol actors (parties), and
-  \item client commands as received from the environment.
+  \item on-chain protocol transactions as introduced in the previous section (\ref{sec:on-chain})
+  \item off-chain network messages sent between protocol actors (parties):
+    \begin{itemize}
+      \item $\hpRT$: to request a transaction to be included in the next snapshot
+      \item $\hpRS$: to request a snapshot to be created \& signed by every head member
+      \item $\hpAS$: to acknowledge a snpashot by replying with their signatures
+    \end{itemize}
+  \item client commands as received from the environment
+    \begin{itemize}
+      \item $\mathtt{init}$: to start initialization of a head
+      \item $\mathtt{new}$: to ingest a new transaction to an open head
+      \item $\mathtt{close}$: to request closure of an open head
+    \end{itemize}
 \end{enumerate}
 
+\todo{by extending the figure it is describing more states now -> better state diagram?}
 The behavior is fully specified with corresponding sections in
 Figure~\ref{fig:head_coordinated} using variables and notation introduced in the
 following paragraphs.
@@ -18,38 +29,45 @@ following paragraphs.
 \begin{itemize}
   \item Every network message received from a specific party is checked for
         authentication. An implementation of the specification needs to find a
-        suitable means of (channel) authentication.
+        suitable means of (channel) authentication. Unauthenticated messages are
+        dropped and not yield to an event.
   \item The head protocol gets correctly (and with completeness) notified about
         observed transactions on-chain belonging to the respective head
         instance.
-  \item The specification covers only a single instance of a Hydra Head.
+  \item The specification covers only a single instance of a Hydra head.
         However, some implementations may choose to track multiple instances. As
-        multiple Hydra Heads might exist on the same blockchain, it is vital
+        multiple Hydra heads might exist on the same blockchain, it is vital
         that they do not interfere and the specification will take special care
         to ensure this.
-  \item All events are processed to completion, i.e. run-to-completion semantics
+  \item All events are processed to completion, i.e.\ run-to-completion semantics
         without preemption.
+  \item Events are deduplicated. That is, any two identical events must not lead
+        to multiple invocations of the handling semantics.
   \item Given the specification, events may pile up forever and implementations
-        need to consider these situations (i.e. potential for DoS). Note that,
+        need to consider these situations (i.e.\ potential for DoS). Note that,
         from a security standpoint, these situations are identical to a
         non-collaborative peer.
-  \item The lifecycle of a Hydra Head on-chain does not cross (hard fork)
+  \item The lifecycle of a Hydra head on-chain does not cross (hard fork)
         protocol update boundaries. Note that these events are announced in
         advance hence it should be possible for implementations to react in such
-        a way as to expedite closing of the Head before such a protocol update.
+        a way as to expedite closing of the head before such a protocol update.
         This further assumes that the contestation period parameter is picked
         accordingly.
 \end{itemize}
 
 \subsection{Notation}
 \begin{itemize}
-  \item ‘check P’ means that the following code is only executed if P holds and
-        otherwise skipped
-  \item ‘wait P’ is a blocking wait for condition P (we always use this in a way
-        that implies dishonest participation if it does not terminate)
-  \item All code blocks are assumed to be atomic
-  \item ‘fail’ implies detection of cheating (i.e., head can be closed), no
+  \item $\KwOn~(event,\ldots)$ specifies how the protocol reacts on a given event. Further information may be available via arguments and origin of the event.
+  \item $\Req~P$ means that logic expression $P$ must be satisfied for the further execution of
+        a routine, while discontinued on $\neg P$.
+  \item $\KwWait~P$ is a \todo{blocking in GDoc?} non-blocking wait for
+predicate $P$ to be satisfied. On $\neg P$, the execution of the
+routine is stopped, queued, and reactivated at latest when $P$ is
+satisfied.
+  \item $\Fail$ implies detection of cheating (i.e., head can be closed), no
         further requests or acknowledgments must be sent.
+  \item $\Multi{}$ means that a message is (channel-) authenticated and sent to all participants of this head, including the sender.
+  \item $\PostTx{}$ has a party create and submit the given transaction on-chain. See Section~\ref{sec:on-chain} for individual transaction details.
 \end{itemize}
 
 

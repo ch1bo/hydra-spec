@@ -580,13 +580,12 @@
 \SetKw{Req}{require}
 \SetKwFor{ForA}{for all}{}{enddo}
 \SetKwFor{Wait}{wait}{}{enddo}
-\SetKw{KwWait}{wait}
+\SetKw{KwWait}{wait} % without body
+\SetKw{Fail}{fail}
 \SetKw{IfI}{if}
 \SetKw{ThenI}{then}
 \SetKw{ElsI}{else}
 \SetKw{FiI}{fi}
-
-\SetKw{TxtWait}{wait} % for reference in text.
 
 \newcommand{\daPID}{\mathsf{ID}}
 
@@ -608,6 +607,7 @@
 \SetKw{KwOn}{on}
 \SetKw{Send}{send}
 \SetKw{Multi}{multicast}
+\SetKw{PostTx}{postTx}
 \newcommand{\Store}{\mathsf{store}}
 \newcommand{\Sign}{\mathsf{sign}}
 \newcommand{\Combine}{\mathsf{sigCombine}}
