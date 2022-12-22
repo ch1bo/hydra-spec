@@ -43,7 +43,7 @@ identifying the head members by assigning each token to the public key
 distributed by the respective party during the the setup phase.
 The initial transaction also initializes a state machine
 (see Fig.~\ref{fig:SM_states_basic}) for the head instance that manages
-the ``transfer'' of UTxOs between mainchain and head.
+the ``transfer'' of UTxOs between mainchain and head and forges one State Thread ($ST$) token marking the head output.
 
 Once the initial transaction appears on the mainchain, establishing
 the initial state $\stInitial$, each head member can attach a
@@ -59,8 +59,12 @@ members fail to post a \mtxCom{} transaction, the head can be aborted by going
 directly from $\stInitial$ to $\stFinal$.
 
 The head protocol is designed to allow any head member
-at any point in time to produce, without interaction, a certificate \todo{Should we use more technical term here? What is certificate?}
-for the current head UTxO set.  Using this certificate, the head member
+at any point in time to produce, without interaction, a certificate 
+for the current head UTxO set.
+Certificate $\xi$ consists of the latest
+confirmed snapshot $\Uset_\ell$, snapshot number and the respective multisignature, together
+with the remaining confirmed transactions (multisigned).
+Using this certificate, the head member
 may advance the state machine to the $\stClosed$ state.
 
 Once in $\stClosed$, the state machine grants parties a

@@ -6,11 +6,12 @@ notation (see Section~\ref{sec:cem}). In addition of standard CEM modeling, we
 also provide the formal conditions $\cemTxCon$ which a transition need to
 satisfy and also include them in the accompanying text.
 
-The following sections describe the structure of each of the transactions comprising 
-the Head protocol: Initial, Commit, Abort, CollectCom, Close, Contest, and FanOut. 
-Following the eUTxO model, this structure is enforced on-chain through \emph{validators}, eg. scripts attached to each UTxO run as part of the ledger's validation. 
-
-\todo{explain how scripts/contracts relate to this}
+The following sections describe the structure of each of the transactions comprising the Head protocol: Initial, Commit, Abort, CollectCom, Close, Contest, and FanOut. Following the eUTxO model, this structure is enforced on-chain through \emph{validators} which are \emph{scripts instances} attached to each UTxO and run as part of the ledger's validation of the transaction. The protocol defines three different scripts: 
+\begin{itemize}
+    \item $\nuHead$ is the script controlling the protocol state-machine logic,
+    \item $\nuInitial$ is the script used to control the initial distribution of tokens to Head participants, and
+    \item $\nuCom$ controls the collecting of \emph{committed} UTxO for use in the Head. 
+\end{itemize}
 
 % TODO: no generic OCV anymore
 % \dparagraph{Onchain verification algorithms.} The status of the head
@@ -52,14 +53,14 @@ head members,
 
 The \mtxInit{} transaction also mints tokens whose \emph{Minting Policy} is $\mathsf{cid}$, defined as 
 $$
-\mathsf{cid} = H(\muHead(\mathsf{tx_{in}})),
+\mathsf{cid} = \mathbb{H}(\muHead(\mathsf{tx_{in}})),
 $$
 where $\mathsf{tx_{in}}$ is one of the inputs spent in the \mtxInit{} transaction. From the ledger preventing double-spending and the uniqueness of $\mathsf{tx_{in}}$, $\mathsf{cid}$ is guaranteed to be unique and can be used to identify the newly initialized head. \\
 \\
 Two kinds of tokens are minted:
 \begin{itemize}
 \item $\mathsf{ST}$: A single \emph{State Thread} token marking the output carrying the state of the protocol on-chain, whose name is the well known string \texttt{HydraHeadV1},
-\item $\mathsf{PT}_i,\ i\in \{1 \dots \nop \}$: One participation token per participant, where the token name is the participant's verification key hash $H(k_i)$. This will be used to authenticate participants in protocol transactions.
+\item $\mathsf{PT}_i,\ i\in \{1 \dots \nop \}$: One participation token per participant, where the token name is the participant's verification key hash $\mathbb{H}(k_i)$. This will be used to authenticate participants in protocol transactions.
 \end{itemize}
 
 \subsubsection{Initial Outputs}
@@ -67,7 +68,7 @@ Two kinds of tokens are minted:
 The \mtxInit{} transaction has $\nop$ outputs, where each output is
 locked by validator $\nuInitial$ and the $\ith i$ output has the participation
 token $\mathsf{PT}_i$ in its value, and $\mathsf{cid}$ as a datum. Validator $\nuInitial$
-ensures that the output is consumed by either by \mtxAbort{} (see section \ref{sec:abort-tx} below) or \mtxCom{} (see section \ref{sec:commit-tx} below).
+ensures that the output is consumed by either an \mtxAbort{} (see section \ref{sec:abort-tx} below) or a \mtxCom{} (see section \ref{sec:commit-tx} below) transaction.
 
 The general well-formedness and validity of the \mtxInit{} transaction is
 checked on the mainchain. The head members can additionally check whether the head
@@ -79,17 +80,17 @@ parameters match the parameters agreed on during the setup phase.
 
 A \mtxCom{} transaction consumes one $\nuInitial$ UTxO and zero or one \emph{committed} UTxO, and has one output locked by validator $\nuCom$.
 
-\noindent The $\nuInitial$ validator ensures the transaction has the following structure:
+The $\nuInitial$ validator ensures the transaction has the following structure:
 \begin{menumerate}
-    \item the transaction is signed with verification key corresponding to the asset name in $\mathsf{PT}_i$,
-    \item the redeemer for $\nuInitial$ is referencing the output to commit $ \rho = \txOutRef_{commit}$, with output $o_{commit}$ holding value $\val_{commit}$
-    \item the committed value is in the output $\val' = \{\mathsf{PT}_{i}\} \cup \val_{commit} $,
-    \item the data field $\delta$ of the output locked by $\nuCom$ is $(\mathsf{cid}, U)$ with:
-    \begin{menumerate}
-        \item $U = \recordUTxO(\txOutRef_{commit},o_{commit})$, and 
-        \item $\recordUTxO (\txOutRef, o) = (\txOutRef, \bits(o))$,
-    \end{menumerate}        
-    \item no minting or burning happens.
+    \item The transaction is signed with a verification key $\mathsf{vk}$ such that 
+    $$ 
+    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val_{commit}, \mathbb{H}(\mathsf{vk}) = \mathsf{PT}_i,
+    $$
+    \item The redeemer for $\nuInitial$ is referencing the output to commit $ \rho = \txOutRef_{commit}$, with output $o_{commit}$ holding value $\val_{commit},$
+    \item The committed value is in the output $\val' = \{(\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1)\} \cup \val_{commit} $,
+    \item The data field $\delta$ of the output locked by $\nuCom$ is $(\mathsf{cid}, U)$ with:
+        $$U = (\txOutRef_{commit},\bits(o_{commit})),$$
+    \item No minting or burning happens.
 \end{menumerate}
 
 \noindent The $\nuCom$ validator ensures the output is collected by either a \mtxCCom{} or \mtxAbort{} transaction.
@@ -101,50 +102,57 @@ The \mtxCom{} transaction does not take part in the state machine logic.
 
 \input{fig_SM_initial_open}
 
-The \mtxCCom{} transaction collects all outputs from \mtxCom{} transactions participating in the same head and advances the state of the CEM state machine
+The \mtxCCom{} transaction collects all outputs from \mtxCom{} transactions participating in the same head and advances the state of the CEM state machine:
 $$
    (\stInitial,\hpAK,\hppuv,\nop,\cPer) \xrightarrow{\mathsf{collectCom}} (\stOpen,\hpAK,\eta,\hppuv,\nop,\cPer),
 $$
-where
+where $\eta$ is the hash of the concatenation of the serialised representation of committed outputs:
 $$
-\eta = \mathsf{Combine}(U_{1}, \ldots, U_{n}).
+\eta = \mathbb{H}(\bigoplus_{i=1}^n \mathsf{bits}(U_i)).
 $$
 
 The $\nuHead$ validator additionally checks that:
 \begin{menumerate}
-  \item all committed value captured and no additional funds ``enter'' or ``leave''
-  $\val' = \bigcup_{i=1}^{n} \mathsf{PT}_{i} \cup \val_{i}$,
-  \item all tokens present in output
+  \item All committed value captured and no additional funds ``enter'' or ``leave''
+  $\val' = \{\mathsf{ST}\} \cup \bigcup_{i=1}^{n} \mathsf{PT}_{i} \cup \val_{i}$,
+  \item All tokens present in output
   $|\{cid \rightarrow . \rightarrow 1\} ~ \mathsf{in} ~ \val'| = \nop + 1$,
-  \item the transaction is signed by a verification key $k' \in \hppuv$ with its
+  \item The transaction is signed by a verification key $k' \in \hppuv$ with its
   hash corresponding to the asset name of one of the participation tokens
-  $\{p_1 \dots p_n\}$,
-  \item unchanged parameters $\mathsf{cid}$, $\hpAK$, $\hppuv$, $\nop$, and
+  $\{\mathsf{PT}_1 \dots \mathsf{PT}_n\}$,
+  \item Unchanged parameters $\mathsf{cid}$, $\hpAK$, $\hppuv$, $\nop$, and
   $\cPer$ in the data field,
-  \item no minting or burning happens.
+  \item No minting or burning happens.
 \end{menumerate}
 
-\noindent Each of the $\nuCom^i$ validators, for $i \in \{ 1\dots n\}$, checks:
+\noindent Each of the $\nuCom^i$ validators, for $i \in \{ 1\dots n\}$, additionally checks:
 \begin{menumerate}
-    \item the ST token is present in the output value $\{cid \rightarrow ST \rightarrow 1\} \subseteq \val'$
-    \item with the correct $\mathsf{cid}$ in the datum $(cid,.) = \delta$.
+    \item The ST token is present in the output value $(cid \rightarrow ST \rightarrow 1) \in \val'$
+    \item The $\mathsf{cid}$ in the datum $(cid,.) = \delta$ matches the one from the token.
 \end{menumerate}
 
 \subsection{Abort Transaction}\label{sec:abort-tx} 
 
 \input{fig_SM_initial_final.tex}
 
+
 The \mtxAbort{} transaction
 (see Fig.~\ref{fig:SM_initial_final}) allows a party to abort the
-creation of a head.  The state is transitioned to $\mathsf{final}$ and the $\nuHead$ validator ensures that:
+creation of a head.  The state is transitioned to $\mathsf{final}$:
+
+$$
+   (\stInitial,\hpAK,\hppuv,\nop,\cPer) \xrightarrow{\mathsf{abort}} \stFinal.
+$$
+
+\noindent The $\nuHead$ validator ensures that:
 \begin{menumerate}
- \item All outputs committed into the head are recreated as is: $\forall i \in \{1\dots\nop\}, \mathcal{H}(O[i]) = \delta_i$,
- \item All participation tokens are burnt: $\forall i \in \{1\dots\nop\}, \{\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1\} \subseteq Mint.$
+ \item All outputs committed into the head are recreated as is: $\forall i \in \{1\dots\nop\}, \mathbb{H}(O[i]) = \delta_i$,
+ \item All participation tokens are burnt: $\forall i \in \{1\dots\nop\}, \{\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1\} \subseteq \mathsf{Mint}.$
 \end{menumerate} 
 
 \noindent For each of the $\nuInitial$ validators consumed, checks:
 \begin{menumerate}
-  \item The data field $\delta$ of the output locked is $(\mathsf{cid}$,
+  \item The data field $\delta$ of the output locked is $\mathsf{cid}$,
   \item The ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}.$ 
 \end{menumerate}
 
@@ -156,132 +164,93 @@ creation of a head.  The state is transitioned to $\mathsf{final}$ and the $\nuH
 
 \subsection{Close Transaction} 
 
-In order to close a head, a head
-member may post the \mtxClose{} transaction (see
-Fig.~\ref{fig:SM_open_closed}), which results in a SM transition
-from the $\stOpen$ state to the $\stClosed$ state.
-\\
-\\
-Performed $\nuHead$ validator checks:
-
-\begin{enumerate}
-  \item Verify off-chain signatures on a snapshot or keep recorded UTxO data unchanged if there is no snapshot 
-  \item Record contestation deadline: at least $L$ time after close transaction and ensure $Tmax - Tmin <= L$ 
-  \item Record public key hash of participant who posts in a set C
-  \item Value preservation
-  \item Nothing minted or burned
-\end{enumerate}
-
-\noindent Off-chain transaction construction needs to make sure that the transaction validity is well bounded and it can be at most $L$ time.
-\\
-\\
-Once a \mtxClose{} transaction has been posted, a \emph{contestation period}
-begins which should last for $L$ time. Hence, the deadline is recorded in the state, and it is bounded such that $Tmax - Tmin \leq L$.
-\\
-\\
-Finally, the SM state is extended by a set $\contesters$
-initialized to the poster's signing key, i.e.,
-$\contesters \gets \{k'\}$.   $\contesters$ is used to ensure that no party
-posts more than once during the contestation period.
-
-
 \input{fig_SM_open_closed}
 
+In order to close a head, a head member may post the \mtxClose{} transaction (see Fig.~\ref{fig:SM_open_closed}), which results in a SM transition
+from the $\stOpen$ state to the $\stClosed$ state:
+$$
+(\stOpen,\hpAK,\eta,\hppuv,\nop,\cPer) \xrightarrow[\xi]{\mathsf{close}} (\stClosed,\hpAK,\eta',\eta_0,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) 
+$$
+with $\eta_0 = \eta$.
+
+The $\nuHead$ validator perform those additional checks:
+\begin{enumerate}
+  \item Signer is one of the participants, $k' \in \hppuv,$
+  \item $\xi$ is a valid signature of $\eta'$ w.r.t. to $\hpAK$,
+  \item Recorded snapshot state is consistent:
+    $$
+    \eta' = \left\{\begin{array}{ll}
+         (s, \mathbb{H}(U')), & \mathrm{if}\ s > 0,\\
+         (0, \eta_0) & \mathit{otherwise} 
+    \end{array}\right.,
+    $$
+  \item Record contestation deadline, $\Tfinal = T_{\mathsf{max}} + T$,
+  \item Ensure timeliness of the transaction $T_{max} - T_{min}\leq T$ 
+  \item Record public key hash of participant, $\mathcal{C} = \{k'\},$
+  \item Value is preserved, $val' = val,$
+  \item Nothing minted or burned.
+\end{enumerate}
 
 \subsection{Contest Transaction} 
 
+\input{fig_SM_closed_closed}
+
 The \mtxContest{} transaction (see
-Fig.~\ref{fig:SM_closed_closed}) is posted by a party to prove the currently $\stClosed$ state is not the latest one. 
-
-\noindent Performed $\nuHead$ validator checks:
-\begin{enumerate}
-   \item Verify off-chain snapshot signature
-   \item Record contestation deadline: at least L time after this contest
-   \item Record public key hash of participant who posts in a set C
-   \item Ensure there is no contest by someone in C
-   \item Value preservation
-   \item Nothing minted or burned
-\end{enumerate}
-
-\noindent This causes the following transition in the CEM state machine (eg. change datum of output locked by $\nuHead$ script):
+Fig.~\ref{fig:SM_closed_closed}) is posted by a party to prove the currently $\stClosed$ state is not the latest one. This causes the following transition in the CEM state machine (eg. change datum of output locked by $\nuHead$ script):
 $$
    (\stClosed,\hpAK,\eta,\eta_0,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\hpAK,\eta',\eta_0,\mathcal{C}', \hppuv,\nop,\cPer,\Tfinal'),
 $$
+with $\eta = (s, \mathbb{H}(U))$ and $\eta' = (s', \mathbb{H}(U')).$
 
 \noindent The $\nuHead$ validator additionally checks that:
 \begin{menumerate}
   \item Value is preserved $\val' = \val$,
-  \item The transaction is signed by a verification key $k' \in \hppuv$ with its
-  hash corresponding to the asset name of one of the participation tokens
-  $\{\mathsf{PT}_1 \dots \mathsf{PT}_\nop\}$,
+  \item The transaction is signed by a verification key $k' \in \hppuv$ such that 
+  $\exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \mathsf{val}, \mathsf{PT}_i = H(k'),$
   \item The signer has not already contested $k' \not\in \mathcal{C},$  and it's added to the signers set: $\mathcal{C}' = \mathcal{C} \cup k',$
-  \item $\eta'$ is valid w.r.t. to previous state (see below), 
+  \item $\xi$ is a valid signature of $(\eta_0 || \eta')$ with respect to $\hpAK$, 
+  \item $s' > s$, 
   \item Transaction is posted before deadline: $T_{\mathsf{max}} \leq \Tfinal$,
   \item Contestation deadline is updated:
      $$
      \Tfinal' = 
-        \{\begin{array}{ll}
-             \Tfinal     &  |\mathcal{C}'| = n, \\
-             \Tfinal + T &  \mathit{otherwise} \\
-        \end{array},
+        \left\{\begin{array}{ll}
+             \Tfinal,     &  |\mathcal{C}'| = n, \\
+             \Tfinal + T, &  \mathit{otherwise} \\
+        \end{array}\right.,
      $$
-  \item Values for $\hpAK$, $\hppuv$, $\nop$, $\eta_0$, and $\cPer$ are unchanged,
-  \item no minting or burning happens.
+  \item No minting or burning happens.
 \end{menumerate}
 
-\subsubsection{Contested State Verification}
-
-The $\nuHead$ validator uses auxiliary function $\mathsf{VerifyMultiSignature}$ to check that $\xi$ is 
-$$
-\xi = (s,U, \mathsf{sig})
-$$
-
-The transition handles update
-information $\xi$ by passing it through OCV algorithm $\ocvContest$,
-resulting in a new OCV status
-$\eta' \gets \ocvContest (\hpAK,\eta,\xi)$.  OCV algorithm
-$\ocvContest$ uses the previous OCV status $\eta$ and $\hpAK$ to check
-the update information $\xi$.  Similarly to $\ocvClose$, $\ocvContest$
-may output $\bot$, but in order for a \mtxContest{} transaction to be
-valid $\eta' \neq \bot$ is required.
-
-The \mtxContest{} transaction is only valid if the old set
-$\contesters$ of parties who have contested (or closed) so far does not yet
-include the poster, i.e., $k' \notin \contesters$.  If this check
-passes, the set is extended to include the poster of the \mtxContest{}
-transaction, i.e., $\contesters' \gets \contesters \cup \{k'\}$.
-Furthermore, \mtxContest{} transactions may only be posted up until
-$\Tfinal$, i.e., it is required that $\txRmax' \leq \Tfinal$.
-
-Observe that during the contestation period, up to $\nop-1$
-\mtxContest{} transactions may be posted (of course, the parameter
-$\cPer$ has to be chosen large enough as to allow each head member to
-potentially post a \mtxClose{}/\mtxContest{} transaction).
-
-
-\input{fig_SM_closed_closed}
-
-\input{fig_SM_closed_final}
 
 \subsection{Fan-Out Transaction}  
 
+\input{fig_SM_closed_final}
+
 Once the contestation phase is over, a head
 may be finalized by posting a \mtxFanout{} transaction, taking the SM
-from $\stClosed$ to $\stFinal$.  The \mtxFanout{} transaction must
-have outputs that correspond to the most recent head state. 
-\newline
-\newline 
-Performed $\nuHead$ validator checks:
+from $\stClosed$ to $\stFinal$.  
+
+$$
+   (\stClosed,\hpAK,\eta,\eta_0,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) \xrightarrow{\mathsf{fanout}} \stFinal,
+$$
+with $\eta = (s, H)$ and $\eta_0 = (0, H_0).$
+The $\nuHead$ validator performs the following checks:
 \begin{enumerate}
-  \item Correct outputs are created
-  \item All tokens are burned
+  \item Correct outputs are created: 
+  $$
+  \mathcal{H}(\bigoplus_{i=1}^n \mathsf{bits}(O[i])) = 
+    \left\{
+    \begin{array}{ll}
+        H_0, & s = 0 \\
+        H, &\mathit{otherwise}
+    \end{array}
+    \right.,
+  $$
+  \item All tokens are burnt: 
+     $\mathsf{ST} \cup \{(\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1) \mid i \in \{1\dots\nop\}\} \subseteq \mathsf{Mint},$
+  \item Transaction is posted after contestation deadline $\txRmin' > \Tfinal.$
 \end{enumerate}
-
-\noindent To that end, $\nuHead$ validator checks the transaction's output set $U$
-against the information recorded in $\eta$. To ensure that the \mtxFanout{} transaction is not posted too early,
-$\txRmin' > \Tfinal$ is required.  Finally, all participation tokens
-must be burned.
-
 
 %%% Local Variables:
 %%% mode: latex

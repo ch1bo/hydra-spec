@@ -32,7 +32,8 @@ Where $\msSetup$ generates public parameters $\msParams$, such that
 
 \begin{figure}[t]
   \centering
-  \caption{Example of a plain UTxO graph}
+ \includegraphics[width=\textwidth/2]{figures/utxo-graph.pdf}
+ \caption{Example of a plain UTxO graph}
   \label{fig:utxo-graph}
 \end{figure}
 
@@ -47,49 +48,29 @@ right.
 
 The set of dangling (unconnected) outputs are the \emph{unspent transaction outputs (UTxOs)} --- there are two of those in Figure~\ref{fig:utxo-graph}. 
 
-\begin{definition}[Outputs]
-$$
-o \in O = (\mathsf{Val} \times V \times \Delta)
-$$
-For the purpose of this specification, each output \(o \in O\) is a triple of a value
-$\txVal$, a validator script $\nu$, and a datum $\delta$.
-\end{definition}
 
 \begin{definition}[Values]
-Values are sets that keep track how many units of which tokens of
-which currency are available.  For example, the value
-$\{\mathsf{Coin} \mapsto \{\mathsf{Coin} \mapsto 3\}, c \mapsto \{t_1
-\mapsto 1, t_2 \mapsto 1\}\}$ contains $3$ $\mathsf{Coin}$ coins
-(there is only one (fungible) token $\mathsf{Coin}$ for a payment
-currency $\mathsf{Coin}$), as well as (non-fungible) tokens $t_1$ and $t_2$, which
-are both of currency $c$.  Values can be added naturally, e.g.,
-\begin{align*}
-  & \{\mathsf{Coin} \mapsto \{\mathsf{Coin} \mapsto 3\}, c \mapsto \{t_1
-    \mapsto 1, t_2 \mapsto 1\}\} \\
-  + \ & \{\mathsf{Coin} \mapsto \{\mathsf{Coin} \mapsto 1\}, c \mapsto \{t_3 \mapsto 1\}\} \\
-  = \ & \{\mathsf{Coin} \mapsto \{\mathsf{Coin} \mapsto 4\}, c \mapsto \{t_1
-        \mapsto 1, t_2 \mapsto 1, t_3 \mapsto 1\}\} \ .
-\end{align*}
 
-Note that $\varnothing$ is the empty value, and
-\(\{t_1, \ldots, t_n\} :: c\) is used as a shorthand for
-\(\{c \mapsto \{t_1 \mapsto 1, \ldots, t_n \mapsto 1\}\}\). 
+$\mathsf{Val}$ is a \emph{set} of \emph{tokens} represented as a tuple $(\mathsf{pid} \rightarrow \mathsf{tok} \rightarrow q)$ where
+\begin{itemize}
+    \item $\mathsf{pid} \in \{0,1\}^k$ is the \emph{Minting Policy identifier}, an arbitrary string of bytes corresponding to the \emph{hash} of a corresponding \emph{Minting Policy script},
+    \item $\mathsf{tok} \in \{0,1\}^k$ is the \emph{Token name}, an arbitrary string of bytes,
+    \item $q \in \mathbb{Z}$ is the quantity of this particular token.
+\end{itemize}
+
 \end{definition}
 
 \begin{definition}[Validator Script]
-A predicate $\nu$ that checks only authorized inputs of subsequent transactions can
-connect and consume the locked funds by the script output.
-
-Validator scripts $\nu$ are the ledger-level basis for smart
-contracts as they programmatically determine whether a script output
-may be spend by a given script input or not. To this end, validator
-scripts represent functions of the following type:
+A validator script $\nu$ is a pure function whose type is:
 \[
-  \nu : (\txValTy, \txDataTy, \txDataTy, \txPendingTxTy)
-  \to\txBoolTy
+  \nu : (\del\txDataTy, \txDataTy, \txPendingTxTy)
+  \to\txBoolTy,
 \]
-Where: $\txDataTy$ is a universal data type used to encode data
-values ($\delta$) and redeemers ($\rho$), $\txBoolTy = \{\bot, \top\}$, and $\txPendingTxTy$ is the validation context. We also
+where: 
+\begin{itemize}
+    \item $\txDataTy$ is a universal data type,
+\end{itemize}
+ ($\delta$) and redeemers ($\rho$), $\txBoolTy = \{\bot, \top\}$, and $\txPendingTxTy$ is the validation context. We also
 write $\emptyset$ for an empty value of type $\txDataTy$.  
 
 Moreover,
@@ -112,6 +93,15 @@ consumed transaction referred to by $\txOutRef$.
 
 In Figure~\ref{fig:utxo-graph}, we use pairs \((n, \nu)\) to indicate that a given output locks $n$ cryptocurrency with validator predicate $\nu$.
 \end{definition}
+
+\begin{definition}[Outputs]
+$$
+o \in O = (\mathsf{Val} \times V \times \Delta)
+$$
+For the purpose of this specification, each output \(o \in O\) is a triple of a value
+$\txVal$, a validator script $\nu$, and a datum $\delta$.
+\end{definition}
+
 
 \begin{definition}[Inputs]
 $$\txOutRef = (\mathsf{txId} \times \mathsf{outIx})$$
