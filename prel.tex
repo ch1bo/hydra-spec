@@ -12,7 +12,7 @@ Where $\msSetup$ generates public parameters $\msParams$, such that
 \begin{itemize}
   \item $(\msVK,\msSK) \gets \msKeyGen(\msParams)$ can be used to generate fresh key pairs,
   \item $\msSig \gets \msSign(\msParams,\msSK,\msMsg)$ signs  a message $\msMsg$ using key $\msSK$;
-  \item $\msCSig \gets \msComb(\msParams,\msMsg,\msVKL,\msSigL)$ aggregates a
+  \item $\msCSig \gets \msComb(\msParams,\msMsg,\msVKL,\msSigL)$ aggregates \todo{requires a message?} a
     set $\msSigL$ of signatures into a single, aggregate signature~$\msCSig$.
   \item $\msCVK \gets \msCombVK(\msParams,\msVKL)$ aggregates
   a tuple $\msVKL$ of verification keys $\msVK$ into a single,

@@ -61,6 +61,7 @@ following paragraphs.
 \end{itemize}
 
 \subsection{Notation}
+\todo{map access notation}
 \begin{itemize}
   \item $\KwOn~(event,\ldots)$ specifies how the protocol reacts on a given event. Further information may be available via arguments and origin of the event.
   \item $\Req~P$ means that logic expression $P$ must be satisfied for the further execution of
@@ -124,6 +125,54 @@ party want to abort, they would post an $\mtxAbort$ transaction and the protocol
 would end at this point.
 
 \dparagraph{$\mathtt{collectComTx}$.}\quad Upon observing the $\mtxCollect$ transaction, the parties compute $\Uinit \gets \bigcup_{j=1}^{n} U_{p_j}$ using previously observed committed UTxOs $U_{p_j}$ and initialize $\hatmU = \barmU = \hatmL = \Uinit$ with it\todo{check $\eta$ against $\Uinit$?}. The initial transaction sets are empty $\mT = \barmT =\hatmT =\emptyset$, and $\bars = \hats = 0$.
+
+\subsubsection{Processing transactions off-chain}
+
+Transactions are announced and captured in so-called snapshots. Parties generate
+snapshots in a strictly sequential round-robin manner. The party responsible for
+issuing the $\ith i$ snapshot is the \emph{leader} of the $\ith i$ snapshot.
+While the frequency of snapshots in the general Head protocol~\cite{hydrahead20}
+was configurable, the Coordinated Head protocol does specify a snapshot to be
+created after each transaction.
+
+\dparagraph{$\hpNew$.}\quad At any time, by calling $(\hpNew,\tx)$, a head
+party can (asynchronously) inject a new transaction $\tx$ to the head protocol.
+For this, the transaction must be well-formed ($\validTx$) and applicable to the
+current local ledger state: $\hatmL \applytx \tx \neq \bot$. If the checks
+pass, a $(\hpRT,\tx)$ request is sent out to all parties.
+
+\dparagraph{$\hpRT$.}\quad Upon receiving request $(\hpRT,\tx)$, the transaction
+gets recorded in $\mT$ and $\barmT$ using the tx hash $h = H(tx)$ and applied
+to the local \emph{seen} ledger state: $\hatmL \applytx \tx$. If there is no
+current snapshot ``in flight'' ($\hats = \bars$) and the receiving party $i$ is
+the next snapshot leader, a request for the next snapshot $\hpRS$ is sent. Note that only transaction hashes are submitted in this message.
+
+\dparagraph{$\hpRS$.}\quad Upon receiving request $(\hpRS,s,T)$ from party
+$\party_j$, the receiver $\party_i$ checks that $s$ is the next snapshot number
+and that party $\party_j$ is responsible for leading its creation. Party
+$\party_i$ then waits until the previous snapshot is confirmed ($\bars = \hats$)
+and all transactions referred in $T$ \todo{resolve $T \rightarrow \mT$} are
+confirmed. Only then, $\party_i$ increments their seen-snapshot counter $\hats$,
+resets the signature accumulator $\Sigma$, and computes the UTxO set $\hatmU$ of
+the new (seen) snapshot as $\hatmU \gets \barmU \applytx T$. Then, $\party_i$
+creates a signature $\msSig_i$ using their signing key $\hyPr$ on a message
+comprised by the initial UTxO set $\Uinit$, the new snapshot UTxO set $\hatmU$,
+and the new snapshot's number $\hats$. The signature is sent to \emph{all} head
+members via message $(\hpAS,\hats,\msSig_i)$. Note that no UTxO sets have to be
+exchanged in this process as the parties all locally compute a new snapshot by
+the given transaction hashes. Finally, the pending transaction set $\hatmT$ gets
+pruned by the just requested transactions $T$ and the local ledger state
+$\hatmL$ is updated accordingly.
+
+\dparagraph{$\hpAS$.}\quad Upon receiving acknowledgment $(\hpAS,s,\msSig_j)$,
+all participants $\Req$ that it is from an expected snapshot (either the last
+seen or + 1), the signature is not yet included in $\Sigma$, and potentially
+$\KwWait$ for the corresponding $\hpRS$ such that $\hats = s$. They store the
+received signature in the signature accumulator $\Sigma$. If a signature from
+each party has been collected, $\party_i$ aggregates the multisignature
+$\msCSig$ and $\Req$s it to be valid. \todo{detect cheating (fail) here?} If
+everything is fine, the snapshot can be considered confirmed by updating
+$\bars=s$ and storing everything for later reference in $\barmU$ \todo{different variable name?}. Similar to the $\hpRT$, if $\party_i$ is the next snapshot leader and there are already transactions to snapshot in $\hatmT$, a corresponding $\hpRS$ is to be distributed.
 
 \input{fig_offchain_prot}
 

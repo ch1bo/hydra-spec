@@ -51,7 +51,6 @@
 
           % TODO: params? \hpPuv,\hpPr
           \On{$(\gcChainCollectCom)$ from chain}{ %
-            % TODO: unclear where U_p1..U_pn are from (observed so far)
             \Req{} $\forall j \in [1..n]: U_{p_j} \neq \undefined$ \; %
             $\Uinit \gets \bigcup_{j=1}^{n} U_{p_j}$ \; %
             $\hatmU, \barmU, \hatmL \gets \Uinit$ \; %
@@ -112,11 +111,13 @@
                % $\forall\tx\in\Reach^{\mT}(T)$:
                %  \Out $(\hpSeen,\tx)$ \; %
 
-               $\hatmU \gets
-               \Sno(\hats,\barmU\applytx T )$ \; %
+               % TODO: explain \Sigma variable
+               $\Sigma \gets \emptyset$
 
-               $\msSig_i \gets %
-               \msSign(\hyPr, (\hats \| U_{0}.h) \| \hatmU.h)$ \; %
+               $\hatmU \gets \barmU \applytx T$ \; %
+
+               % TODO: make signed message consistent
+               $\msSig_i \gets \msSign(\hyPr, (\Uinit, \hatmU, \hats))$ \; %
  
                $\Multi{}~(\hpAS,\hats,\msSig_i)$ %
 
@@ -136,26 +137,26 @@
           %%% ACK SN
           \On{$(\hpAS,s,\msSig_j)$ from $\party_j$}{ %
 
-            \Req{} $s \in \{\hats,\hats+1\}$ \; % 2-round ack/confirmation
-            % and $\hySignedU.\hySN = \hySN$ \; %
+            \Req{} $s \in \{\hats,\hats+1\} ~ \land ~ (j,\msSig_j) \notin \Sigma$
+            \; %
 
             \Wait{$\hats=s$
             }{ %
             
-            \Req{} $\hatmU.\hpSigs[j] = \undefined$ \; %
 
-            $\hatmU.\hpSigs[j] \gets \msSig_j$ \; %
+            $\Sigma \gets \Sigma \cup (j,\msSig_j)$ \; %
 
-            \If{$\forall k: \hatmU.\hpSigs[k] \neq \undefined$}{ %
-              $\msCSig %
-              \gets \msComb((s \| U_{0}.h) \| \hatmU.\hash, %
-              \msVKL, \hatmU.\hpSigs)$ \; %
-              
-              \If{$\msVfy(\msCVK, (\hats \| U_{0}.h) \| \hatmU.\hash,\msCSig)$}{ %
-              $\bars \gets s$ \; %
-              $\hatmU.\msCSig \gets \msCSig$ \; %
-              $\barmU \gets \hatmU$ \; %
-              $\barmT \gets \barmT \cup \barmU.T$ \; %
+            \If{$\forall k \in [1..n]: (k,\cdot) \in \Sigma$}{ %
+              $\msCSig \gets \msComb(\msVKL, \Sigma)$ \; %
+
+              % TODO: make signed message consistent
+              % REVIEW: require instead of fail (in else)
+              \Req{} $\msVfy(\msCVK, (\Uinit, \hatmU, \hats), \msCSig)$ \;
+              $\bars \gets \hats$ \; %
+              $\barmU \gets (\hatmU, \bars, \msCSig)$ \; %
+
+              % REVIEW: bar T was unused?
+              % $\barmT \gets \barmT \cup \barmU.T$ \; %
 
               % TODO: update security definition to observe without output
               % keyword
@@ -165,10 +166,8 @@
               \If{$\hats = \bars \land \hpLdr(\bars + 1) = i \land \hatmT \neq \emptyset$}{%
                 \Multi{} $(\hpRS,\bars+1,\hatmT\hpProjH)$ \;%
               }
-            }\Else{%
-              \Fail{}%
-            }%
-          } } }
+            }
+          } }
         \end{walgo}
 
           }
