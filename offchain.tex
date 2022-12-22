@@ -1,7 +1,7 @@
 \section{Off-Chain Protocol}\label{sec:offchain}
 
-This section describes the actual Coordinated Hydra Head protocol, an even more simplified version of the original publication \cite{hydrahead20}. See the protocol overview in Section \ref{sec:overview} for an introduction and notable changes to the original protocol.
-
+This section describes the actual Coordinated Hydra Head protocol, an even more simplified version of the original publication \cite{hydrahead20}. See the protocol overview in Section \ref{sec:overview} for an introduction and notable changes to the original protocol.\\
+\\
 The protocol is specified as a reactive system that processes three kinds of events:
 \begin{enumerate}
   \item on-chain protocol transactions introduced in the previous section (\ref{sec:on-chain}),
@@ -14,25 +14,31 @@ Figure~\ref{fig:head_coordinated} using variables and notation introduced in the
 following paragraphs.
 
 \subsection{Assumptions}
+\todo{move to protocol setup?}
 \begin{itemize}
-  \item every network event received from a specific party is checked for
-        (channel) authentication. It is the implementer’s duty to find a
-        suitable authentication process for the communication channels.
+  \item Every network message received from a specific party is checked for
+        authentication. An implementation of the specification needs to find a
+        suitable means of (channel) authentication.
   \item The head protocol gets correctly (and with completeness) notified about
-        observed on-chain transactions belonging to the respective head
+        observed transactions on-chain belonging to the respective head
         instance.
-  \item The clients pre-agreed on the head-instance parameters ahead of time:
-        public keys, etc (they initialize their “expectations” with the
-        OnClient-Init event below)
-  \item All events are processed to completion (run-to-completion semantics) and there is no pre-emption.
-  \item Given the specification, events may pile up forever; implementations
-        might want to consider these situations (i.e. potential for DoS); we
-        note though, that from a security standpoint, these situations are
-        identical to a non-collaborative peer
-  \item The lifecycle of the Head on-chain does not cross Hard Fork or Protocol
-        Parameters Update boundaries. Note these events are announced in advance
-        hence it should be possible for implementations to react in such a way
-        as to expedite closing of the Head before HF or PParamsUpdate
+  \item The specification covers only a single instance of a Hydra Head.
+        However, some implementations may choose to track multiple instances. As
+        multiple Hydra Heads might exist on the same blockchain, it is vital
+        that they do not interfere and the specification will take special care
+        to ensure this.
+  \item All events are processed to completion, i.e. run-to-completion semantics
+        without preemption.
+  \item Given the specification, events may pile up forever and implementations
+        need to consider these situations (i.e. potential for DoS). Note that,
+        from a security standpoint, these situations are identical to a
+        non-collaborative peer.
+  \item The lifecycle of a Hydra Head on-chain does not cross (hard fork)
+        protocol update boundaries. Note that these events are announced in
+        advance hence it should be possible for implementations to react in such
+        a way as to expedite closing of the Head before such a protocol update.
+        This further assumes that the contestation period parameter is picked
+        accordingly.
 \end{itemize}
 
 \subsection{Notation}
