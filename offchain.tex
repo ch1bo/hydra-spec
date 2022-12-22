@@ -1,8 +1,13 @@
 \section{Off-Chain Protocol}\label{sec:offchain}
 
-This section describes the actual Coordinated Hydra Head protocol, an even more simplified version of the original publication~\cite{hydrahead20}. See the protocol overview in Section~\ref{sec:overview} for an introduction and notable changes to the original protocol.\\
-\\
-The protocol is specified as a reactive system that processes three kinds of events:
+This section describes the actual Coordinated Hydra Head protocol, an even more
+simplified version of the original publication~\cite{hydrahead20}. See the
+protocol overview in Section~\ref{sec:overview} for an introduction and notable
+changes to the original protocol. While the on-chain part already describes the
+full life-cycle of a Hydra head on-chain, this section completes the picture by
+defining how the protocol behaves off-chain and notably how certain values
+relate between on- and off-chain semantics. The protocol is specified as a
+reactive system that processes three kinds of events:
 \begin{enumerate}
   \item on-chain protocol transactions as introduced in the previous section (\ref{sec:on-chain})
   \item off-chain network messages sent between protocol actors (parties):
