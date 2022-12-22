@@ -1,6 +1,54 @@
-\section{Off-Chain Protocol}
+\section{Off-Chain Protocol}\label{sec:offchain}
 
-Variables:
+This section describes the actual Coordinated Hydra Head protocol, an even more simplified version of the original publication \cite{hydrahead20}. See the protocol overview in Section \ref{sec:overview} for an introduction and notable changes to the original protocol.
+
+The protocol is specified as a reactive system that processes three kinds of events:
+\begin{enumerate}
+  \item on-chain protocol transactions introduced in the previous section (\ref{sec:on-chain}),
+  \item off-chain network messages sent between protocol actors (parties), and
+  \item client commands as received from the environment.
+\end{enumerate}
+
+The behavior is fully specified with corresponding sections in
+Figure~\ref{fig:head_coordinated} using variables and notation introduced in the
+following paragraphs.
+
+\subsection{Assumptions}
+\begin{itemize}
+  \item every network event received from a specific party is checked for
+        (channel) authentication. It is the implementer’s duty to find a
+        suitable authentication process for the communication channels.
+  \item The head protocol gets correctly (and with completeness) notified about
+        observed on-chain transactions belonging to the respective head
+        instance.
+  \item The clients pre-agreed on the head-instance parameters ahead of time:
+        public keys, etc (they initialize their “expectations” with the
+        OnClient-Init event below)
+  \item All events are processed to completion (run-to-completion semantics) and there is no pre-emption.
+  \item Given the specification, events may pile up forever; implementations
+        might want to consider these situations (i.e. potential for DoS); we
+        note though, that from a security standpoint, these situations are
+        identical to a non-collaborative peer
+  \item The lifecycle of the Head on-chain does not cross Hard Fork or Protocol
+        Parameters Update boundaries. Note these events are announced in advance
+        hence it should be possible for implementations to react in such a way
+        as to expedite closing of the Head before HF or PParamsUpdate
+\end{itemize}
+
+\subsection{Notation}
+\begin{itemize}
+  \item ‘check P’ means that the following code is only executed if P holds and
+        otherwise skipped
+  \item ‘wait P’ is a blocking wait for condition P (we always use this in a way
+        that implies dishonest participation if it does not terminate)
+  \item All code blocks are assumed to be atomic
+  \item ‘fail’ implies detection of cheating (i.e., head can be closed), no
+        further requests or acknowledgments must be sent.
+\end{itemize}
+
+
+
+\subsection{Variables}
 
 \begin{center}
 \begin{tabular}{|l|l|}\hline

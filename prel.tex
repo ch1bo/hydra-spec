@@ -63,7 +63,7 @@ $\mathsf{Val}$ is a \emph{set} of \emph{tokens} represented as a tuple $(\mathsf
 \begin{definition}[Validator Script]
 A validator script $\nu$ is a pure function whose type is:
 \[
-  \nu : (\del\txDataTy, \txDataTy, \txPendingTxTy)
+  \nu : (\delta : \txDataTy) \to (\rho : \txDataTy) \to (\mathsf{tx} : \txPendingTxTy)
   \to\txBoolTy,
 \]
 where: 
