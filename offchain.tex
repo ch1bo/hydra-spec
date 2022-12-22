@@ -70,8 +70,6 @@ following paragraphs.
 predicate $P$ to be satisfied. On $\neg P$, the execution of the
 routine is stopped, queued, and reactivated at latest when $P$ is
 satisfied.
-  \item $\Fail$ implies detection of cheating (i.e., head can be closed), no
-        further requests or acknowledgments must be sent.
   \item $\Multi{}$ means that a message is (channel-) authenticated and sent to all participants of this head, including the sender.
   \item $\PostTx{}$ has a party create and submit the given transaction on-chain. See Section~\ref{sec:on-chain} for individual transaction details.
 \end{itemize}
