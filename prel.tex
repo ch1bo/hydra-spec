@@ -63,22 +63,24 @@ $\mathsf{Val}$ is a \emph{set} of \emph{tokens} represented as a tuple $(\mathsf
 \begin{definition}[Validator Script]
 A validator script $\nu$ is a pure function whose type is:
 \[
-  \nu : (\del\txDataTy, \txDataTy, \txPendingTxTy)
+  \nu : (\delta : \txDataTy) \to (\rho : \txDataTy) \to (\mathsf{tx} : \txPendingTxTy) 
   \to\txBoolTy,
 \]
 where: 
 \begin{itemize}
-    \item $\txDataTy$ is a universal data type,
+    \item $\txDataTy$ is a universal data type, and we denote an empty value of type $\txDataTy$ by $\emptyset$,  
+    \item $\delta$ is the \emph{datum} part of the output to which this particular script is locked (see Definition \ref{def:outputs}),
+    \item $\rho$ is the \emph{redeemer} provided as part of the transaction being validated,
+    \item $\txBoolTy = \{\bot, \top\},$
+    \item $\txPendingTxTy$ is the \emph{validation context}.
 \end{itemize}
- ($\delta$) and redeemers ($\rho$), $\txBoolTy = \{\bot, \top\}$, and $\txPendingTxTy$ is the validation context. We also
-write $\emptyset$ for an empty value of type $\txDataTy$.  
+\end{definition}
 
-Moreover,
-$\txPendingTxTy$ is an enriched transaction type that provides
-validators with additional context pertaining to the transaction,
-which is being validated.  
+Validator scripts are called \emph{phase-2} scripts in the Alonzo Ledger specification (see \cite{alozon-spec} for a formal treatment of these). Informally, scripts are \emph{evaluated} by the ledger when it \emph{applies} a transaction to its current state to yield a new ledger state. Each validator script referenced by an output is passed its arguments drawn from the output it locks and the transaction context it is executed in. The transaction is valid if and only if all scripts evaluates to $\top.$
 
-Specifically
+\begin{definition}[Validation Context]
+
+$\txPendingTxTy$ is a data structure that provides validators with additional context pertaining to the transaction being validated. More specifically, it provides:
 \[
   i = (\txOutRef, \rho)
 \]
