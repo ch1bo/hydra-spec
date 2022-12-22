@@ -76,8 +76,8 @@ satisfied.
 \end{itemize}
 
 
-
 \subsection{Variables}
+\todo{todo}
 
 \begin{center}
 \begin{tabular}{|l|l|}\hline
@@ -101,6 +101,23 @@ The following figure visualizes the possible event flows from the view of a sing
                   \caption{State diagram of reqSn/ackSn cycles.}
                   \label{fig:sim:baselines}
 \end{figure}
+
+\subsection{Protocol flow}
+
+\dparagraph{Initializing the head.} Before a head can be initialized, all
+parties need to exchange \& agree on protocol parameters during the protocol
+setup phase (see Section~\ref{sec:setup}), so we can assume the public Cardano
+keys $\hppuv^{setup}$, Hydra keys $\hpAK^{setup}$, as well as the contestation
+period $\cPer^{setup}$ are available. One of the clients then can start head initialization using the $\hpInit$ command, which will result in an $\mtxInit$ transaction posted. All parties will receive this $\mtxInit$ transaction and validate announced parameters against the pre-agreed $setup$ parameters.
+
+As each party $p_{j}$ posts a $\mtxCommit$ transaction, the protocol records
+observed committed UTxO $U_{p_{j}}$. With all committed UTxOs known, the
+$\eta$-state is created using $\mathsf{Combine}$ and the $\mtxCollect$
+transaction is posted. Note that while each participant might post this
+transaction, only one of them will be included in the blockchain as the
+mainchain ledger prevents double spending.
+
+Upon observing the $\mtxCollect$ transaction, the parties compute $\Uinit \gets \bigcup_{j=1}^{n} U_{p_j}$ using previously observed committed UTxOs $U_{p_j}$ and initialize $\hatmU = \barmU = \hatmL = \Uinit$ with it. The initial transaction sets are empty $\mT = \barmT =\hatmT =\emptyset$, and $\bars = \hats = 0$.
 
 \input{fig_offchain_prot}
 

@@ -205,12 +205,10 @@
           % TODO: params? \hpPuv,\hpPr
           \On{$(\gcChainCollectCom)$ from chain}{ %
             % TODO: unclear where U_p1..U_pn are from (observed so far)
-            \Req{} $\forall k \in [1..n]: U_{p_{k}} \neq \undefined$ \; %
+            \Req{} $\forall j \in [1..n]: U_{p_j} \neq \undefined$ \; %
+            $\Uinit \gets \bigcup_{j=1}^{n} U_{p_j}$ \; %
+            $\hatmU, \barmU, \hatmL \gets \Uinit$ \; %
             $\hats,\bars \gets 0$ \; %
-            $\Uinit \gets \bigcup_{i=1}^{n} U_{p_1}$ \; %
-            % TODO: Sno undefined
-            $\hatmU, \barmU \gets \Sno (0,\Uinit)$ \; %
-            $\hatmL \gets \Uinit$ \; %
             $\mT, \hatmT, \barmT \gets \emptyset$ \;
           }
 
