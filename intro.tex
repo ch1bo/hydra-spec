@@ -1,18 +1,8 @@
 \section{Introduction}
-This document specifies the 'Coordinated Hydra Head' protocol to be implemented as the first version of Hydra Head on Cardano - \textbf{Hydra HeadV1}. The protocol is derived from variants described in the original paper \cite{hydrahead20}, but further simplified to allow for easier implementation.
+This document specifies the 'Coordinated Hydra Head' protocol to be implemented as the first version of Hydra Head on Cardano - \textbf{Hydra HeadV1}. The protocol is derived from variants described in the original paper \cite{hydrahead20}, but was further simplified to make the implementation on Cardano possible \& simpler.
 
-\todo{sketchy}The security analysis is still \textbf{sketchy}, with the goal to make it more formal in upcoming
-iterations.
-
-\subsection{Overview}
-In the coordinated-head protocol, off-chain consensus is simplified by not having transactions
-confirmed concurrently to the snapshots (and to each other) but having the snapshot leader propose,
-in their snapshot, a set of transactions for explicit confirmation. The parties' views of confirmed
-transactions thus progress in sync with each other (once per confirmed snapshot), thus simplifying
-the close/contest procedure on the main-chain. Also, there is no need for conflict resolution as
-in Appendix~B of~\cite{hydrahead20}.
-
-\todo{similar / shortened as in \cite{hydrahead20}}
+The specification is structured similarly as the original paper, but focuses on a single version, avoids indirections and unnecessary generalizations. First a high-level overview of the protocol and how it differs from legacy variants of the Head protocol is given in Section~\ref{sec:overview}. Relevant definitions and notations are introduced in Section~\ref{sec:prel}, while Section~\ref{sec:setup} describes protocol setup and assumptions. Then, the actual on-chain transactions of the protocol are defined in Section~\ref{sec:on-chain}, before the off-chain protocol part specifies behavior of Hydra parties off-chain and ties the know with on-chain transactions in Section~\ref{sec:offchain}. At last, section \ref{sec:security} gives the security definition, properties and proofs for the Coordinated Head protocol. 
+\todo{The security analysis is still \textbf{sketchy}, with the goal to make it more formal in upcoming iterations}
 
 %%% Local Variables:
 %%% mode: latex

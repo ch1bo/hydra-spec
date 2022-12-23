@@ -1,8 +1,15 @@
 \section{Protocol Overview}\label{sec:overview}
 
+% In the coordinated-head protocol, off-chain consensus is simplified by not having transactions
+% confirmed concurrently to the snapshots (and to each other) but having the snapshot leader propose,
+% in their snapshot, a set of transactions for explicit confirmation. The parties' views of confirmed
+% transactions thus progress in sync with each other (once per confirmed snapshot), thus simplifying
+% the close/contest procedure on the main-chain. Also, there is no need for conflict resolution as
+% in Appendix~B of~\cite{hydrahead20}.
+
 \todo{maybe change terminology (mainchain -> L1, offchain -> L2)}
 
-The Hydra protocol provides functionality to lock a set of UTxOs on a
+The Hydra Head protocol provides functionality to lock a set of UTxOs on a
 blockchain, referred to as the \emph{mainchain}, and evolve it inside a
 so-called offchain \emph{head}, independently of the mainchain. At any point,
 the head can be closed with the effect that the locked set of UTxOs on the
@@ -19,18 +26,9 @@ protocol provides the same smart-contract capabilities as the mainchain.
 \subsection{The big picture}\label{sec:overview_bp}
 
 To create a head-protocol instance, any party may take the role of an
-\emph{initiator} and ask a set parties (including himself),
-the \emph{head members}, to participate in the head by announcing the
-identities of the parties.
-
-Each party then establishes pairwise authenticated channels to all other parties
-or---if this is not possible---aborts the protocol setup.\footnote{We generally
-  assume that mechanisms for establishing pairwise authenticated channels are in
-  place, e.g., by means of a public-key infrastructure.}
-\todo{same assumption?}
-
-The parties then exchange, via the pairwise authenticated channels,
-some public-key material. This public-key material is used both
+\emph{initiator} and ask a set parties, the \emph{head members}, to
+participate in the head by exchanging public keys and agreeing on other protocol parameters. 
+This public-key material is used both
 for the authentication of head-related onchain transactions that
 are restricted to head members (e.g., a non-member is not allowed
 to close the head) and for multisignature-based event confirmation
