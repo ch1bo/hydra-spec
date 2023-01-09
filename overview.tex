@@ -100,19 +100,20 @@ latest UTxO set seen during the contestation period.
 
 \subsection{Differences}
 
-In the Coordinated Head protocol, off-chain consensus is simplified by not having transactions
-confirmed concurrently to the snapshots (and to each other) but having the snapshot leader propose,
-in their snapshot, a set of transactions for explicit confirmation. The parties' views of confirmed
-transactions thus progress in sync with each other (once per confirmed snapshot), thus simplifying
-the close/contest procedure on the mainchain. Also, there is no need for conflict resolution as
-in Appendix~B of~\cite{hydrahead20}. In summary, the differences to the original Head protocol in~\cite{hydrahead20} are:
+In the Coordinated Head protocol, off-chain consensus is simplified by not
+having transactions confirmed concurrently to the snapshots (and to each other)
+but having the snapshot leader propose, in their snapshot, a set of transactions
+for explicit confirmation. The parties' views of confirmed transactions thus
+progress in sync with each other (once per confirmed snapshot), thus simplifying
+the close/contest procedure on the mainchain. Also, there is no need for
+conflict resolution as in Appendix~B of~\cite{hydrahead20}. In summary, the
+differences to the original Head protocol in~\cite{hydrahead20} are:
 
 \begin{itemize}
   \item No hanging transactions due to `coordination'.
   \item No acknowledgement nor confirmation of transactions.
-  \item No confirmation of snapshots (two-round confirmation by local acknowledgement).
+  \item No confirmation message for snapshots (two-round local confirmation).
 \end{itemize}
-\todo{explain why?}
 
 %%% Local Variables:
 %%% mode: latex
