@@ -1,5 +1,16 @@
 \section{Preliminaries}\label{sec:prel}
 
+\subsection{Notation}
+
+In the rest of this document, we use of the following loosely specified functions and values: 
+\begin{itemize}
+   \item  $\mathbb{B} = \{0,1\}^k$ denotes a string of $k$ bits, eg. an arbitrary string of bytes, 
+    \item $\mathbb{H} : \alpha \to \mathbb{B}$ denotes a \emph{hashing} function mapping arbitrary data to bytes, 
+    \item $\mathsf{bits} : \alpha \to \mathbb{B}$ denotes an invertible \emph{serialisation} function mapping arbitrary data to bytes, 
+    \item $k$, $k'$, $k_i$ denote \emph{verification keys},
+   \item  $\mathcal{S}$ denotes the set of possible \emph{slot} values. 
+\end{itemize}
+
 \subsection{Multisignatures}\label{sec:multisig}
 
 A multisignature scheme~\cite{itakura1983public,CCS:MicOhtRey01} is a
@@ -17,53 +28,30 @@ Where $\msSetup$ generates public parameters $\msParams$, such that
   \item $\msCVK \gets \msCombVK(\msParams,\msVKL)$ aggregates
   a tuple $\msVKL$ of verification keys $\msVK$ into a single,
   aggregate verification key $\msCVK$.
+  \item $\msVfy(\msParams,\msCVK,\msMsg,\msCSig) \in \{\true,\false\}$ verifies an aggregate signature under an aggregate verification key $\msCVK$.
 \end{itemize}
-  $\msCVK$ can be used for verification:
-  $\msVfy(\msParams,\msCVK,\msMsg,\msCSig) \in \{\true,\false\}$
-  verifies an aggregate signature under an aggregate verification key.
-  In the following, we often make the parameter~$\msParams$ implicit in the
-    function calls for better readability.
+Note that in the following, we often make the parameter~$\msParams$ implicit in the function calls for better readability.
 
-  Intuitively, the security of a multisignature scheme guarantees
-  that, if $\msCVK$ is produced from a tuple of verification keys
-  $\msVKL$ via $\msCombVK$, then no aggregate signature $\msCSig$ can
-  pass verification $\msVfy(\msCVK,\msMsg,\msCSig)$ unless all
-  honest parties holding keys in $\msVKL$ signed $m$.
+The security definition of a multisignature scheme guarantees that, if $\msCVK$ is produced from a tuple of verification keys $\msVKL$ via $\msCombVK$, then no aggregate signature $\msCSig$ can pass verification $\msVfy(\msCVK,\msMsg,\msCSig)$ unless all honest parties holding keys in $\msVKL$ signed $m$.
 
-\begin{figure}[t]
+\subsection{Extended UTxO}
+The basis for our fast isomorphic state channels is Bitcoin's UTxO ledger model~\cite{formal-model-of-bitcoin-transactions,Zahnentferner18-UTxO}. It arranges transactions in a directed acyclic graph structure, thus making the available parallelism explicit: \emph{Any two transactions that are not directly or indirectly dependent on each other can be processed independently.}
+
+This arrangement results in graphs, such as the one in Figure~\ref{fig:utxo-graph},
+where boxes represent transactions with (red) inputs to the left and (black) outputs to the
+right. A dangling (unconnected) output is an \emph{unspent transaction output (UTxO)} --- there are two UTxOs in the figure.
+
+\begin{figure}[h]
   \centering
  \includegraphics[width=\textwidth/2]{figures/utxo-graph.pdf}
  \caption{Example of a plain UTxO graph}
   \label{fig:utxo-graph}
 \end{figure}
 
-\subsection{Extended UTxO}
-The basis for our fast isomorphic state channels is Bitcoin's UTxO ledger model~\cite{formal-model-of-bitcoin-transactions,Zahnentferner18-UTxO}. It arranges transactions in a directed acyclic graph structure, thus making the available parallelism explicit: 
-
-\emph{Any two transactions that are not directly or indirectly dependent on each other can be processed independently.}
-
-This arrangement results in graphs, such as the one in Figure~\ref{fig:utxo-graph},
-where the boxes represent transactions with (red) inputs to the left and (black) outputs to the
-right.
-
-The set of dangling (unconnected) outputs are the \emph{unspent transaction outputs (UTxOs)} --- there are two of those in Figure~\ref{fig:utxo-graph}. 
-
-\subsubsection{Notations}
-
-In the rest of this document, we use of the following loosely specified functions and values: 
-\begin{itemize}
-   \item  $\mathbb{B} = \{0,1\}^k$ denotes a string of $k$ bits, eg. an arbitrary string of bytes, 
-    \item $\mathbb{H} : \alpha \to \mathbb{B}$ denotes a \emph{hashing} function mapping arbitrary data to bytes, 
-    \item $\mathsf{bits} : \alpha \to \mathbb{B}$ denotes an invertible \emph{serialisation} function mapping arbitrary data to bytes, 
-    \item $k$, $k'$, $k_i$ denote \emph{verification keys},
-   \item  $\mathcal{S}$ denotes the set of possible \emph{slot} values. 
-\end{itemize}
-
-\subsubsection{Definitions}
 
 \begin{definition}[Value]
 
-A \emph{value} $\mathsf{val}$ is a \emph{set} of \emph{tokens} represented as a tuple $(\mathsf{pid} \rightarrow \mathsf{tok} \rightarrow q)$ where
+A \emph{value} $\mathsf{val}$ is a \emph{set} of \emph{tokens} represented as a triple $(\mathsf{pid} \rightarrow \mathsf{tok} \rightarrow q)$ where
 \begin{itemize}
     \item $\mathsf{pid} \in \{0,1\}^k$ is the \emph{Minting Policy identifier}, an arbitrary string of bytes corresponding to the \emph{hash} of a corresponding \emph{Minting Policy script},
     \item $\mathsf{tok} \in \{0,1\}^k$ is the \emph{Token name}, an arbitrary string of bytes,
@@ -101,7 +89,7 @@ We denote by $O$ the set of all possible outputs, and by $O_x$ the outputs in so
 \end{definition}
 
 \begin{definition}[Inputs]
-An input $i$ is pair $(\txOutRef, \rho)$ where 
+An input $i$ is a pair $(\txOutRef, \rho)$ where 
 $\txOutRef \in (\mathsf{TxId} \times \mathbb{N})$ is the input reference with $\mathsf{TxId} \subseteq \mathbb{B},$ and $\rho \in \txDataTy$ is the \emph{input}'s redeemer.  We denote by $I$ the set of all possible inputs, and by $I_x$ the outputs in some context $x$.
 \end{definition}
 

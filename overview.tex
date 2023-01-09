@@ -1,12 +1,5 @@
 \section{Protocol Overview}\label{sec:overview}
 
-% In the coordinated-head protocol, off-chain consensus is simplified by not having transactions
-% confirmed concurrently to the snapshots (and to each other) but having the snapshot leader propose,
-% in their snapshot, a set of transactions for explicit confirmation. The parties' views of confirmed
-% transactions thus progress in sync with each other (once per confirmed snapshot), thus simplifying
-% the close/contest procedure on the main-chain. Also, there is no need for conflict resolution as
-% in Appendix~B of~\cite{hydrahead20}.
-
 \todo{maybe change terminology (mainchain -> L1, offchain -> L2)}
 
 The Hydra Head protocol provides functionality to lock a set of UTxOs on a
@@ -59,9 +52,8 @@ directly from $\stInitial$ to $\stFinal$.
 The head protocol is designed to allow any head member
 at any point in time to produce, without interaction, a certificate 
 for the current head UTxO set.
-Certificate $\xi$ consists of the latest
-confirmed snapshot $\Uset_\ell$, snapshot number and the respective multisignature, together
-with the remaining confirmed transactions (multisigned).
+This certificate is created from the latest confirmed snapshot,
+specifically from its snapshot number and the respective multisignature.
 Using this certificate, the head member
 may advance the state machine to the $\stClosed$ state.
 
@@ -95,14 +87,8 @@ the first function (locking the initial UTxO set) and the
 second two realize the second function (settling the final UTxO set on
 the mainchain).
 
-State machines \todo{introduce ST?}sequentialize all actions that involve the machine state. This is
-not a problem for closing and contesting, but would hurt performance for
-initialization. Without parallelization, all $n$ head members would have to post
-their commit transactions (their portion of the initial UTxO set) in sequence,
-requiring a linear chain of $n$
-transactions, %to incrementally build the initial head UTxO set
-each for one state transition at a time. Instead, we make the state machine
-consume all $n$ commit transactions in a single state transition. In
+Note that committing UTxOs to the head is not done in this state machine, to avoid overly sequentializing these steps. Instead, $\mtxCom$ transactions can be made in parallel and the state machine later
+consumes all $n$ commit transactions in a single state transition. In
 Fig.~\ref{fig:SM_states_basic}, we represent this in the following way: the
 transaction representing state $\stInitial$ connects to the transaction
 representing state $\stOpen$ not just via the $\mtxCCom$ state transition, but
@@ -123,46 +109,43 @@ participation token as representing a \emph{capability} and
 \subsection{The Coordinated Head protocol}\label{sec:overview_hp}
 
 The actual Head protocol starts after the initialization phase with an initial
-set $\Uinit$ of UTxOs that is identical to the UTxOs locked onchain via the
-\emph{commit} and \emph{collectCom} transactions.
+set of UTxOs that is identical to the UTxOs locked onchain via the \emph{commit}
+and \emph{collectCom} transactions.
 
-\dparagraph{Transactions and local UTxO state.} The protocol distributes and
-\emph{collects} individual transactions in full concurrency.
+The protocol distributes and \emph{collects} individual transactions in full concurrency,
+while each party maintains their view of the local UTxO state. That is, the current set of UTxOs evolved from the initial UTxO set
+by applying transactions as they are received from the other parties.
+As the protocol is asynchronous the parties' views of the local UTxO state generally differ.
 
-Each party maintains their view of the local UTxO state $\barmL$, which
-represents the current set of UTxOs evolved from the initial UTxO set $\Uinit$
-by applying all transactions that \todo{$\sim$ transactions are not confirmed} have been confirmed so far in the head. As the
-protocol is asynchronous the parties' views of the local UTxO state generally
-differ.
+To confirm transactions and allow for an onchain decommit of the resulting UTxO set
+without needing the whole transaction history, UTxO snapshots $\Uset_1,\Uset_2,\ldots$ are
+strictly sequentially created. The first snapshot corresponds to the initial UTxO set.
 
-\dparagraph{Snapshots.} To minimize local storage requirements and allow for an
-onchain decommit that is independent of the transaction history (not need to
-transfer whole transactions back onchain), UTxO snapshots $\Uset_1,\Uset_2,\ldots$ are
-continuously generated. For this, a \emph{snapshot leader} requests his view of
-a new confirmed state $\barmL$ to be multisigned as a new snapshot---the first
-head snapshot corresponding to the initial state $\Uinit$. A snapshot is
-considered \emph{confirmed} if it is associated with a valid multisignature.
-
-In contrast to transactions, snapshots are generated strictly sequentially. To
-have the new snapshot $\Uset_{i+1}=\barmL$ multisigned, the leader does not need
-to send his local state $\Uset_{i+1}$, but only indicate, by hashes, the set of
-(confirmed) transactions to be applied to $\Uset_i$ in order to obtain
-$\Uset_{i+1}$.
+For this, a \emph{snapshot leader} requests his view of
+a new confirmed state to be multisigned as a new snapshot. The leader does not need to send his local state,
+but only indicate, by hashes, the set of transactions to be included in order to obtain the to-be-snapshotted UTxO set.
 
 The other participants sign the snapshot as soon as they have (also) seen the
-transactions that are to be processed on top of its predecessor snapshot: a
+transactions that are to be processed on top of its preceding snapshot: a
 party's local state is always ahead of the latest confirmed snapshot.
 
-As soon as a snapshot is seen confirmed, a participant can safely
-delete all transactions that have already been processed into it as the
-snapshot's multisignature is now evidence that this state once existed
-during the head evolution.
+Signatures are broadcast and aggregated by each party. When all signatures parts of the
+multi-signatures are received and verified a snapshot is considered confirmed.
+As a consequence, a participant can safely delete all transactions that have been processed into it as the
+snapshot's multisignature is now evidence that this state once existed during the head evolution.
 
-\dparagraph{Closing the head.} A party that wants to close the head using their last known confirmed snapshot $\Uset_\ell$. During the subsequent contestation period, other head members can post their own local confirmed states onchain. The latest snapshot, with the highest snapshot number, will become the final UTxO set $\Ufinal$.
+A party can close the head using their last known confirmed snapshot using the $\mtxClose$ transaction.
+During the subsequent contestation period, other head members can post their own view of the confirmed states onchain.
+Eventually, the latest snapshot with the highest snapshot number will become the final UTxO set that is distributed on the mainchain.
 
 \subsection{Differences}
 
-In summary, the differences to the original Head protocol in~\cite{hydrahead20} are:
+In the Coordinated Head protocol, off-chain consensus is simplified by not having transactions
+confirmed concurrently to the snapshots (and to each other) but having the snapshot leader propose,
+in their snapshot, a set of transactions for explicit confirmation. The parties' views of confirmed
+transactions thus progress in sync with each other (once per confirmed snapshot), thus simplifying
+the close/contest procedure on the mainchain. Also, there is no need for conflict resolution as
+in Appendix~B of~\cite{hydrahead20}. In summary, the differences to the original Head protocol in~\cite{hydrahead20} are:
 
 \begin{itemize}
   \item No hanging transactions due to `coordination'.
@@ -170,7 +153,6 @@ In summary, the differences to the original Head protocol in~\cite{hydrahead20} 
   \item No confirmation of snapshots (two-round confirmation by local acknowledgement).
 \end{itemize}
 \todo{explain why?}
-
 
 %%% Local Variables:
 %%% mode: latex

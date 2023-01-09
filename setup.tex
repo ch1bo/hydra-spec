@@ -5,73 +5,32 @@ participants (himself being one of them) to join by announcing to them the
 protocol parameters.
 
 \begin{itemize}
-  \item \todo{Define $\nop$, $\cPer$ etc.}
-
-  \item Each party establishes pairwise communication channels to all other parties. That is, every network message received from a specific party is checked for (channel) authentication. It is the implementer’s duty to find a suitable authentication process for the communication channels.
-
   \item For onchain transaction authentication (Cardano) purposes, each party $\party_i$ generates a
-        coressponding key pair $(\sVKI{i},\sSKI{i})$ and sends their verification key $\sVKI{i}$ to all other parties. In the case of Cardano, these are Ed25519 keys.
+        corresponding key pair $(\sVKI{i},\sSKI{i})$ and sends their verification key $\sVKI{i}$ to all other parties. In the case of Cardano, these are Ed25519 keys.
 
-  \item For offchain signing (Hydra) purposes, a multisignature scheme (MS, as defined in Section~\ref{sec:multisig}) we define to use a naiive instantiation:
+  \item For offchain signing (Hydra) purposes, a very basic multisignature scheme (MS, as defined in Section~\ref{sec:multisig}) based on EdDSA using Ed25519 keys is used:
         \begin{itemize}
-          \item Using Ed25519 keys and key verification
-          \item $\msKeyGen(\msParams)$ is Ed25519 key generation (requires no parameters)
-          \item $\msCombVK$ is concatenation of verification keys
-          \item \todo{...continue}
+          \item $\msKeyGen$ is Ed25519 key generation (requires no parameters)
+          \item $\msSign$ creates an EdDSA signature
+          \item $\msCombVK$ is concatenation of verification keys into an ordered list
+          \item $\msComb$ is concatenation of signatures into an ordered list
+          \item $\msVfy$ verifies the "aggregate" signature by verifying each individual EdDSA signature under the corresponding Ed25519 verification key
         \end{itemize}
-  
-        Each party $\party_i$ generates a hydra key pair
-        \[
-          (\daPuI{i},\daPrI{i})  \gets \ \msKeyGen(\msParams)
-        \]
-        and sends their hydra verification key $\daPuI{i}$ to all other parties. This
-        multi-signature scheme may or may not be compatible with the standard
-        signature scheme above. The multisignature scheme will be used for the
-        offchain confirmation (and offchain and onchain verification) of
-        head-protocol events. Each party then computes the aggregate key from the received
-        verification keys:
-        \[
-          \hpAK \ \gets \ \msCombVK(\msParams,(\daPuI{j})_{j\in[n]}) \,.
-        \]
-        Note that this aggregation may be a simple concatenation.
+        
+  \item Each party $\party_i$ generates a hydra key pair and sends their hydra verification key to all other parties.
 
-  \item Each party $\party_i$ stores their signing key and all received
-        verification keys for both the Cardano (standard) and Hydra
-        (multi-)signature schemes.
+  \item Each party $\party_i$ computes the aggregate key from the received verification keys, stores the aggregate key,
+        their signing key as well as the number of participants $\nop$.
+        
+  \item Each party establishes pairwise communication channels to all other parties. That is, every network message received from a specific party is checked for (channel) authentication. It is the implementer’s duty to find a suitable authentication process for the communication channels.
+  
+  \item All parties agree on a contestation period $\cPer$.
 \end{itemize}
 
 If any of the above fails (or the party does not agree to join the head in the
 first place), the party aborts the initiation protocol and ignores any further
-action.\footnote{Of course, aborting the initiation can be achieved more
-  gracefully by explicitly notifying the initiator about one's
-  non-participation. Techniques are even known to finish such an initiation in
-  agreement among all parties~\cite{PODC:FGHHS02}.} Finally, one of the
-participants, who will become the initiator, posts the \mtxInit{} transaction
+action. Finally, at least one of the participants posts the \mtxInit{} transaction
 onchain as described next in Section~\ref{sec:on-chain}.
-
-
-% TODO: More compact?
-% The head protocol uses a multisignature (MS) scheme
-% $\ms = (\msSetup,\allowbreak\msKeyGen,\allowbreak\msCombVK,\allowbreak
-% \msSign, \allowbreak\msComb, \allowbreak\msVfy)$ (see
-% Section~\ref{sec:prel}).
-% The setup algorithm $\hpSetup$ simply
-% generates the public parameters for the MS scheme, i.e., it runs
-% $\msParams \gets \msSetup(1^\spara)$ and outputs
-% $\hpParams := \msParams$.  The key-generation algorithm
-% $\hpKG(\hpParams)$ (run by every party independently) uses
-% $\hpParams = \msParams$ to generate a key pair, i.e., it outputs
-% \[
-%   (\daPu,\daPr) %
-%   \ := \ (\msVK,\msSK) %
-%   \ \gets \ \msKeyGen(\msParams) \ .
-% \]
-% The aggregation algorithm $\hpAgg$ uses the aggregation mechanism
-% $\msCombVK$ of the multisignature scheme to combine public keys
-% $\{\hpPui i\}_i = \{\msVK_i\}_i$ into an aggregated public key
-% \[
-%   \hpAK \ := \ \msCVK \ \gets \ \msCombVK(\{\msVK_i\}_i) \ .
-% \]
 
 %%% Local Variables:
 %%% mode: latex

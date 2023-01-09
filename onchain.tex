@@ -6,7 +6,8 @@ notation (see Section~\ref{sec:cem}). In addition of standard CEM modeling, we
 also provide the formal conditions $\cemTxCon$ which a transition need to
 satisfy and also include them in the accompanying text.
 
-The following sections describe the structure of each of the transactions comprising the Head protocol: Initial, Commit, Abort, CollectCom, Close, Contest, and FanOut. Following the eUTxO model, this structure is enforced on-chain through \emph{validators} which are \emph{scripts instances} attached to each UTxO and run as part of the ledger's validation of the transaction. The protocol defines three different scripts: 
+The following sections describe the structure of each of the transactions comprising the Head protocol: $\mtxInit{}$, $\mtxCom{}$, $\mtxAbort{}$, $\mtxCollect{}$, $\mtxClose{}$, $\mtxContest{}$, and $\mtxFanout{}$. Following the eUTxO model, this structure is enforced on-chain through \emph{validators} which are \emph{scripts instances} attached to each UTxO and run as part of the ledger's validation of the transaction. The protocol defines three different scripts: 
+\todo{add minting script}
 \begin{itemize}
     \item $\nuHead$ is the script controlling the protocol state-machine logic,
     \item $\nuInitial$ is the script used to control the initial distribution of tokens to Head participants, and
@@ -33,23 +34,20 @@ head members,
   \item $\cPer$ is the length of the contestation period.
 \end{menumerate} 
 
-\subsubsection{Head Tokens}
-
-The \mtxInit{} transaction also mints tokens whose \emph{Minting Policy} is $\mathsf{cid}$, defined as 
+\noindent The \mtxInit{} transaction mints tokens whose \emph{Minting Policy} is $\mathsf{cid}$, defined as 
 $$
 \mathsf{cid} = \mathbb{H}(\muHead(\mathsf{tx_{in}})),
 $$
 where $\mathsf{tx_{in}} \in I_\sigma$ is one of the inputs spent in the \mtxInit{} transaction. From the ledger preventing double-spending and the uniqueness of $\mathsf{tx_{in}}$, $\mathsf{cid}$ is guaranteed to be unique and can be used to identify the newly initialized head. \\
+\todo{add checks of minting script}
 \\
 Two kinds of tokens are minted:
 \begin{itemize}
 \item $\mathsf{ST}$: A single \emph{State Thread} token marking the output carrying the state of the protocol on-chain, whose name is the well known string \texttt{HydraHeadV1},
 \item $\mathsf{PT}_i,\ i\in \{1 \dots \nop \}$: One participation token per participant, where the token name is the participant's verification key hash $\mathbb{H}(k_i)$. This will be used to authenticate participants in protocol transactions.
-\end{itemize}
+\end{itemize} 
 
-\subsubsection{Initial Outputs}
-
-The \mtxInit{} transaction has $\nop$ outputs, where each output is
+\noindent The \mtxInit{} transaction has $\nop$ outputs, where each output is
 locked by validator $\nuInitial$ and the $\ith i$ output has the participation
 token $\mathsf{PT}_i$ in its value, and $\mathsf{cid}$ as a datum. Validator $\nuInitial$
 ensures that the output is consumed by either an \mtxAbort{} (see section \ref{sec:abort-tx} below) or a \mtxCom{} (see section \ref{sec:commit-tx} below) transaction.
@@ -58,18 +56,18 @@ The general well-formedness and validity of the \mtxInit{} transaction is
 checked on the mainchain. The head members can additionally check whether the head
 parameters match the parameters agreed on during the setup phase.
 
-\subsection{Commit Transaction}\label{sec:commit-tx}
-
 \input{fig_SM_commit_tx}
 
-A \mtxCom{} transaction has the following structure:
+\subsection{Commit Transaction}\label{sec:commit-tx}
+
+A \mtxCom{} transaction is depicted in Figure~\ref{fig:SM_commit_tx} and has the following structure:
 \begin{itemize}
     \item One input $i_{\mathsf{initial}} = (\txOutRef_{initial}, \rho_{initial})$ consuming $o_{initial} = (\val_{initial}, \nuInitial, \delta_{initial})$,
     \item Zero or one input with reference $\txOutRef_{commit}$ consuming output $o_{commit} = (.,\val_{commit},.)$,
     \item One output $o_{com} =  (\val_{com}, \nuCom, \delta_{com}).$ 
 \end{itemize}
 
-The $\nuInitial$ validator ensures the transaction has the following structure:
+\noindent The $\nuInitial$ validator ensures the transaction has the following structure:
 \begin{menumerate}
     \item Transaction is signed by correct participant: $\txKeys = \{\mathsf{k}\}$ s.t.
     $
@@ -78,21 +76,11 @@ The $\nuInitial$ validator ensures the transaction has the following structure:
     \item The initial redeemer references the committed output, $\rho_{initial} = \txOutRef_{commit}$,
     \item The initial datum is $\mathsf{cid}$,
     \item The committed value is in the output $\val_{com} = \{(\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1)\} \cup \val_{commit} $,
-    \item The committed output is serialised as the datum of $o_{com}$:
-        $$
-        \begin{array}{c}
-        \delta_{com} = (\mathsf{cid}, U), \\
-        \mathrm{with}\\
-        U = (\txOutRef_{commit},\bits(o_{commit})),
-        \end{array}
-        $$
+    \item The committed output is serialised as the datum of $o_{com}$: $\delta_{com} = (\mathsf{cid}, U)$, with \\ $U = (\txOutRef_{commit},\bits(o_{commit}))$
     \item No minting or burning happens.
 \end{menumerate}
 
-\noindent The $\nuCom$ validator ensures the output is collected by either a \mtxCCom{} or \mtxAbort{} transaction.
-\begin{boxM}
-The \mtxCom{} transaction does not take part in the state machine logic.
-\end{boxM}
+\noindent The $\nuCom$ validator ensures the output is collected by either a \mtxCCom{} or \mtxAbort{} transaction of the on-chain state machine.
 
 \subsection{CollectCom Transaction}
 
@@ -107,7 +95,7 @@ $$
 \eta = \mathbb{H}(\bigoplus_{i=1}^n \mathsf{bits}(U_i)).
 $$
 
-The $\nuHead$ validator additionally checks that:
+\noindent The $\nuHead$ validator additionally checks that:
 \begin{menumerate}
   \item All committed value captured and no additional funds ``enter'' or ``leave''
   $\val' = \{\mathsf{ST}\} \cup \bigcup_{i=1}^{n} \mathsf{PT}_{i} \cup \val_{i}$,
@@ -148,7 +136,7 @@ $$
     $
     \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \mathbb{H}(\mathsf{k'}) = \mathsf{PT}_i,
     $
- \item All participation tokens are burnt: $\forall i \in \{1\dots\nop\}, \{\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1\} \subseteq \mathsf{Mint}.$
+ \item All participation tokens are burnt: $\forall i \in \{1\dots\nop\}, \{\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1\} \subseteq \mathsf{Mint}.$\todo{gap in prev spec?}
 \end{menumerate} 
 
 \noindent For each of the $\nuInitial$ validators consumed, checks:
@@ -172,9 +160,9 @@ from the $\stOpen$ state to the $\stClosed$ state:
 $$
 (\stOpen,\hpAK,\eta,\hppuv,\nop,\cPer) \xrightarrow[\xi]{\mathsf{close}} (\stClosed,\hpAK,\eta',\eta_0,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) 
 $$
-with $\eta_0 = \eta$.
+with $\eta_0 = \eta$. \\
 
-The $\nuHead$ validator perform those additional checks:
+\noindent The $\nuHead$ validator perform those additional checks:
 \begin{enumerate}
   \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
     $
@@ -190,7 +178,7 @@ The $\nuHead$ validator perform those additional checks:
     $$
   \item Record contestation deadline, $\Tfinal = \txRmax + T$,
   \item Ensure timeliness of the transaction $\txRmax - \txRmin \leq T$ 
-  \item Record public key hash of participant, $\mathcal{C} = \{k'\},$
+  \item Record public key hash of participant, $\mathcal{C} = \{k'\},$ \todo{allow contest after close!}
   \item Value is preserved, $val' = val.$
   \item Nothing minted or burned.
 \end{enumerate}
@@ -204,7 +192,7 @@ Fig.~\ref{fig:SM_closed_closed}) is posted by a party to prove the currently $\s
 $$
    (\stClosed,\hpAK,\eta,\eta_0,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\hpAK,\eta',\eta_0,\mathcal{C}', \hppuv,\nop,\cPer,\Tfinal'),
 $$
-with $\eta = (s, \mathbb{H}(U))$ and $\eta' = (s', \mathbb{H}(U')).$
+with $\eta = (s, \mathbb{H}(U))$ and $\eta' = (s', \mathbb{H}(U')).$ \\
 
 \noindent The $\nuHead$ validator additionally checks that:
 \begin{menumerate}
