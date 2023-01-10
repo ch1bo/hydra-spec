@@ -37,26 +37,33 @@ a function $f$ to an argument $x$ is written as $f(x)$. \\
 
 \subsection{Public key cryptography and multi-signature scheme}\label{sec:multisig}
 
-A multisignature scheme~\cite{itakura1983public,CCS:MicOhtRey01} is a
+A multisignature scheme~\cite{itakura1983public,CCS:MicOhtRey01}\todo{is this consistent with refs?} is a
 tuple of algorithms:
-$$
-\ms = (\msSetup \times \allowbreak\msKeyGen \times \allowbreak\msCombVK \times \allowbreak
+\[
+\ms \in (\msSetup \times \allowbreak\msKeyGen \times \allowbreak\msCombVK \times \allowbreak
 \msSign \times \allowbreak\msComb \times \allowbreak\msVfy)
-$$
+\]
 Where $\msSetup$ generates public parameters $\msParams$, such that
 \begin{itemize}
   \item $(\msVK,\msSK) \gets \msKeyGen(\msParams)$ can be used to generate fresh key pairs,
-  \item $\msSig \gets \msSign(\msParams,\msSK,\msMsg)$ signs  a message $\msMsg$ using key $\msSK$;
+  \item $\msSig \gets \msSign(\msParams,\msSK,\msMsg)$ signs  a message $\msMsg$ using key $\msSK$,
   \item $\msCSig \gets \msComb(\msParams,\msMsg,\msVKL,\msSigL)$ aggregates \todo{requires a message?} a
     set $\msSigL$ of signatures into a single, aggregate signature~$\msCSig$.
   \item $\msCVK \gets \msCombVK(\msParams,\msVKL)$ aggregates
-  a tuple $\msVKL$ of verification keys $\msVK$ into a single,
-  aggregate verification key $\msCVK$.
-  \item $\msVfy(\msParams,\msCVK,\msMsg,\msCSig) \in \{\true,\false\}$ verifies an aggregate signature under an aggregate verification key $\msCVK$.
+  a tuple\todo{set?} $\msVKL$ of verification keys into a single,
+  aggregate key $\msCVK$\todo{difference $\msCVK$ vs. $\msVKL$?},
+  \item $\msVfy(\msParams,\msAVK,\msMsg,\msCSig) \in Bool$ verifies an aggregate signature $\msCSig$ of message $\msMsg$ under an aggregate verification key $\msAVK$.
 \end{itemize}
-Note that in the following, we often make the parameter~$\msParams$ implicit in the function calls for better readability.
 
-The security definition of a multisignature scheme guarantees that, if $\msCVK$ is produced from a tuple of verification keys $\msVKL$ via $\msCombVK$, then no aggregate signature $\msCSig$ can pass verification $\msVfy(\msCVK,\msMsg,\msCSig)$ unless all honest parties holding keys in $\msVKL$ signed $m$.
+Note that in the following, we make the parameter~$\msParams$ implicit and leave
+out the $ver$ suffix for verification key such that $k = k^{ver}$ for better
+readability.
+
+The security definition of a multisignature scheme from~\cite{itakura1983public,CCS:MicOhtRey01} guarantees that, if $\msCVK$ is
+produced from a tuple\todo{set?} of verification keys $\msVKL$ via $\msCombVK$, then no
+aggregate signature $\msCSig$ can pass verification
+$\msVfy(\msCVK,\msMsg,\msCSig)$ unless all honest parties holding keys in
+$\msVKL$ signed $m$.
 
 \subsection{Extended UTxO}
 The basis for our fast isomorphic state channels is Bitcoin's UTxO ledger model~\cite{formal-model-of-bitcoin-transactions,Zahnentferner18-UTxO}. It arranges transactions in a directed acyclic graph structure, thus making the available parallelism explicit: \emph{Any two transactions that are not directly or indirectly dependent on each other can be processed independently.}
