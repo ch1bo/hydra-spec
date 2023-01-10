@@ -1,17 +1,41 @@
+\clearpage
 \section{Preliminaries}\label{sec:prel}
+
+This section introduces notation and other preliminaries used in the remainder
+of the specification.
 
 \subsection{Notation}
 
-In the rest of this document, we use of the following loosely specified functions and values: 
+The specification uses rough set-notation based approach.\todo{handwavy} All
+values are $\in$ of a set and complex values are tuples drawn from a $\times$
+product of multiple sets. Values of a sets may be enumerated using $\{\}$, $=$
+means correspondence and $\gets$ is explicit assignment of values and variables.
+Functions are morphisms mapping from one $\to$ to another set and application of
+a function $f$ to an argument $x$ is written as $f(x)$. \\
+
+\noindent With this, we define some first terms:
+
 \begin{itemize}
-   \item  $\mathbb{B} = \{0,1\}^k$ denotes a string of $k$ bits, eg. an arbitrary string of bytes, 
-    \item $\mathbb{H} : \alpha \to \mathbb{B}$ denotes a \emph{hashing} function mapping arbitrary data to bytes, 
-    \item $\mathsf{bits} : \alpha \to \mathbb{B}$ denotes an invertible \emph{serialisation} function mapping arbitrary data to bytes, 
-    \item $k$, $k'$, $k_i$ denote \emph{verification keys},
-   \item  $\mathcal{S}$ denotes the set of possible \emph{slot} values. 
+  \item $Bool = \{\true, \false\}$ are boolean values
+  \item $\mathbb{B} = {\{0,1\}}^n$ denotes a string of $n$ bits, e.g.\ an arbitrary
+        string of bytes,
+  \item $\oplus : \mathbb{B} \to \mathbb{B}$ is concatenatenating bytes
+  \item $\txDataTy$ is a universal data type, and we denote an empty value of type $\txDataTy$ by $\emptyset$
+  \item $\mathbb{H} : Data \to \mathbb{B}$ denotes a \emph{hashing} function
+        mapping arbitrary data to bytes
+  \item $\mathsf{bits} : Data \to \mathbb{B}$ denotes an invertible
+        \emph{serialisation} function mapping arbitrary data to bytes
 \end{itemize}
 
-\subsection{Multisignatures}\label{sec:multisig}
+\noindent When $x$ is a single value,
+\begin{itemize}
+  \item $x'$ is a modified form of it,
+  \item $\underline{x}$ is list of values,
+  \item $\tilde{x}$ is an aggregated value,
+  \item $x^{\#}$ is the result of $\mathbb{H}(x)$
+\end{itemize}
+
+\subsection{Public key cryptography and multi-signature scheme}\label{sec:multisig}
 
 A multisignature scheme~\cite{itakura1983public,CCS:MicOhtRey01} is a
 tuple of algorithms:
@@ -102,7 +126,7 @@ where:
     \item $I_\sigma \in I^w$ is a list of inputs of length $w$,
     \item $O_\sigma \in O^y$ is a list of outputs of length $y$,
     \item $\mathsf{Mint} \subset \mathsf{Val}$ is the \emph{Minted} values,
-    \item $(\txRmin, \txRmax) \in \mathcal{S} \times \mathcal{S}$ are the lower and upper validity bounds of the enclosing transaction,
+    \item $(\txRmin, \txRmax) \in \mathcal{S} \times \mathcal{S}$ are the lower and upper validity bounds of the enclosing transaction, \todo{define time \& periods instead of slots}
     \item $\txKeys$ is the set of public keys signing the enclosing transaction.
 \end{itemize}
 
