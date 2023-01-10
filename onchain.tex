@@ -112,8 +112,7 @@ $$
 
 \noindent Each of the $\nuCom^i$ validators, for $i \in \{ 1\dots n\}$, additionally checks:
 \begin{menumerate}
-    \item The ST token is present in the output value $(cid \rightarrow ST \rightarrow 1) \in \val'$
-    \item The $\mathsf{cid}$ in the datum $(cid,.) = \delta$ matches the one from the token.
+    \item The ST token is present in the output value $(cid \rightarrow ST \rightarrow 1) \in \val'$, where $(cid,.) = \delta_{com}$ is given by the datum of the commit output $o_{com}$.
 \end{menumerate}
 
 \subsection{Abort Transaction}\label{sec:abort-tx} 
@@ -141,14 +140,16 @@ $$
 
 \noindent For each of the $\nuInitial$ validators consumed, checks:
 \begin{menumerate}
-  \item The data field $\delta_{initial}$ of the output locked is $\mathsf{cid}$,
-  \item The ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}.$ 
+  \item The ST token is getting burned
+  $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$, where
+  $cid = \delta_{initial}$ is given by the datum of the spent initial output.
 \end{menumerate}
 
 \noindent For each of the $\nuCom$ validators consumed, checks:
 \begin{menumerate}
-  \item The ST token is getting burned $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$
-  \item The correct $\mathsf{cid}$ is in the datum $(cid,.) = \delta$.
+  \item The ST token is getting burned
+  $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$, where
+  $(cid,.) = \delta_{com}$ is given by the datum of the spent commit output.
 \end{menumerate}
 
 \subsection{Close Transaction}\label{sec:close-tx}
