@@ -45,23 +45,29 @@ tuple of algorithms:
 \]
 Where $\msSetup$ generates public parameters $\msParams$, such that
 \begin{itemize}
-  \item $(\msVK,\msSK) \gets \msKeyGen(\msParams)$ can be used to generate fresh key pairs,
-  \item $\msSig \gets \msSign(\msParams,\msSK,\msMsg)$ signs  a message $\msMsg$ using key $\msSK$,
-  \item $\msCSig \gets \msComb(\msParams,\msMsg,\msVKL,\msSigL)$ aggregates \todo{requires a message?} a
-    set $\msSigL$ of signatures into a single, aggregate signature~$\msCSig$.
-  \item $\msCVK \gets \msCombVK(\msParams,\msVKL)$ aggregates
-  a tuple\todo{set?} $\msVKL$ of verification keys into a single,
-  aggregate key $\msCVK$\todo{difference $\msCVK$ vs. $\msVKL$?},
-  \item $\msVfy(\msParams,\msAVK,\msMsg,\msCSig) \in Bool$ verifies an aggregate signature $\msCSig$ of message $\msMsg$ under an aggregate verification key $\msAVK$.
+  \item $(\msVK,\msSK) \gets \msKeyGen(\msParams)$ can be used to generate fresh
+        key pairs,
+  \item $\msSig \gets \msSign(\msParams,\msSK,\msMsg)$ signs a message $\msMsg$
+        using key $\msSK$,
+  \item $\msCSig \gets \msComb(\msParams,\msMsg,\msVKL,\msSigL)$ aggregates
+        \todo{requires a message?} a set $\msSigL$ of signatures into a single,
+        aggregate signature~$\msCSig$.
+  \item $\msCVK \gets \msCombVK(\msParams,\msVKL)$ aggregates a tuple\todo{set?}
+        $\msVKL$ of verification keys into a single, aggregate key
+        $\msCVK$\todo{difference $\msCVK$ vs. $\msVKL$?},
+  \item $\msVfy(\msParams,\msCVK,\msMsg,\msCSig) \in Bool$ verifies an aggregate
+        signature $\msCSig$ of message $\msMsg$ under an aggregate verification
+        key $\msCVK$.
 \end{itemize}
 
 Note that in the following, we make the parameter~$\msParams$ implicit and leave
 out the $ver$ suffix for verification key such that $k = k^{ver}$ for better
 readability.
 
-The security definition of a multisignature scheme from~\cite{itakura1983public,CCS:MicOhtRey01} guarantees that, if $\msCVK$ is
-produced from a tuple\todo{set?} of verification keys $\msVKL$ via $\msCombVK$, then no
-aggregate signature $\msCSig$ can pass verification
+The security definition of a multisignature scheme
+from~\cite{itakura1983public,CCS:MicOhtRey01} guarantees that, if $\msCVK$ is
+produced from a tuple\todo{set?} of verification keys $\msVKL$ via $\msCombVK$,
+then no aggregate signature $\msCSig$ can pass verification
 $\msVfy(\msCVK,\msMsg,\msCSig)$ unless all honest parties holding keys in
 $\msVKL$ signed $m$.
 
