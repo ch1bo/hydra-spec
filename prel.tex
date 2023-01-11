@@ -6,33 +6,37 @@ of the specification.
 
 \subsection{Notation}
 
-The specification uses rough set-notation based approach.\todo{handwavy} All
-values are $\in$ of a set and complex values are tuples drawn from a $\times$
-product of multiple sets. Values of a sets may be enumerated using $\{\}$, $=$
-means correspondence and $\gets$ is explicit assignment of values and variables.
-Functions are morphisms mapping from one $\to$ to another set and application of
+The specification uses set-notation based approach while also inspired
+by~\cite{eutxo-2}~and~\cite{eutxo}.\todo{handwavy} Values $x$ are of a set
+$x \in \mathsf{T}$, also indicated as being of some type $x : \mathsf{T}$, and
+complex values are tuples drawn from a $\times$ product of multiple sets. An
+empty set is indicated by $\emptyset$. Sets may be enumerated using $\{\}$, the
+$=$ operator means correspondence and $\gets$ is explicit assignment of a
+variable or value to one or more variables. Functions are morphisms mapping from
+one to another set $x \to f(x)$, where function application of
 a function $f$ to an argument $x$ is written as $f(x)$. \\
 
-\noindent With this, we define some first terms:
-
+\noindent Variables may have modifiers: when $x$ is a single value,
 \begin{itemize}
-  \item $Bool = \{\true, \false\}$ are boolean values
-  \item $\mathbb{B} = {\{0,1\}}^n$ denotes a string of $n$ bits, e.g.\ an arbitrary
-        string of bytes,
-  \item $\oplus : \mathbb{B} \to \mathbb{B}$ is concatenatenating bytes
-  \item $\txDataTy$ is a universal data type, and we denote an empty value of type $\txDataTy$ by $\emptyset$
-  \item $\mathbb{H} : Data \to \mathbb{B}$ denotes a \emph{hashing} function
-        mapping arbitrary data to bytes
-  \item $\mathsf{bits} : Data \to \mathbb{B}$ denotes an invertible
-        \emph{serialisation} function mapping arbitrary data to bytes
+  \item $x'$ is a modified value (but from same set / type),
+  \item $\underline{x}$ is list of values,
+  \item $\tilde{x}$ is an aggregated value, and
+  \item $x^{\#}$ is the result of $\hash(x)$.
 \end{itemize}
 
-\noindent When $x$ is a single value,
+\noindent With this, we further define:
 \begin{itemize}
-  \item $x'$ is a modified form of it,
-  \item $\underline{x}$ is list of values,
-  \item $\tilde{x}$ is an aggregated value,
-  \item $x^{\#}$ is the result of $\mathbb{H}(x)$
+  \item $\tyBool = \{\false, \true\}$ are boolean values
+  \item $\tyBytes = \bigcup_{n=0}^{\inf}{\{0,1\}}^{8n}$ denotes a arbitrary
+        string of bytes
+  \item $\oplus : \tyBytes \to \tyBytes$ is concatenatenating bytes
+  \item $\hash : x \to x^{\#}$ denotes a cryptographic collision-resistant
+        hashing function
+  \item $\bytes : x \to \tyBytes$ denotes an invertible serialisation function
+        mapping arbitrary data to bytes
+  \item Lists of values are written as $l = [x_{1}, \ldots, x_{n}]$. Empty lists
+        are denoted by $[]$, the $i$th element $x_{i}$ is also written $l[i]$
+        and the length of the list is $|l| = n$.
 \end{itemize}
 
 \subsection{Public key cryptography and multi-signature scheme}\label{sec:multisig}
@@ -55,7 +59,7 @@ Where $\msSetup$ generates public parameters $\msParams$, such that
   \item $\msCVK \gets \msCombVK(\msParams,\msVKL)$ aggregates a tuple\todo{set?}
         $\msVKL$ of verification keys into a single, aggregate key
         $\msCVK$\todo{difference $\msCVK$ vs. $\msVKL$?},
-  \item $\msVfy(\msParams,\msCVK,\msMsg,\msCSig) \in Bool$ verifies an aggregate
+  \item $\msVfy(\msParams,\msCVK,\msMsg,\msCSig) \in \tyBool$ verifies an aggregate
         signature $\msCSig$ of message $\msMsg$ under an aggregate verification
         key $\msCVK$.
 \end{itemize}
@@ -72,11 +76,16 @@ $\msVfy(\msCVK,\msMsg,\msCSig)$ unless all honest parties holding keys in
 $\msVKL$ signed $m$.
 
 \subsection{Extended UTxO}
-The basis for our fast isomorphic state channels is Bitcoin's UTxO ledger model~\cite{formal-model-of-bitcoin-transactions,Zahnentferner18-UTxO}. It arranges transactions in a directed acyclic graph structure, thus making the available parallelism explicit: \emph{Any two transactions that are not directly or indirectly dependent on each other can be processed independently.}
+The Hydra Head protocol is specified to work on extended UTxO (eUTxO) ledgers
+like Cardano.
 
-This arrangement results in graphs, such as the one in Figure~\ref{fig:utxo-graph},
-where boxes represent transactions with (red) inputs to the left and (black) outputs to the
-right. A dangling (unconnected) output is an \emph{unspent transaction output (UTxO)} --- there are two UTxOs in the figure.
+The basis for eUTxO is is Bitcoin's UTxO ledger
+model~\cite{formal-model-of-bitcoin-transactions,Zahnentferner18-UTxO}.
+Intuitively, it arranges transactions in a directed acyclic graph, such as the
+one in Figure~\ref{fig:utxo-graph}, where boxes represent transactions with
+(red) inputs to the left and (black) outputs to the right. A dangling
+(unconnected) output is an \emph{unspent transaction output (UTxO)} --- there
+are two UTxOs in the figure.
 
 \begin{figure}[h]
   \centering
@@ -85,8 +94,12 @@ right. A dangling (unconnected) output is an \emph{unspent transaction output (U
   \label{fig:utxo-graph}
 \end{figure}
 
+The following paragraphs will give definitions of the UTxO model and it's
+extension to support scripting (eUTxO) suitable for this Hydra Head protocol
+specification. For a more detailed introduction to the eUTxO ledger model,
+see~\cite{eutxo}~and~\cite{eutxo-2}.
 
-\begin{definition}[Value]
+\begin{definition}[Values]
 
 A \emph{value} $\mathsf{val}$ is a \emph{set} of \emph{tokens} represented as a triple $(\mathsf{pid} \rightarrow \mathsf{tok} \rightarrow q)$ where
 \begin{itemize}
@@ -100,17 +113,20 @@ A \emph{value} $\mathsf{val}$ is a \emph{set} of \emph{tokens} represented as a 
 We use $\mathsf{Val}$ to denote the set of all possible values and  $\mu_x$ for minting policy scripts.
 
 \begin{definition}[Validator Script]
+
+\todo{define before} $\tyData$ is a universal data type, and we denote an empty value of type $\tyData$ by $\emptyset$
+
 A validator script $\nu$ is a pure function whose type is:
 \[
-  \nu : (\delta : \txDataTy) \to (\rho : \txDataTy) \to (\mathsf{tx} : \txPendingTxTy)
-  \to\txBoolTy,
+  \nu : (\delta : \tyData) \to (\rho : \tyData) \to (\mathsf{tx} : \txPendingTxTy)
+  \to\tyBool,
 \]
 where: 
 \begin{itemize}
-    \item $\txDataTy$ is a universal data type, and we denote an empty value of type $\txDataTy$ by $\emptyset$,  
+    \item $\tyData$ is a universal data type, and we denote an empty value of type $\tyData$ by $\emptyset$,  
     \item $\delta$ is the \emph{datum} part of the output to which this particular script is locked (see Definition \ref{def:outputs}),
     \item $\rho$ is the \emph{redeemer} provided as part of the transaction being validated,
-    \item $\txBoolTy = \{\bot, \top\},$
+    \item $\tyBool = \{\bot, \top\},$
     \item $\txPendingTxTy$ is the \emph{validation context}.
 \end{itemize}
 \end{definition}
@@ -121,7 +137,7 @@ We denote by $V$ the set of all validator scripts.
 
 \begin{definition}[Outputs]
 \label{def:outputs}
-An \emph{output} $o$ is a triple $\mathsf{Val} \times V \times \txDataTy.$
+An \emph{output} $o$ is a triple $\mathsf{Val} \times V \times \tyData.$
 We denote by $O$ the set of all possible outputs, and by $O_x$ the outputs in some context $x$.
 \end{definition}
 
@@ -150,7 +166,7 @@ A convenient abstraction for EUTxO smart contracts spanning a sequence
 of related transactions are state machines. Specifically, we adopt
 \emph{constraint emitting machines (CEMs)}~\cite{eutxo}. These are
 based on Mealy machines and consist of a set of states $\cemS$, a set
-of inputs $\cemI$, a predicate \(\cemFinal : \cemS\to\txBoolTy\)
+of inputs $\cemI$, a predicate \(\cemFinal : \cemS\to\tyBool\)
 identifying final states, and a step relation
 \(\cemStepRel{s}{i}{s'}{\cemTxCon}\), which takes a state $s$ on an
 input $i$ to a successor state $s'$ under the requirements that the

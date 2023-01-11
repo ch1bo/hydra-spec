@@ -186,7 +186,7 @@
           % CLOSE from client
           \On{$(\hpClose)$ from client}{ %
             $(U, s, \msCSig) \gets \barmU$ \; %
-            $\eta' \gets (s, \mathbb{H}(U))$ \; %
+            $\eta' \gets (s, \hash(U))$ \; %
             $\xi \gets \msCSig$ \; %
             $\PostTx{}~(\mtxClose, \eta', \xi)$ \; %
           }
@@ -200,7 +200,7 @@
             $(U, s, \msCSig) \gets \barmU$ \; %
             $(s_{c}, \cdot) \gets \eta$ \;
             \If{$s > s_{c}$}{%
-              $\eta' \gets (s, \mathbb{H}(U))$ \; %
+              $\eta' \gets (s, \hash(U))$ \; %
               $\xi \gets \msCSig$ \; %
               $\PostTx{}~(\mtxContest, \eta', \xi)$ \; %
             } }

@@ -36,7 +36,7 @@ head members,
 
 \noindent The \mtxInit{} transaction mints tokens whose \emph{Minting Policy} is $\mathsf{cid}$, defined as 
 $$
-\mathsf{cid} = \mathbb{H}(\muHead(\mathsf{tx_{in}})),
+\mathsf{cid} = \hash(\muHead(\mathsf{tx_{in}})),
 $$
 where $\mathsf{tx_{in}} \in I_\sigma$ is one of the inputs spent in the \mtxInit{} transaction. From the ledger preventing double-spending and the uniqueness of $\mathsf{tx_{in}}$, $\mathsf{cid}$ is guaranteed to be unique and can be used to identify the newly initialized head. \\
 \todo{add checks of minting script}
@@ -71,7 +71,7 @@ A \mtxCom{} transaction is depicted in Figure~\ref{fig:SM_commit_tx} and has the
 \begin{menumerate}
     \item Transaction is signed by correct participant: $\txKeys = \{\mathsf{k}\}$ s.t.
     $
-    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val_{com}, \mathbb{H}(\mathsf{k}) = \mathsf{PT}_i,
+    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val_{com}, \hash(\mathsf{k}) = \mathsf{PT}_i,
     $
     \item The initial redeemer references the committed output, $\rho_{initial} = \txOutRef_{commit}$,
     \item The initial datum is $\mathsf{cid}$,
@@ -92,7 +92,7 @@ $$
 $$
 where $\eta$ is the hash of the concatenation of the serialised representation of committed outputs:
 $$
-\eta = \mathbb{H}(\bigoplus_{i=1}^n \mathsf{bits}(U_i)).
+\eta = \hash(\bigoplus_{i=1}^n \bytes(U_i)).
 $$
 
 \noindent The $\nuHead$ validator additionally checks that:
@@ -103,7 +103,7 @@ $$
   $|\{cid \rightarrow . \rightarrow 1\} ~ \mathsf{in} ~ \val'| = \nop + 1$,
   \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
     $
-    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \mathbb{H}(\mathsf{k'}) = \mathsf{PT}_i,
+    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
     $
   \item Unchanged parameters $\mathsf{cid}$, $\hpAK$, $\hppuv$, $\nop$, and
   $\cPer$ in the data field,
@@ -130,10 +130,10 @@ $$
 
 \noindent The $\nuHead$ validator ensures that:
 \begin{menumerate}
- \item All outputs committed into the head are recreated as is: $\forall i \in \{1\dots\nop\}, \mathbb{H}(O_\sigma[i]) = \delta_i$,
+ \item All outputs committed into the head are recreated as is: $\forall i \in \{1\dots\nop\}, \hash(O_\sigma[i]) = \delta_i$,
   \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
     $
-    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \mathbb{H}(\mathsf{k'}) = \mathsf{PT}_i,
+    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
     $
  \item All participation tokens are burnt: $\forall i \in \{1\dots\nop\}, \{\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1\} \subseteq \mathsf{Mint}.$\todo{gap in prev spec?}
 \end{menumerate} 
@@ -167,13 +167,13 @@ with $\eta_0 = \eta$. \\
 \begin{enumerate}
   \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
     $
-    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \mathbb{H}(\mathsf{k'}) = \mathsf{PT}_i,
+    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
     $
   \item $\xi$ is a valid multi-signature of $\eta'$ w.r.t. to $\hpAK$,
   \item Recorded snapshot state is consistent:
     $$
     \eta' = \left\{\begin{array}{ll}
-         (s, \mathbb{H}(U')), & \mathrm{if}\ s > 0,\\
+         (s, \hash(U')), & \mathrm{if}\ s > 0,\\
          (0, \eta_0) & \mathit{otherwise} 
     \end{array}\right.,
     $$
@@ -193,14 +193,14 @@ Fig.~\ref{fig:SM_closed_closed}) is posted by a party to prove the currently $\s
 $$
    (\stClosed,\hpAK,\eta,\eta_0,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\hpAK,\eta',\eta_0,\mathcal{C}', \hppuv,\nop,\cPer,\Tfinal'),
 $$
-with $\eta = (s, \mathbb{H}(U))$ and $\eta' = (s', \mathbb{H}(U')).$ \\
+with $\eta = (s, \hash(U))$ and $\eta' = (s', \hash(U')).$ \\
 
 \noindent The $\nuHead$ validator additionally checks that:
 \begin{menumerate}
   \item Value is preserved $\val' = \val$,
   \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
     $
-    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \mathbb{H}(\mathsf{k'}) = \mathsf{PT}_i,
+    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
     $
   \item The signer has not already contested $k' \not\in \mathcal{C},$  and it's added to the signers set: $\mathcal{C}' = \mathcal{C} \cup k',$
   \item $\xi$ is a valid multi-signature of $(\eta_0 || \eta')$ with respect to $\hpAK$, 
@@ -234,7 +234,7 @@ The $\nuHead$ validator performs the following checks:
 \begin{enumerate}
   \item Correct outputs are created: 
   $$
-  \mathcal{H}(\bigoplus_{i=1}^n \mathsf{bits}(O[i])) = 
+  \mathcal{H}(\bigoplus_{i=1}^n \bytes(O[i])) = 
     \left\{
     \begin{array}{ll}
         H_0, & s = 0 \\
