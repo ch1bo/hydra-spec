@@ -142,63 +142,74 @@ While the above definition should be sufficient for the purpose of this
 specification, a full treatment via finitely supported functions can be found
 in~\cite{utxo-ma}.
 
+Validator scripts are called \emph{phase-2} scripts in the Cardano Ledger
+specification (see~\cite{alozon-spec} for a formal treatment of these). Scripts
+are used for multiple purposes, but most often (and sufficient for this
+specification) as a \emph{spending} or \emph{minting} validator script.
+
 \begin{definition}[Minting Validator Script]
-  A validator script $\mu$ governing whether a value can be minted (or burned),
+  A validator script $\mu \in \mathcal{M}$ governing whether a value can be minted (or burned),
   is a pure function with type
   \[
-    \mu : (\rho : \tyData) \to (\mathsf{tx} : \txPendingTxTy) \to\tyBool,
+    \mu \in \mathcal{M} = (\rho : \tyData) \to (\mathsf{ctx} : \tyContext) \to\tyBool,
   \]
-  where:
-  \begin{itemize}
-    \item $\rho$ is the \emph{redeemer} provided as part of the transaction
-          being validated,
-    \item $\txPendingTxTy$ is the \emph{validation context}.
-  \end{itemize}
+  where $\rho \in \tyData$ is the redeemer provided as part of the transaction
+  being validated and $\mathsf{ctx} \in \tyContext$ is the validation
+  context.
 \end{definition}
 
 \begin{definition}[Spending Validator Script]
-  A validator script $\nu$ governing whether an output can be spent, is a pure
-  function with type
+  A validator script $\nu \in \mathcal{V}$ governing whether an output can be
+  spent, is a pure function with type
   \[
-    \nu : (\delta : \tyData) \to (\rho : \tyData) \to (\mathsf{tx} : \txPendingTxTy) \to\tyBool,
+    \nu \in \mathcal{V} = (\delta : \tyData) \to (\rho : \tyData) \to (\mathsf{ctx} : \tyContext) \to\tyBool,
   \]
-  where:
-  \begin{itemize}
-    \item $\delta$ is the \emph{datum} part of the output to which this
-          particular script is locked,
-    \item $\rho$ is the \emph{redeemer} provided as part of the transaction
-          being validated,
-    \item $\txPendingTxTy$ is the \emph{validation context}.
-  \end{itemize}
+  where $\delta \in \tyData$ is the datum available at the output to be spent,
+  $\rho \in \tyData$ is the redeemer data provided as part of the transaction
+  being validated, and $\mathsf{ctx} \in \tyContext$ is the validation
+  context.
 \end{definition}
 
-Validator scripts are called \emph{phase-2} scripts in the Alonzo Ledger specification (see \cite{alozon-spec} for a formal treatment of these). Informally, scripts are \emph{evaluated} by the ledger when it \emph{applies} a transaction to its current state to yield a new ledger state. Each validator script referenced by an output is passed its arguments drawn from the output it locks and the transaction context it is executed in. The transaction is valid if and only if all scripts evaluates to $\top.$
-
 \begin{definition}[Outputs]
-\label{def:outputs}
-An \emph{output} $o$ is a triple $\mathsf{Val} \times V \times \tyData.$
-We denote by $O$ the set of all possible outputs, and by $O_x$ the outputs in some context $x$.
+  An output $o \in \tyOutputs$ stores some value $\val \in \tyValue$ at some address,
+  defined by the hash of a validator script $\nu^{\#} \in \hash(\mathcal{V})$,
+  and may store (reference) some data $\delta \in \tyData$:
+  \[
+    o \in \tyOutputs = (\val : \tyValue \times \nu^{\#} : \mathcal{V} \times \delta : \tyData)
+  \]
 \end{definition}
 
 \begin{definition}[Inputs]
-An input $i$ is a pair $(\txOutRef, \rho)$ where 
-$\txOutRef \in (\mathsf{TxId} \times \mathbb{N})$ is the input reference with $\mathsf{TxId} \subseteq \mathbb{B},$ and $\rho \in \txDataTy$ is the \emph{input}'s redeemer.  We denote by $I$ the set of all possible inputs, and by $I_x$ the outputs in some context $x$.
+  An input $i \in \tyInputs$ is a reference to some output $\txOutRef$ and a
+  corresponding redeemer $\rho \in \tyData$:
+  \[
+    i \in \tyInputs = (\txOutRef : \tyBytes \times \rho : \tyData)
+  \]
+  where
+  $\txOutRef \in (\mathsf{id} : \mathsf{TxId} \times \mathsf{idx} : \mathbb{N})$
+  points to a transaction with $\mathsf{txId} \in \tyBytes$ (being a hash of the
+  transaction) and an output at index $idx \in \tyNatural$
 \end{definition}
 
+\todo{define transaction or context or both?}
 \begin{definition}[Validation Context]
-
-A validation context $\txPendingTx$ is a tuple  
-$$(I_\sigma, O_\sigma, \mathsf{Mint}, \txRmin, \txRmax, \txKeys)$$
-where:
-\begin{itemize}
-    \item $I_\sigma \in I^w$ is a list of inputs of length $w$,
-    \item $O_\sigma \in O^y$ is a list of outputs of length $y$,
-    \item $\mathsf{Mint} \subset \mathsf{Val}$ is the \emph{Minted} values,
-    \item $(\txRmin, \txRmax) \in \mathcal{S} \times \mathcal{S}$ are the lower and upper validity bounds of the enclosing transaction, \todo{define time \& periods instead of slots}
-    \item $\txKeys$ is the set of public keys signing the enclosing transaction.
-\end{itemize}
-
+  A validation context $\txContext \in \tyContext$ is a view on the transaction
+  to be validated:
+  \[
+    \txContext \in \tyContext = (\tyInputs^u \times \tyOutputs^v \times \tyValue \times \mathcal{S}^{\leftrightarrow} \times \txKeys)
+  \]
+  where $\tyInputs^u$ is a set of inputs of length $u$, $\tyOutputs^v$ is a list
+  of outputs of length $v$, $\mathsf{mint} \in \tyValue$ is the minted (or
+  burned) value, $(\txRmin, \txRmax) \in \mathcal{S}^{\leftrightarrow}$
+  \todo{$\mathcal{S}^{\leftrightarrow}$ undefined, time \& periods instead?} are the lower and upper
+  validity bounds, and $\txKeys$ is the set of public keys signing the transaction.
 \end{definition}
+
+Informally, scripts are evaluated by the ledger when it applies a transaction to
+its current state to yield a new ledger state. Each validator script referenced
+by an output is passed its arguments drawn from the output it locks and the
+transaction context it is executed in. The transaction is valid if and only if
+all scripts evaluate to $\true$.
 
 \subsection{State Machines}\label{sec:cem}
 A convenient abstraction for EUTxO smart contracts spanning a sequence
