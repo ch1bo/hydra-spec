@@ -7,14 +7,24 @@ of the specification.
 \subsection{Notation}
 
 The specification uses set-notation based approach while also inspired
-by~\cite{eutxo-2}~and~\cite{eutxo}.\todo{handwavy} Values $x$ are of a set
-$x \in \mathsf{T}$, also indicated as being of some type $x : \mathsf{T}$, and
-complex values are tuples drawn from a $\times$ product of multiple sets. An
-empty set is indicated by $\emptyset$. Sets may be enumerated using $\{\}$, the
-$=$ operator means correspondence and $\gets$ is explicit assignment of a
-variable or value to one or more variables. Functions are morphisms mapping from
-one to another set $x \to f(x)$, where function application of
-a function $f$ to an argument $x$ is written as $f(x)$. \\
+by~\cite{eutxo-2}~and~\cite{eutxo}.\todo{handwavy} Values $a$ are of a set
+$a \in \mathcal{A}$, also indicated as being of some type $a : \mathcal{A}$, and
+complex values are tuples drawn from a $\times$ product of multiple sets, e.g.
+$\(a,b\) \in (\mathcal{A} \times \mathcal{B})$. An empty set is indicated by
+$\emptyset$. Sets may be enumerated using $\{\}$, the $=$ operator means
+correspondence and $\gets$ is explicit assignment of a variable or value to one
+or more variables. Functions are morphisms mapping from one to another set
+$x : \mathcal{A} \to f(x) : \mathcal{B}$, where function
+application of a function $f$ to an argument $x$ is written as $f(x)$. \\
+
+% TODO: use ^* or FinSup for values?
+% \noindent Given a set $\mathcal{A}$, let
+% \begin{itemize}
+%   \item $\mathcal{A}^0 = \mathcal{A} \cup \emptyset$,
+%   \item $\mathcal{A}^n$ be the set of all n-sized sequences over $\mathcal{A}$,
+%   \item $\mathcal{A}^! = \bigcup_{i=1}^{n \in \tyNatural} \mathcal{A}^{i}$, and
+%   \item $\mathcal{A}^* = \bigcup_{i=0}^{n \in \tyNatural} \mathcal{A}^{i}$.
+% \end{itemize}
 
 \noindent Variables may have modifiers: when $x$ is a single value,
 \begin{itemize}
@@ -27,6 +37,8 @@ a function $f$ to an argument $x$ is written as $f(x)$. \\
 \noindent With this, we further define:
 \begin{itemize}
   \item $\tyBool = \{\false, \true\}$ are boolean values
+  \item $\tyNatural$ are natural numbers ${0, 1, 2, \ldots}$
+  \item $\tyInteger$ are integer numbers ${\ldots, −2, −1, 0, 1, 2, \ldots}$
   \item $\tyBytes = \bigcup_{n=0}^{\inf}{\{0,1\}}^{8n}$ denotes a arbitrary
         string of bytes
   \item $\oplus : \tyBytes \to \tyBytes$ is concatenatenating bytes
@@ -97,20 +109,36 @@ are two UTxOs in the figure.
 The following paragraphs will give definitions of the UTxO model and it's
 extension to support scripting (eUTxO) suitable for this Hydra Head protocol
 specification. For a more detailed introduction to the eUTxO ledger model,
-see~\cite{eutxo}~and~\cite{eutxo-2}.
+see~\cite{eutxo},~\cite{eutxo-2}~and~\cite{utxo-ma}.
 
 \begin{definition}[Values]
+  Values are sets that keep track how many units of which tokens of which
+  currency are available. Given a finitely supported function $\mapsto$, that
+  maps keys to monoids, a value is the set of such mappings over a minting
+  policy identifiers $\mathsf{pid}$, over a mapping of token names
+  $\mathsf{tok}$ to quantities $q$:
 
-A \emph{value} $\mathsf{val}$ is a \emph{set} of \emph{tokens} represented as a triple $(\mathsf{pid} \rightarrow \mathsf{tok} \rightarrow q)$ where
-\begin{itemize}
-    \item $\mathsf{pid} \in \{0,1\}^k$ is the \emph{Minting Policy identifier}, an arbitrary string of bytes corresponding to the \emph{hash} of a corresponding \emph{Minting Policy script},
-    \item $\mathsf{tok} \in \{0,1\}^k$ is the \emph{Token name}, an arbitrary string of bytes,
-    \item $q \in \mathbb{Z}$ is the quantity of this particular token.
-\end{itemize}
+  \[
+    \val \in \tyValue = (\mathsf{pid} : \tyBytes \mapsto (\mathsf{tok} : \tyBytes \mapsto q : \tyInteger))
+  \]
 
+  Addition of values is defined as $+$, $\varnothing$ is the empty value,
+  and \(\{t_1, \ldots, t_n\} :: c\) is used as a shorthand for
+  \(\{c \mapsto \{t_1 \mapsto 1, \ldots, t_n \mapsto 1\}\}\).
 \end{definition}
 
-We use $\mathsf{Val}$ to denote the set of all possible values and  $\mu_x$ for minting policy scripts.
+For example, the value $\{c_{1} \mapsto \{t_1 \mapsto 1, t_2 \mapsto 1\}\}$
+contains tokens $t_1$ and $t_2$ of currency $c$ and addition merges currencies
+and token names naturally:
+\begin{align*}
+  & \{c_{1} \mapsto \{t_1 \mapsto 1, t_2 \mapsto 1\}\} \\
+  + \ & \{c_{1} \mapsto \{t_{2} \mapsto 1, t_3 \mapsto 1\}, c_{2} \mapsto \{ t_{1} \mapsto 2\}\} \\
+  = \ & \{c_{1} \mapsto \{t_1 \mapsto 1, t_2 \mapsto 2, t_3 \mapsto 1\}, c_{2} \mapsto \{ t_{1} \mapsto 2\}\} \ .
+\end{align*}
+
+While the above definition should be sufficient for the purpose of this
+specification, a full treatment via finitely supported functions can be found
+in~\cite{utxo-ma}.
 
 \begin{definition}[Validator Script]
 
@@ -187,12 +215,12 @@ We implement CEMs on a EUTxO ledger (the mainchain) by representing a sequence o
 More specifically, given two transactions $\tx$ and $\tx'$, they represent successive states under \(\cemStepRel{s}{i}{s'}{\cemTxCon}\) iff 
 
 \begin{mitemize}
-  \item state-machine output $\cemOut = (\txVal, \cemVal, s)$ of $\tx$
+  \item state-machine output $\cemOut = (\val, \cemVal, s)$ of $\tx$
   is consumed by the state-machine input $\cemIn' = (\txOutRef, \rho)$
   of $\tx'$, whose redeemer is \(\rho = i\) (i.e., the redeemer
   provides the state-machine input) and
   \item either $\cemFinal(s') = \true$ and $tx'$ has no state-machine
-  output, or $\cemOut' = (\txVal', \cemVal, s')$ and $\tx'$ meets all
+  output, or $\cemOut' = (\val', \cemVal, s')$ and $\tx'$ meets all
   constraints imposed by $\cemTxCon$.
 \end{mitemize}
 Sometimes it is useful to have additional data $\tilde \rho$ provided
@@ -201,7 +229,7 @@ as part of the redeemer, i.e., $\rho = (i,\tilde \rho)$.
 A state transition of the described type is represented by two connected
 transactions as shown in Fig.~\ref{fig:state-transition}.  For
 simplicity, state-machine inputs and outputs are not shown, with the
-exception of the value fields $\txVal$ and $\txVal'$ of the state-machine output.
+exception of the value fields $\val$ and $\val'$ of the state-machine output.
 
 
 %%% Local Variables:

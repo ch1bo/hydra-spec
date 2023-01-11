@@ -128,7 +128,10 @@
 \newtheorem{construction}{Construction}
 
 
-% === Transactions  ===
+% === utxo & transactions  ===
+
+\newcommand{\val}{\mathsf{val}}
+\newcommand{\tyValue}{\mathsf{Val}}		% currency value type
 
 \newcommand{\tx}{\mathrm{tx}}
 \newcommand{\txA}{\mathrm{txA}}
@@ -138,12 +141,8 @@
 \newcommand{\Reach}{\mathsf{Reach}}
 \newcommand{\uid}{\mathsf{uid}}
 
-\newcommand{\txVal}{\mathsf{val}}		% currency value
-\newcommand{\txValForge}{\txVal_\mathsf{Mint}}	% mint value
-\newcommand{\txValBurn}{\txVal_\mathsf{Burn}}	% forge value
 \newcommand{\txTx}{\mathit{tx}}			% transaction value
 \newcommand{\txTxTy}{\mathit{Tx}}		% transaction type
-\newcommand{\txValTy}{\mathit{Val}}		% currency value type
 \newcommand{\txCIdTy}{\mathit{CId}}		% currency identifier type
 \newcommand{\txTokenTy}{\mathit{Token}}	        % currency token type
 \newcommand{\txKeys}{\mathcal K}		% (public) keys with a
@@ -158,6 +157,8 @@
 \newcommand{\txRmax}{r_{\mathsf{max}}}
 
 \newcommand{\tyBool}{\mathbb{B}}
+\newcommand{\tyNatural}{\mathbb{N}}
+\newcommand{\tyInteger}{\mathbb{Z}}
 \newcommand{\tyData}{\mathsf{Data}}
 \newcommand{\tyBytes}{\mathbb{H}}
 \newcommand{\txPendingTx}{\sigma}
@@ -254,7 +255,6 @@
 \newcommand{\Tfinal}{T_{\mathsf{final}}}
 \newcommand{\Tsnapshot}{T_{\mathsf{newestSN}}}
 \newcommand{\contesters}{\mathcal C}
-\newcommand{\val}{\mathsf{val}}
 
 
 % == Inputs ==
