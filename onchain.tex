@@ -23,14 +23,13 @@ $$
 $$ 
 where:
 \begin{menumerate}
-    \item $\stInitial$ is
-a state identifier, 
-   \item $\hpAK$ is the aggregated multi-signature key established
-during the setup phase, 
-  \item $\hppuv$ is the list of all participants verification
-keys $(k_1,\ldots,k_\nop)$ exchanged during the setup phase and identifying the
-head members, 
-  \item $\nop$ is the number of head members, and 
+  \item $\stInitial$ is a state identifier,
+  \item $\hpAK$ is the aggregated off-chain multi-signature key established during the
+  setup phase,
+  \item $\hppuv$ is the list of all participants verification keys
+  $(k_1,\ldots,k_\nop)$ exchanged during the setup phase and identifying the
+  head members on-chain,
+  \item $\nop$ is the number of head participants, and
   \item $\cPer$ is the length of the contestation period.
 \end{menumerate} 
 
@@ -44,8 +43,8 @@ where $\mathsf{tx_{in}} \in I_\sigma$ is one of the inputs spent in the \mtxInit
 Two kinds of tokens are minted:
 \begin{itemize}
 \item $\mathsf{ST}$: A single \emph{State Thread} token marking the output carrying the state of the protocol on-chain, whose name is the well known string \texttt{HydraHeadV1},
-\item $\mathsf{PT}_i,\ i\in \{1 \dots \nop \}$: One \empth{Participation Token} per participant, where the token name is the participant's verification key hash $\mathbb{H}(k_i)$. This will be used to authenticate participants in protocol transactions.
-\end{itemize} 
+\item $\mathsf{PT}_i,\ i\in \{1 \dots \nop \}$: One \empth{Participation Token} per participant, where the token name is the participant's verification key hash $k_i^{\#}$. This will be used to authenticate participants in protocol transactions.
+\end{itemize}
 
 \noindent The \mtxInit{} transaction has $\nop$ outputs, where each output is
 locked by validator $\nuInitial$ and the $\ith i$ output has the participation
