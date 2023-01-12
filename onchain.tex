@@ -6,8 +6,13 @@ notation (see Section~\ref{sec:cem}). In addition of standard CEM modeling, we
 also provide the formal conditions $\cemTxCon$ which a transition need to
 satisfy and also include them in the accompanying text.
 
-The following sections describe the structure of each of the transactions comprising the Head protocol: $\mtxInit{}$, $\mtxCom{}$, $\mtxAbort{}$, $\mtxCollect{}$, $\mtxClose{}$, $\mtxContest{}$, and $\mtxFanout{}$. Following the eUTxO model, this structure is enforced on-chain through \emph{validators} which are \emph{scripts instances} attached to each UTxO and run as part of the ledger's validation of the transaction. The protocol defines three different scripts: 
-\todo{add minting script}
+The following sections describe the structure of each of the transactions
+comprising the Head protocol: $\mtxInit{}$, $\mtxCom{}$, $\mtxAbort{}$,
+$\mtxCollect{}$, $\mtxClose{}$, $\mtxContest{}$, and $\mtxFanout{}$. Following
+the EUTxO model, this structure is enforced on-chain through \emph{validators}
+which are \emph{scripts instances} attached to each UTxO and run as part of the
+ledger's validation of the transaction. The protocol defines three different
+scripts: \todo{add minting script}
 \begin{itemize}
     \item $\nuHead$ is the script controlling the protocol state-machine logic,
     \item $\nuInitial$ is the script used to control the initial distribution of tokens to Head participants, and
@@ -43,13 +48,13 @@ where $\mathsf{tx_{in}} \in I_\sigma$ is one of the inputs spent in the \mtxInit
 Two kinds of tokens are minted:
 \begin{itemize}
 \item $\mathsf{ST}$: A single \emph{State Thread} token marking the output carrying the state of the protocol on-chain, whose name is the well known string \texttt{HydraHeadV1},
-\item $\mathsf{PT}_i,\ i\in \{1 \dots \nop \}$: One \empth{Participation Token} per participant, where the token name is the participant's verification key hash $k_i^{\#}$. This will be used to authenticate participants in protocol transactions.
+\item $\mathsf{PT}_i,\ i\in \{1 \dots \nop \}$: One \emph{Participation Token} per participant, where the token name is the participant's verification key hash $k_i^{\#}$. This will be used to authenticate participants in protocol transactions.
 \end{itemize}
 
 \noindent The \mtxInit{} transaction has $\nop$ outputs, where each output is
 locked by validator $\nuInitial$ and the $\ith i$ output has the participation
 token $\mathsf{PT}_i$ in its value, and $\mathsf{cid}$ as a datum. Validator $\nuInitial$
-ensures that the output is consumed by either an \mtxAbort{} (see section \ref{sec:abort-tx} below) or a \mtxCom{} (see section \ref{sec:commit-tx} below) transaction.
+ensures that the output is consumed by either an \mtxAbort{} (see Section~\ref{sec:abort-tx} below) or a \mtxCom{} (see Section~\ref{sec:commit-tx} below) transaction.
 
 The general well-formedness and validity of the \mtxInit{} transaction is
 checked on the mainchain. The head members can additionally check whether the head

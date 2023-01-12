@@ -92,10 +92,10 @@ $\msVfy(\msCVK,\msMsg,\msCSig)$ unless all honest parties holding keys in
 $\msVKL$ signed $m$.
 
 \subsection{Extended UTxO}
-The Hydra Head protocol is specified to work on extended UTxO (eUTxO) ledgers
+The Hydra Head protocol is specified to work on the so-called Extended UTxO (EUTxO) ledgers
 like Cardano.
 
-The basis for eUTxO is is Bitcoin's UTxO ledger
+The basis for EUTxO is is Bitcoin's UTxO ledger
 model~\cite{formal-model-of-bitcoin-transactions,Zahnentferner18-UTxO}.
 Intuitively, it arranges transactions in a directed acyclic graph, such as the
 one in Figure~\ref{fig:utxo-graph}, where boxes represent transactions with
@@ -106,13 +106,12 @@ are two UTxOs in the figure.
 \begin{figure}[h]
   \centering
  \includegraphics[width=\textwidth/2]{figures/utxo-graph.pdf}
- \caption{Example of a plain UTxO graph}
-  \label{fig:utxo-graph}
+ \caption{Example of a plain UTxO graph}\label{fig:utxo-graph}
 \end{figure}
 
 The following paragraphs will give definitions of the UTxO model and it's
-extension to support scripting (eUTxO) suitable for this Hydra Head protocol
-specification. For a more detailed introduction to the eUTxO ledger model,
+extension to support scripting (EUTxO) suitable for this Hydra Head protocol
+specification. For a more detailed introduction to the EUTxO ledger model,
 see~\cite{eutxo},~\cite{eutxo-2}~and~\cite{utxo-ma}.
 
 \begin{definition}[Values]
@@ -211,50 +210,57 @@ Informally, scripts are evaluated by the ledger when it applies a transaction to
 its current state to yield a new ledger state. Each validator script referenced
 by an output is passed its arguments drawn from the output it locks and the
 transaction context it is executed in. The transaction is valid if and only if
-all scripts evaluate to $\true$.
+all scripts validate, i.e. $\mu(\rho, \gamma) = \true$ and
+$\nu(\delta, \rho, \gamma) = \true$.
 
 \subsection{State Machines}\label{sec:cem}
-A convenient abstraction for EUTxO smart contracts spanning a sequence
-of related transactions are state machines. Specifically, we adopt
-\emph{constraint emitting machines (CEMs)}~\cite{eutxo}. These are
-based on Mealy machines and consist of a set of states $\cemS$, a set
-of inputs $\cemI$, a predicate \(\cemFinal : \cemS\to\tyBool\)
-identifying final states, and a step relation
-\(\cemStepRel{s}{i}{s'}{\cemTxCon}\), which takes a state $s$ on an
-input $i$ to a successor state $s'$ under the requirements that the
+
+A convenient abstraction for EUTxO smart contracts spanning a sequence of
+related transactions are state machines. This specification adopts and is
+written using \emph{constraint emitting machines (CEMs)} from~\cite{eutxo}.
+These are based on Mealy machines and consist of a set of states $\cemS$, a set
+of inputs $\cemI$, a predicate \(\cemFinal : \cemS\to\tyBool\) identifying final
+states, and a step relation \(\cemStepRel{s}{i}{s'}{\cemTxCon}\), which takes a
+state $s$ on an input $i$ to a successor state $s'$ under the condition that the
 constraints $\cemTxCon$ are satisfied.
 
-We implement CEMs on a EUTxO ledger (the mainchain) by representing a sequence of CEM states as a sequence of transactions. Each of these transactions has got a \emph{state-machine input} $\cemIn$ and a \emph{state-machine output} $\cemOut$, where the latter is locked by a validator $\cemVal$, implementing the step relation. The only exceptions are the initial and final state, which have got no state-machine input and output, respectively.
+CEMs are implemented on an EUTxO ledger by representing a sequence of CEM states
+as a sequence of transactions. Each of these transactions has a
+\emph{state-machine input} $\cemIn$ and a \emph{state-machine output} $\cemOut$,
+where the latter is locked by a validator $\cemValidator$, implementing the step
+relation. The only exceptions are the initial and final state, which have got no
+state-machine input and output, respectively. More specifically, given two
+transactions $\tx$ and $\tx'$, they represent successive states under
+\(\cemStepRel{s}{i}{s'}{\cemTxCon}\) iff
 
-\begin{figure}[t]
+\begin{mitemize}
+  \item state-machine output $\cemOut = (\val, \cemValidator, \cemDatum)$ that
+  is consumed by $tx'$ via state-machine input
+  $\cemIn' = (\txOutRef, \cemRedeemer)$, whose redeemer provides the
+  state-machine input $\cemRedeemer = (i, \tilde{\redeemer})$ and
+  \item either
+    \begin{mitemize}
+      \item $tx'$ has no state-machine output and $\cemFinal(s') = \true$, or
+      \item $\tx'$ meets all constraints imposed by $\cemTxCon$ and has output
+      $\cemOut' = (\val', \cemValidator, s')$.
+    \end{mitemize}
+\end{mitemize}
+
+A CEM transition is represented graphically by two connected transactions as
+shown in Figure~\ref{fig:state-transition}. The starting state of a transition
+$s$ is given by the datum of $\cemOut$ of transaction $tx$ and depicted by the
+circle. Correspondingly, the end state $s'$ contined in the datum of $\cemOut'$
+of transaction $tx'$ in the circle on the right hand side. Fields $\val$ and
+$\val'$ are the value fields of the state-machine outputs. The transition name
+$i$ and additional data $\tilde \rho$ is shown above and below the transition
+arrow.
+
+\begin{figure}[h]
   \centering
   \includegraphics[scale=.2,width=\textwidth/2]{figures/state-transition_cropped.pdf}
   \caption{Transactions representing successive states in a CEM
-    transition relation \(\cemStepRel{s}{i}{s'}{\cemTxCon}\).  Fields
-    $\val$ and $\val'$ are the value fields of the state-machine
-    outputs and $\tilde \rho$ is the additional data.}
-  \label{fig:state-transition}
+    transition relation \(\cemStepRel{s}{i}{s'}{\cemTxCon}\).}\label{fig:state-transition}
 \end{figure}
-
-More specifically, given two transactions $\tx$ and $\tx'$, they represent successive states under \(\cemStepRel{s}{i}{s'}{\cemTxCon}\) iff 
-
-\begin{mitemize}
-  \item state-machine output $\cemOut = (\val, \cemVal, s)$ of $\tx$
-  is consumed by the state-machine input $\cemIn' = (\txOutRef, \rho)$
-  of $\tx'$, whose redeemer is \(\rho = i\) (i.e., the redeemer
-  provides the state-machine input) and
-  \item either $\cemFinal(s') = \true$ and $tx'$ has no state-machine
-  output, or $\cemOut' = (\val', \cemVal, s')$ and $\tx'$ meets all
-  constraints imposed by $\cemTxCon$.
-\end{mitemize}
-Sometimes it is useful to have additional data $\tilde \rho$ provided
-as part of the redeemer, i.e., $\rho = (i,\tilde \rho)$.
-
-A state transition of the described type is represented by two connected
-transactions as shown in Fig.~\ref{fig:state-transition}.  For
-simplicity, state-machine inputs and outputs are not shown, with the
-exception of the value fields $\val$ and $\val'$ of the state-machine output.
-
 
 %%% Local Variables:
 %%% mode: latex

@@ -128,18 +128,22 @@
 \newtheorem{construction}{Construction}
 
 
-% === utxo & transactions  ===
+% === Transactions  ===
 
 \newcommand{\tyBool}{\mathbb{B}}
 \newcommand{\tyNatural}{\mathbb{N}}
 \newcommand{\tyInteger}{\mathbb{Z}}
 \newcommand{\tyData}{\mathsf{Data}}
 \newcommand{\tyBytes}{\mathbb{H}}
-\newcommand{\txContext}{\gamma}
-\newcommand{\tyContext}{\Gamma}
 
-\newcommand{\val}{\mathsf{val}}
-\newcommand{\tyValue}{\mathsf{Val}}		% currency value type
+\newcommand{\datum}{\delta} % a datum
+\newcommand{\redeemer}{\rho} % a redeemer
+
+\newcommand{\txContext}{\gamma} % validation context
+\newcommand{\tyContext}{\Gamma} % type of contexts
+
+\newcommand{\val}{\mathsf{val}} % a value
+\newcommand{\tyValue}{\mathsf{Val}} % type of values
 
 \newcommand{\tx}{\mathrm{tx}}
 \newcommand{\txA}{\mathrm{txA}}
@@ -216,7 +220,9 @@
 \newcommand{\cemI}{I_{\textsc{cem}}}
 \newcommand{\cemIn}{i_{\textsc{cem}}}
 \newcommand{\cemOut}{o_{\textsc{cem}}}
-\newcommand{\cemVal}{\nu_{\textsc{cem}}}
+\newcommand{\cemValidator}{\nu_{\textsc{cem}}}
+\newcommand{\cemDatum}{\datum_{\textsc{cem}}}
+\newcommand{\cemRedeemer}{\redeemer_{\textsc{cem}}}
 \newcommand{\cemFinal}{\mathit{final}_{\textsc{cem}}}
 \newcommand{\cemStep}{\mathit{step}_{\textsc{cem}}}
 \newcommand{\cemStepRel}[4]{{#1}\overset{#2}\longrightarrow(#3, #4)}
