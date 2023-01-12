@@ -31,6 +31,7 @@ following paragraphs.
 
 \subsection{Assumptions}
 \todo{move to protocol setup?}
+\todo{Should we mention here the setup phase for head parameters and link to Protocol Setup section?}
 \begin{itemize}
   \item Every network message received from a specific party is checked for
         authentication. An implementation of the specification needs to find a
@@ -76,6 +77,7 @@ following paragraphs.
   \item $\PostTx{}$ has a party create and submit the given transaction
         on-chain. See Section~\ref{sec:on-chain} for individual transaction
         details.
+\todo{fail not used anymore? do we need it?}
 \end{itemize}
 
 \subsection{Variables}
@@ -97,6 +99,8 @@ party's local state consists of the following variables:
 \end{itemize}
 
 \subsection{Protocol flow}
+
+\todo{write about rollbacks}
 
 \subsubsection{Initializing the head}
 

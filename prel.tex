@@ -55,6 +55,8 @@ application of a function $f$ to an argument $x$ is written as $f(x)$. \\
 
 \subsection{Public key cryptography and multi-signature scheme}\label{sec:multisig}
 
+\todo{be specific!?}
+% TODO: Not keep this generic and only specific (naiive) as it is right now?
 A multisignature scheme~\cite{itakura1983public,CCS:MicOhtRey01}\todo{is this consistent with refs?} is a
 tuple of algorithms:
 \[
@@ -68,7 +70,7 @@ Where $\msSetup$ generates public parameters $\msParams$, such that
   \item $\msSig \gets \msSign(\msParams,\msSK,\msMsg)$ signs a message $\msMsg$
         using key $\msSK$,
   \item $\msCSig \gets \msComb(\msParams,\msMsg,\msVKL,\msSigL)$ aggregates
-        \todo{requires a message?} a set $\msSigL$ of signatures into a single,
+        \todo{requires a message?} a list $\msSigL$ of signatures into a single,
         aggregate signature~$\msCSig$.
   \item $\msCVK \gets \msCombVK(\msParams,\msVKL)$ aggregates a tuple\todo{set?}
         $\msVKL$ of verification keys into a single, aggregate key

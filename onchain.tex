@@ -44,7 +44,7 @@ where $\mathsf{tx_{in}} \in I_\sigma$ is one of the inputs spent in the \mtxInit
 Two kinds of tokens are minted:
 \begin{itemize}
 \item $\mathsf{ST}$: A single \emph{State Thread} token marking the output carrying the state of the protocol on-chain, whose name is the well known string \texttt{HydraHeadV1},
-\item $\mathsf{PT}_i,\ i\in \{1 \dots \nop \}$: One participation token per participant, where the token name is the participant's verification key hash $\mathbb{H}(k_i)$. This will be used to authenticate participants in protocol transactions.
+\item $\mathsf{PT}_i,\ i\in \{1 \dots \nop \}$: One \empth{Participation Token} per participant, where the token name is the participant's verification key hash $\mathbb{H}(k_i)$. This will be used to authenticate participants in protocol transactions.
 \end{itemize} 
 
 \noindent The \mtxInit{} transaction has $\nop$ outputs, where each output is
@@ -72,7 +72,7 @@ A \mtxCom{} transaction is depicted in Figure~\ref{fig:SM_commit_tx} and has the
     \item Transaction is signed by correct participant: $\txKeys = \{\mathsf{k}\}$ s.t.
     $
     \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val_{com}, \hash(\mathsf{k}) = \mathsf{PT}_i,
-    $
+    $ \todo{check against PT or against datum ($\hppuv$)? or both?}
     \item The initial redeemer references the committed output, $\rho_{initial} = \txOutRef_{commit}$,
     \item The initial datum is $\mathsf{cid}$,
     \item The committed value is in the output $\val_{com} = \{(\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1)\} \cup \val_{commit} $,
@@ -135,7 +135,7 @@ $$
     $
     \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
     $
- \item All participation tokens are burnt: $\forall i \in \{1\dots\nop\}, \{\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1\} \subseteq \mathsf{Mint}.$\todo{gap in prev spec?}
+ \item All participation tokens are burnt: $\forall i \in \{1\dots\nop\}, \{\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1\} \subseteq \mathsf{Mint}.$\todo{number of tokens burned vs. explicit enumeration what to burn?}
 \end{menumerate} 
 
 \noindent For each of the $\nuInitial$ validators consumed, checks:
@@ -179,9 +179,8 @@ with $\eta_0 = \eta$. \\
     $$
   \item Record contestation deadline, $\Tfinal = \txRmax + T$,
   \item Ensure timeliness of the transaction $\txRmax - \txRmin \leq T$ 
-  \item Record public key hash of participant, $\mathcal{C} = \{k'\},$ \todo{allow contest after close!}
-  \item Value is preserved, $val' = val.$
-  \item Nothing minted or burned.
+  \item Initialize the set of contesters $\mathcal{C} = \emptyset$\todo{explain why in footnote}
+  \item Value in the head is preserved, $val' = val$
 \end{enumerate}
 
 \subsection{Contest Transaction}\label{sec:contest-tx}
@@ -234,7 +233,7 @@ The $\nuHead$ validator performs the following checks:
 \begin{enumerate}
   \item Correct outputs are created: 
   $$
-  \mathcal{H}(\bigoplus_{i=1}^n \bytes(O[i])) = 
+  \hash(\bigoplus_{i=1}^n \bytes(O[i])) = 
     \left\{
     \begin{array}{ll}
         H_0, & s = 0 \\
