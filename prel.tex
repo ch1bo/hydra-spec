@@ -91,7 +91,7 @@ then no aggregate signature $\msCSig$ can pass verification
 $\msVfy(\msCVK,\msMsg,\msCSig)$ unless all honest parties holding keys in
 $\msVKL$ signed $m$.
 
-\subsection{Extended UTxO}
+\subsection{Extended UTxO}\label{sec:eutxo}
 The Hydra Head protocol is specified to work on the so-called Extended UTxO (EUTxO) ledgers
 like Cardano.
 
@@ -197,13 +197,16 @@ specification) as a \emph{spending} or \emph{minting} validator script.
   A validation context $\txContext \in \tyContext$ is a view on the transaction
   to be validated:
   \[
-    \txContext \in \tyContext = (\tyInputs^u \times \tyOutputs^v \times \tyValue \times \mathcal{S}^{\leftrightarrow} \times \txKeys)
+    \txContext \in \tyContext = (\tyInputs \times \tyOutputs \times \tyValue \times \mathcal{S}^{\leftrightarrow} \times \txKeys)
   \]
-  where $\tyInputs^u$ is a set of inputs of length $u$, $\tyOutputs^v$ is a list
-  of outputs of length $v$, $\mathsf{mint} \in \tyValue$ is the minted (or
-  burned) value, $(\txRmin, \txRmax) \in \mathcal{S}^{\leftrightarrow}$
-  \todo{$\mathcal{S}^{\leftrightarrow}$ undefined, time \& periods instead?} are the lower and upper
-  validity bounds, and $\txKeys$ is the set of public keys signing the transaction.
+  where $\txInputs \in \tyInputs$ \todo{define $\mathcal{A^{*}}$ notation?} is a
+  \textbf{set} of inputs of length $u$, $\txOutputs \in \tyOutputs$ is a
+  \textbf{list} of outputs of length $v$, $\mathsf{mint} \in \tyValue$ is the
+  minted (or burned) value,
+  $(\txRmin, \txRmax) \in \mathcal{S}^{\leftrightarrow}$
+  \todo{$\mathcal{S}^{\leftrightarrow}$ undefined, time \& periods instead?} are
+  the lower and upper validity bounds, and $\kappa \in \txKeys$ is the set of
+  verification keys which signed the transaction.
 \end{definition}
 
 Informally, scripts are evaluated by the ledger when it applies a transaction to

@@ -128,7 +128,7 @@
 \newtheorem{construction}{Construction}
 
 
-% === Transactions  ===
+% === Transactions ===
 
 \newcommand{\tyBool}{\mathbb{B}}
 \newcommand{\tyNatural}{\mathbb{N}}
@@ -151,18 +151,19 @@
 \newcommand{\validTx}{\mathsf{valid\md{}tx}}
 \newcommand{\applytx}{\circ}
 \newcommand{\Reach}{\mathsf{Reach}}
-\newcommand{\uid}{\mathsf{uid}}
 
 \newcommand{\txTx}{\mathit{tx}}			% transaction value
 \newcommand{\txTxTy}{\mathit{Tx}}		% transaction type
 \newcommand{\txCIdTy}{\mathit{CId}}		% currency identifier type
 \newcommand{\txTokenTy}{\mathit{Token}}	        % currency token type
-\newcommand{\txKeys}{\mathcal K}		% (public) keys with a
-                                                % valid signature on
-                                                % the tx
+\newcommand{\txKeys}{\kappa} % (public) keys signing the tx
+\newcommand{\tyKeys}{\mathcal{K}^*} % type of keys
 \newcommand{\txOutRef}{\mathsf{out\md{}ref}}
-\newcommand{\tyInputs}{\mathcal{I}}
-\newcommand{\tyOutputs}{\mathcal{O}}
+\newcommand{\txInputs}{\mathcal{I}} % set of inputs
+\newcommand{\tyInputs}{\mathcal{I}^*} % type of input sets
+\newcommand{\txOutputs}{\mathcal{O}} % list of outputs
+\newcommand{\tyOutputs}{\mathcal{O}^{\underline{*}}} % type of output lists
+\newcommand{\txMint}{\mathsf{mint}} % minted value
 \newcommand{\txID}{\mathit{txID}}
 \newcommand{\ID}{\mathsf{ID}}
 \newcommand{\txIdx}{\mathit{txIdx}}
@@ -202,11 +203,8 @@
 \newcommand{\msSK}{k^{sig}}
 \newcommand{\msMsg}{m}
 
-
-% === Signatures ===
 \newcommand{\initial}[1]{\dot{#1}}
 %\newcommand{\chain}[1]{\dot{#1}}
-
 \newcommand{\sVK}{k_{\pu}}
 \newcommand{\sVKI}[1]{k_{#1,\pu}}
 \newcommand{\sVKII}[1]{\initial{k}_{#1,\pu}}
@@ -228,10 +226,11 @@
 \newcommand{\cemStepRel}[4]{{#1}\overset{#2}\longrightarrow(#3, #4)}
 \newcommand{\cemTxCon}{\tx^\equiv}
 
+\newcommand{\cid}{\mathsf{cid}} % head id / currency id
 
 % == Transactions ==
 
-\newcommand{\mtxInit}{\textit{initial}}
+\newcommand{\mtxInit}{\textit{init}}
 \newcommand{\mtxCom}{\textit{commit}}
 \newcommand{\mtxCommit}{\textit{commit}}
 \newcommand{\mtxCCom}{\textit{collectCom}}
@@ -248,7 +247,6 @@
 \newcommand{\mtxCHT}{\textit{collectHT}}
 \newcommand{\mtxSN}{\textit{SN}}
 \newcommand{\mtxHT}{\textit{HT}}
-
 
 % == States ==
 
@@ -277,12 +275,10 @@
 
 % == Validators ==
 
-\newcommand{\muHead}{\mu_\mathsf{Head}}
-\newcommand{\nuSetup}{\nu_\mathsf{initial}} % TODO: remove
-\newcommand{\nuInitial}{\nu_\mathsf{initial}}
+\newcommand{\muHead}{\mu_\mathsf{head}}
 \newcommand{\nuHead}{\nu_\mathsf{head}}
-\newcommand{\nuCom}{\nu_\mathsf{com}}
-\newcommand{\nuClose}{\nu_\mathsf{closed}}
+\newcommand{\nuInitial}{\nu_\mathsf{initial}}
+\newcommand{\nuCommit}{\nu_\mathsf{commit}}
 \newcommand{\nuSnap}{\nu_\mathsf{SN}}
 \newcommand{\nuNewname}{\nu_\mathsf{newestSN}}
 \newcommand{\nuHang}{\nu_\mathsf{HT}}
