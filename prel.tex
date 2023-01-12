@@ -146,11 +146,11 @@ in~\cite{utxo-ma}.
 Validator scripts are called \emph{phase-2} scripts in the Cardano Ledger
 specification (see~\cite{alozon-spec} for a formal treatment of these). Scripts
 are used for multiple purposes, but most often (and sufficient for this
-specification) as a \emph{spending} or \emph{minting} validator script.
+specification) as a \emph{spending} or \emph{minting} policy script.
 
-\begin{definition}[Minting Validator Script]
-  A validator script $\mu \in \mathcal{M}$ governing whether a value can be minted (or burned),
-  is a pure function with type
+\begin{definition}[Minting Policy Script]
+  A script $\mu \in \mathcal{M}$ governing whether a value can be minted (or
+  burned), is a pure function with type
   \[
     \mu \in \mathcal{M} = (\rho : \tyData) \to (\mathsf{ctx} : \tyContext) \to\tyBool,
   \]

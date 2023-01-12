@@ -11,24 +11,67 @@ comprising the Head protocol: $\mtxInit{}$, $\mtxCom{}$, $\mtxAbort{}$,
 $\mtxCollect{}$, $\mtxClose{}$, $\mtxContest{}$, and $\mtxFanout{}$. Following
 the EUTxO model, this structure is enforced on-chain through \emph{validators}
 which are \emph{scripts instances} attached to each UTxO and run as part of the
-ledger's validation of the transaction. The protocol defines three different
-scripts: \todo{add minting script}
+ledger's validation of the transaction (see Section~\ref{sec:eutxo}). The
+protocol defines one minting policy script and three validator scripts:
 \begin{itemize}
-    \item $\nuHead$ is the script controlling the protocol state-machine logic,
-    \item $\nuInitial$ is the script used to control the initial distribution of tokens to Head participants, and
-    \item $\nuCom$ controls the collecting of \emph{committed} UTxO for use in the Head. 
+  \item $\muHead$ governs the minting of state and participation tokens,
+  \item $\nuInitial$ controls initialization and how UTxOs are committed to the head, while
+  \item $\nuCommit$ controls the collection of committed UTxOs into the head, and lastly
+  \item $\nuHead$ controls the main protocol state-machine logic.
 \end{itemize}
 
-\subsection{Initial transaction} 
+\subsection{Init transaction}
 
-The \mtxInit{} transaction (see
-Fig.~\ref{fig:SM_commit_tx}) establishes the initial state of the protocol as the tuple
-$$
-(\stInitial,\hpAK,\hppuv,\nop,\cPer)
-$$ 
-where:
+The \mtxInit{} transaction creates a head instance and establishes the initial
+state of the protocol and is shown in Figure~\ref{fig:SM_commit_tx}. The head
+instance is represented by the unique\footnote{As the EUTxO ledger preventing
+  double-spending, the uniqueness of $\cid$ is guaranteed because $i_{seed}$ can
+  only be spent once} currency identifier $\cid$ created by minting tokens using
+the parameterized $\muHead$ minting policy script:
+\[
+  \cid = \hash(\muHead(i_{seed}))
+\]
+\noindent where $i_{seed} \in \txInputs$ is a transaction input and the
+$\muHead(i_{seed})$ minting policy validator checks:
 \begin{menumerate}
+  \item $i_{seed}$ is spent in this transaction
+  $i_{seed} \in \txInputs$
+\end{menumerate}
+
+\vspace{0.1cm}
+\noindent Two kinds of tokens are minted:
+\begin{itemize}
+  \item A single \emph{State Thread (ST)} token marking the output carrying the state
+        of the protocol on-chain, whose name is the well known string
+        \texttt{HydraHeadV1}, i.e.
+        $\st = (\cid \rightarrow \texttt{HydraHeadV1} \rightarrow 1)$
+  \item One \emph{Participation Token (PT)} per participant
+        $i \in \{1 \dots \nop \}$, where the token name is the participant's
+        verification key hash $k_i^{\#}$, i.e.
+        $\pt_{i} = (\cid \rightarrow k_{i}^{\#} \rightarrow 1)$.
+\end{itemize}
+
+\noindent Consequently, the \mtxInit{} transaction
+
+\begin{itemize}
+  \item has at least input $i_{seed}$,
+  \item mints one $\st$ and one $\pt$ for each of the $\nop$ participants with
+        policy $\cid :: \{\st, \pt_{1}, \ldots, \pt_{\nop}\}$,
+  \item has one state-machine output locked by $\nuHead$ with datum
+        $\datum_{\mathsf{head}}$
+  \item has $\nop$ outputs, where each output is locked by $\nuInitial$ and the
+        $\ith i$ output has the participation token $\pt_i$ in its value, and
+        $\mathsf{cid}$ as datum.
+\end{itemize}
+
+\noindent The initial state of the protocol is captured in the state-machine output datum
+\[
+  \datum_{\mathsf{head}} = (\stInitial,\cid,\hpAK,\hppuv,\nop,\cPer)
+\]
+where
+\begin{mitemize}
   \item $\stInitial$ is a state identifier,
+  \item $\cid$ is the unique currency id of this instance,
   \item $\hpAK$ is the aggregated off-chain multi-signature key established during the
   setup phase,
   \item $\hppuv$ is the list of all participants verification keys
@@ -36,29 +79,14 @@ where:
   head members on-chain,
   \item $\nop$ is the number of head participants, and
   \item $\cPer$ is the length of the contestation period.
-\end{menumerate} 
+\end{mitemize}
 
-\noindent The \mtxInit{} transaction mints tokens whose \emph{Minting Policy} is $\mathsf{cid}$, defined as 
-$$
-\mathsf{cid} = \hash(\muHead(\mathsf{tx_{in}})),
-$$
-where $\mathsf{tx_{in}} \in I_\sigma$ is one of the inputs spent in the \mtxInit{} transaction. From the ledger preventing double-spending and the uniqueness of $\mathsf{tx_{in}}$, $\mathsf{cid}$ is guaranteed to be unique and can be used to identify the newly initialized head. \\
-\todo{add checks of minting script}
-\\
-Two kinds of tokens are minted:
-\begin{itemize}
-\item $\mathsf{ST}$: A single \emph{State Thread} token marking the output carrying the state of the protocol on-chain, whose name is the well known string \texttt{HydraHeadV1},
-\item $\mathsf{PT}_i,\ i\in \{1 \dots \nop \}$: One \emph{Participation Token} per participant, where the token name is the participant's verification key hash $k_i^{\#}$. This will be used to authenticate participants in protocol transactions.
-\end{itemize}
-
-\noindent The \mtxInit{} transaction has $\nop$ outputs, where each output is
-locked by validator $\nuInitial$ and the $\ith i$ output has the participation
-token $\mathsf{PT}_i$ in its value, and $\mathsf{cid}$ as a datum. Validator $\nuInitial$
-ensures that the output is consumed by either an \mtxAbort{} (see Section~\ref{sec:abort-tx} below) or a \mtxCom{} (see Section~\ref{sec:commit-tx} below) transaction.
-
-The general well-formedness and validity of the \mtxInit{} transaction is
-checked on the mainchain. The head members can additionally check whether the head
-parameters match the parameters agreed on during the setup phase.
+\noindent Validator $\nuInitial$ ensures that the output is consumed by either
+an \mtxAbort{} (see Section~\ref{sec:abort-tx} below) or a \mtxCom{} (see
+Section~\ref{sec:commit-tx} below) transaction. Note that the general
+well-formedness and validity of the \mtxInit{} transaction is checked on the
+mainchain, but head members need to additionally check whether the initial state
+has the right $\cid$ and is consistent with parameters agreed during setup.
 
 \input{fig_SM_commit_tx}
 
@@ -68,7 +96,7 @@ A \mtxCom{} transaction is depicted in Figure~\ref{fig:SM_commit_tx} and has the
 \begin{itemize}
     \item One input $i_{\mathsf{initial}} = (\txOutRef_{initial}, \rho_{initial})$ consuming $o_{initial} = (\val_{initial}, \nuInitial, \delta_{initial})$,
     \item Zero or one input with reference $\txOutRef_{commit}$ consuming output $o_{commit} = (.,\val_{commit},.)$,
-    \item One output $o_{com} =  (\val_{com}, \nuCom, \delta_{com}).$ 
+    \item One output $o_{com} =  (\val_{com}, \nuCommit, \delta_{com}).$
 \end{itemize}
 
 \noindent The $\nuInitial$ validator ensures the transaction has the following structure:
@@ -84,7 +112,7 @@ A \mtxCom{} transaction is depicted in Figure~\ref{fig:SM_commit_tx} and has the
     \item No minting or burning happens.
 \end{menumerate}
 
-\noindent The $\nuCom$ validator ensures the output is collected by either a \mtxCCom{} or \mtxAbort{} transaction of the on-chain state machine.
+\noindent The $\nuCommit$ validator ensures the output is collected by either a \mtxCCom{} or \mtxAbort{} transaction of the on-chain state machine.
 
 \subsection{CollectCom Transaction}
 
@@ -114,7 +142,7 @@ $$
   \item No minting or burning happens.
 \end{menumerate}
 
-\noindent Each of the $\nuCom^i$ validators, for $i \in \{ 1\dots n\}$, additionally checks:
+\noindent Each of the $\nuCommit^i$ validators, for $i \in \{ 1\dots n\}$, additionally checks:
 \begin{menumerate}
     \item The ST token is present in the output value $(cid \rightarrow ST \rightarrow 1) \in \val'$, where $(cid,.) = \delta_{com}$ is given by the datum of the commit output $o_{com}$.
 \end{menumerate}
@@ -149,7 +177,7 @@ $$
   $cid = \delta_{initial}$ is given by the datum of the spent initial output.
 \end{menumerate}
 
-\noindent For each of the $\nuCom$ validators consumed, checks:
+\noindent For each of the $\nuCommit$ validators consumed, checks:
 \begin{menumerate}
   \item The ST token is getting burned
   $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$, where
