@@ -147,14 +147,13 @@ $$
     \item The ST token is present in the output value $(cid \rightarrow ST \rightarrow 1) \in \val'$, where $(cid,.) = \delta_{com}$ is given by the datum of the commit output $o_{com}$.
 \end{menumerate}
 
-\subsection{Abort Transaction}\label{sec:abort-tx} 
+\subsection{Abort Transaction}\label{sec:abort-tx}
+\todo{Mention this is a final state / has no state machine output}
 
 \input{fig_SM_initial_final.tex}
 
-
-The \mtxAbort{} transaction
-(see Fig.~\ref{fig:SM_initial_final}) allows a party to abort the
-creation of a head.  The state is transitioned to $\mathsf{final}$:
+The \mtxAbort{} transaction (see Fig.~\ref{fig:SM_initial_final}) allows a party
+to abort the creation of a head. The state is transitioned to $\mathsf{final}$:
 
 $$
    (\stInitial,\hpAK,\hppuv,\nop,\cPer) \xrightarrow{\mathsf{abort}} \stFinal.
@@ -249,7 +248,8 @@ with $\eta = (s, \hash(U))$ and $\eta' = (s', \hash(U')).$ \\
 \end{menumerate}
 
 
-\subsection{Fan-Out Transaction}  
+\subsection{Fan-Out Transaction}
+\todo{Mention this is a final state / has no state machine output}
 
 \input{fig_SM_closed_final}
 

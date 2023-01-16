@@ -245,14 +245,20 @@ transactions $\tx$ and $\tx'$, they represent successive states under
     \begin{mitemize}
       \item $tx'$ has no state-machine output and $\cemFinal(s') = \true$, or
       \item $\tx'$ meets all constraints imposed by $\cemTxCon$ and has output
-      $\cemOut' = (\val', \cemValidator, s')$.
+      $\cemOut' = (\val', \cemValidator, \cemDatum')$ with $\cemDatum' = s'$.
     \end{mitemize}
 \end{mitemize}
+
+Note that the state-machine validator $\cemValidator$ does check whether the
+transition is possible and hence needs to be able to inspect the resulting state
+$s' = \cemDatum'$. In a Cardano transaction, that means that the actual output
+datum needs to included in the transaction (not just it's hash) or fully inlined
+in the UTxO.
 
 A CEM transition is represented graphically by two connected transactions as
 shown in Figure~\ref{fig:state-transition}. The starting state of a transition
 $s$ is given by the datum of $\cemOut$ of transaction $tx$ and depicted by the
-circle. Correspondingly, the end state $s'$ contined in the datum of $\cemOut'$
+circle. Correspondingly, the end state $s'$ contained in the datum of $\cemOut'$
 of transaction $tx'$ in the circle on the right hand side. Fields $\val$ and
 $\val'$ are the value fields of the state-machine outputs. The transition name
 $i$ and additional data $\tilde \rho$ is shown above and below the transition
