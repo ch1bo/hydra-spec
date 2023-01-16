@@ -1,4 +1,3 @@
-\clearpage
 \section{Preliminaries}\label{sec:prel}
 
 This section introduces notation and other preliminaries used in the remainder
@@ -237,32 +236,34 @@ transactions $\tx$ and $\tx'$, they represent successive states under
 \(\cemStepRel{s}{i}{s'}{\cemTxCon}\) iff
 
 \begin{mitemize}
-  \item state-machine output $\cemOut = (\val, \cemValidator, \cemDatum)$ that
-  is consumed by $tx'$ via state-machine input
-  $\cemIn' = (\txOutRef, \cemRedeemer)$, whose redeemer provides the
-  state-machine input $\cemRedeemer = (i, \tilde{\redeemer})$ and
+  \item state-machine output $\cemOut = (\val, \cemValidator, \cemDatum)$
+  describes starting state $\cemDatum = s$ and is consumed by $tx'$ via
+  state-machine input $\cemIn' = (\txOutRef, \cemRedeemer)$, whose redeemer
+  provides the state-machine input $\cemRedeemer = (i, \tilde{\redeemer})$ and
   \item either
     \begin{mitemize}
-      \item $tx'$ has no state-machine output and $\cemFinal(s') = \true$, or
+      \item $\cemFinal(s') = \true$ and $tx'$ has no state-machine output, or
       \item $\tx'$ meets all constraints imposed by $\cemTxCon$ and has output
-      $\cemOut' = (\val', \cemValidator, \cemDatum')$ with $\cemDatum' = s'$.
+      $\cemOut' = (\val', \cemValidator, \cemDatum')$ with the target state in
+      the datum $\cemDatum' = s'$.
     \end{mitemize}
 \end{mitemize}
 
 Note that the state-machine validator $\cemValidator$ does check whether the
 transition is possible and hence needs to be able to inspect the resulting state
-$s' = \cemDatum'$. In a Cardano transaction, that means that the actual output
+$s'$ in $\cemDatum'$. In a Cardano transaction, that means that the actual output
 datum needs to included in the transaction (not just it's hash) or fully inlined
 in the UTxO.
 
 A CEM transition is represented graphically by two connected transactions as
 shown in Figure~\ref{fig:state-transition}. The starting state of a transition
 $s$ is given by the datum of $\cemOut$ of transaction $tx$ and depicted by the
-circle. Correspondingly, the end state $s'$ contained in the datum of $\cemOut'$
-of transaction $tx'$ in the circle on the right hand side. Fields $\val$ and
-$\val'$ are the value fields of the state-machine outputs. The transition name
-$i$ and additional data $\tilde \rho$ is shown above and below the transition
-arrow.
+left circle. Correspondingly, the end state $s'$ contained in the datum of
+$\cemOut'$ of transaction $tx'$ in the right circle. The transition name $i$ and
+additional data $\tilde \rho$ is shown above and below the transition arrow.
+Fields $\val$ and $\val'$ are the value fields of the state-machine outputs,
+while relevant fields of the transaction bodies are described by the rectangles
+below.
 
 \begin{figure}[h]
   \centering
