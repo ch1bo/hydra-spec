@@ -110,7 +110,7 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
   \item The committed value is in the output $\val_{com} = \val_{initial} \cup \val_{commit}$
   \item The currencty id and committed output are recorded in the output datum
   $\delta_{com} = (\mathsf{cid}, U_{i})$ where
-  $U_{i} = (\txOutRef_{commit},\bits(o_{commit}))$
+  $U_{i} = (\txOutRef_{commit},\bytes(o_{commit}))$
   \item Transaction is signed by a participant $\exists (\mathsf{cid} \rightarrow k^{\#}_{i} \rightarrow 1) \in \val_{com} \Rightarrow k^{\#}_{i} \in \txKeys$
   \todo{need to check against head datum ($\hppuv$)?}
   \item No minting or burning happens $\txMint = \varnothing$
@@ -122,14 +122,21 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 
 \input{fig_SM_initial_open}
 
-The \mtxCCom{} transaction collects all outputs from \mtxCom{} transactions participating in the same head and advances the state of the CEM state machine:
-$$
+The \mtxCCom{} transaction collects all the committed UTxOs $U_{i}$ from
+\mtxCom{} transactions participating in the same head and advances the state of
+the CEM state machine:
+\[
    (\stInitial,\hpAK,\hppuv,\nop,\cPer) \xrightarrow{\mathsf{collectCom}} (\stOpen,\hpAK,\eta,\hppuv,\nop,\cPer),
-$$
-where $\eta$ is the hash of the concatenation of the serialised representation of committed outputs:
-$$
-\eta = \hash(\bigoplus_{i=1}^n \bytes(U_i)).
-$$
+\]
+where $\eta$ is the hash, of the concatenation, of the serialised representation of committed outputs $U_{i}$, which need to be sorted by their associated $\txOutRef$ to be deterministic:
+\todo{sortByOutRef not defined, needed?}
+\todo{is this clear enough?}
+\[
+  \underline{U}_{sorted} = \mathsf{sortByOutRef} ( U_{1}, \dots, U_{\nop} )
+\]
+\[
+  \eta = \hash(\bigoplus_{\forall (\cdot, b_{j}) \in \underline{U}_{sorted}} b_{j})
+\]
 
 \noindent The $\nuHead$ validator additionally checks that:
 \begin{menumerate}
