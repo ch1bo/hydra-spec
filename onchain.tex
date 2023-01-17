@@ -126,7 +126,7 @@ The \mtxCCom{} transaction collects all the committed UTxOs to the same head.
 Consequently \mtxCCom{} has
 \begin{itemize}
   \item one input spending from $\nuHead$ holding the $\st$, and
-  \item $\forall i \in \{1, \ldots, \nop\}$ inputs spending from \mtxCom{} outputs $(\val_{com_i}, \nuCommit, U_{i})$ with $\pt_{i} \in \val_{com_{i}}$.
+  \item $\forall i \in \{1, \ldots, \nop\}$ inputs spending from \mtxCom{} outputs $(\val_{com_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{com_{i}}$.
 \end{itemize}
 The input spending from and paying to the $\nuHead$ validator, checks the state
 of the CEM is advanced:
@@ -162,12 +162,21 @@ $\txOutRef$ to be deterministic: \todo{sortByOutRef not defined, needed?}
 \end{menumerate}
 
 \subsection{Abort Transaction}\label{sec:abort-tx}
-\todo{Mention this is a final state / has no state machine output}
 
 \input{fig_SM_initial_final.tex}
 
 The \mtxAbort{} transaction (see Fig.~\ref{fig:SM_initial_final}) allows a party
-to abort the creation of a head. The state is transitioned to $\mathsf{final}$:
+to abort the creation of a head. Its structure is as follows
+\begin{itemize}
+  \item one input spending from $\nuHead$ holding the $\st$, and
+  \item $\forall i \in \{1, \ldots, \nop\}$ inputs either
+    \begin{itemize}
+      \item spending from already comitted output $(\val_{com_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{com_{i}}$, or
+      \item spending from an initial output $(\val_{initial_i}, \nuInitial, \cid)$.
+    \end{itemize}
+\end{itemize}
+The input spending from $\nuHead$ checks the state of the CEM is advanced to the final $\stFinal$ as follows:
+\todo{Mention this is a final state / has no state machine output}
 
 $$
    (\stInitial,\hpAK,\hppuv,\nop,\cPer) \xrightarrow{\mathsf{abort}} \stFinal.
