@@ -82,11 +82,11 @@ where
 \end{mitemize}
 
 \noindent Validator $\nuInitial$ ensures that the output is consumed by either
-an \mtxAbort{} (see Section~\ref{sec:abort-tx} below) or a \mtxCom{} (see
-Section~\ref{sec:commit-tx} below) transaction. Note that the general
-well-formedness and validity of the \mtxInit{} transaction is checked on the
-mainchain, but head members need to additionally check whether the initial state
-has the right $\cid$ and is consistent with parameters agreed during setup.
+an \mtxAbort{}~\ref{sec:abort-tx} or a \mtxCom{}~\ref{sec:commit-tx}
+transaction. Note that the general well-formedness and validity of the
+\mtxInit{} transaction is checked on the mainchain, but head members need to
+additionally check whether the initial state has the right $\cid$ and is
+consistent with parameters agreed during setup.
 
 \input{fig_SM_commit_tx}
 
@@ -100,15 +100,15 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
         spending $o_{initial} = (\val_{initial}, \nuInitial, \datum_{initial})$
   \item Zero or one input with reference $\txOutRef_{commit}$ spending output
         $o_{commit} = (\val_{commit}, \cdot , \cdot)$
-  \item One output $o_{com} = (\val_{com}, \nuCommit, \delta_{com})$
+  \item One output $o_{com} = (\val_{com}, \nuCommit, \delta_{com})$\todo{need to check output address?}
 \end{itemize}
 
 \noindent The $\nuInitial$ validator ensures that:
 \begin{menumerate}
   \item The initial datum provides the currency id $\mathsf{cid} = \datum_{initial}$
   \item The initial redeemer references the committed output $\redeemer_{initial} = \txOutRef_{commit}$
-  \item The committed value is in the output $\val_{com} = \val_{commit} \cup \pt_{i}$
-  \item The committed output is recorded in the output $o_{com}$ via datum
+  \item The committed value is in the output $\val_{com} = \val_{initial} \cup \val_{commit}$
+  \item The currencty id and committed output are recorded in the output datum
   $\delta_{com} = (\mathsf{cid}, U_{i})$ where
   $U_{i} = (\txOutRef_{commit},\bits(o_{commit}))$
   \item Transaction is signed by a participant $\exists (\mathsf{cid} \rightarrow k^{\#}_{i} \rightarrow 1) \in \val_{com} \Rightarrow k^{\#}_{i} \in \txKeys$
@@ -116,9 +116,9 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
   \item No minting or burning happens $\txMint = \varnothing$
 \end{menumerate}
 
-\noindent The $\nuCommit$ validator ensures the output is collected by either a \mtxCCom{} or \mtxAbort{} transaction of the on-chain state machine.
+\noindent The $\nuCommit$ validator ensures the output is collected by either a \mtxCCom{}~\ref{sec:collect-tx} or \mtxAbort{}~\ref{sec:abort-tx} transaction of the on-chain state machine, selected by the appropriate redeemer.
 
-\subsection{CollectCom Transaction}
+\subsection{CollectCom Transaction}\label{sec:collect-tx}
 
 \input{fig_SM_initial_open}
 
