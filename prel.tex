@@ -196,7 +196,7 @@ specification) as a \emph{spending} or \emph{minting} policy script.
   A validation context $\txContext \in \tyContext$ is a view on the transaction
   to be validated:
   \[
-    \txContext \in \tyContext = (\tyInputs \times \tyOutputs \times \tyValue \times \mathcal{S}^{\leftrightarrow} \times \txKeys)
+    \txContext \in \tyContext = (\tyInputs \times \tyOutputs \times \tyValue \times \mathcal{S}^{\leftrightarrow} \times \mathcal{K})
   \]
   where $\txInputs \in \tyInputs$ \todo{define $\mathcal{A^{*}}$ notation?} is a
   \textbf{set} of inputs of length $u$, $\txOutputs \in \tyOutputs$ is a
@@ -204,13 +204,14 @@ specification) as a \emph{spending} or \emph{minting} policy script.
   minted (or burned) value,
   $(\txRmin, \txRmax) \in \mathcal{S}^{\leftrightarrow}$
   \todo{$\mathcal{S}^{\leftrightarrow}$ undefined, time \& periods instead?} are
-  the lower and upper validity bounds, and $\kappa \in \txKeys$ is the set of
+  the lower and upper validity bounds, and $\txKeys \in \mathcal{K}$ is the set of
   verification keys which signed the transaction.
 \end{definition}
 
 Informally, scripts are evaluated by the ledger when it applies a transaction to
-its current state to yield a new ledger state. Each validator script referenced
-by an output is passed its arguments drawn from the output it locks and the
+its current state to yield a new ledger state (besides checking the transaction
+integrity, signatures and ledger rules). Each validator script referenced by
+an output is passed its arguments drawn from the output it locks and the
 transaction context it is executed in. The transaction is valid if and only if
 all scripts validate, i.e. $\mu(\rho, \gamma) = \true$ and
 $\nu(\delta, \rho, \gamma) = \true$.
