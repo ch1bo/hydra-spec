@@ -92,24 +92,28 @@ has the right $\cid$ and is consistent with parameters agreed during setup.
 
 \subsection{Commit Transaction}\label{sec:commit-tx}
 
-A \mtxCom{} transaction is depicted in Figure~\ref{fig:SM_commit_tx} and has the following structure:
+A \mtxCom{} transaction may be submitted by each participant
+$\forall i \in \{1, \ldots, \nop\}$ and is depicted on the right hand side of
+Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 \begin{itemize}
-    \item One input $i_{\mathsf{initial}} = (\txOutRef_{initial}, \rho_{initial})$ consuming $o_{initial} = (\val_{initial}, \nuInitial, \delta_{initial})$,
-    \item Zero or one input with reference $\txOutRef_{commit}$ consuming output $o_{commit} = (.,\val_{commit},.)$,
-    \item One output $o_{com} =  (\val_{com}, \nuCommit, \delta_{com}).$
+  \item One input $i_{initial} = (\txOutRef_{initial}, \redeemer_{initial})$
+        spending $o_{initial} = (\val_{initial}, \nuInitial, \datum_{initial})$
+  \item Zero or one input with reference $\txOutRef_{commit}$ spending output
+        $o_{commit} = (\val_{commit}, \cdot , \cdot)$
+  \item One output $o_{com} = (\val_{com}, \nuCommit, \delta_{com})$
 \end{itemize}
 
-\noindent The $\nuInitial$ validator ensures the transaction has the following structure:
+\noindent The $\nuInitial$ validator ensures that:
 \begin{menumerate}
-    \item Transaction is signed by correct participant: $\txKeys = \{\mathsf{k}\}$ s.t.
-    $
-    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val_{com}, \hash(\mathsf{k}) = \mathsf{PT}_i,
-    $ \todo{check against PT or against datum ($\hppuv$)? or both?}
-    \item The initial redeemer references the committed output, $\rho_{initial} = \txOutRef_{commit}$,
-    \item The initial datum is $\mathsf{cid}$,
-    \item The committed value is in the output $\val_{com} = \{(\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1)\} \cup \val_{commit} $,
-    \item The committed output is serialised as the datum of $o_{com}$: $\delta_{com} = (\mathsf{cid}, U)$, with \\ $U = (\txOutRef_{commit},\bits(o_{commit}))$
-    \item No minting or burning happens.
+  \item The initial datum provides the currency id $\mathsf{cid} = \datum_{initial}$
+  \item The initial redeemer references the committed output $\redeemer_{initial} = \txOutRef_{commit}$
+  \item The committed value is in the output $\val_{com} = \val_{commit} \cup \pt_{i}$
+  \item The committed output is recorded in the output $o_{com}$ via datum
+  $\delta_{com} = (\mathsf{cid}, U_{i})$ where
+  $U_{i} = (\txOutRef_{commit},\bits(o_{commit}))$
+  \item Transaction is signed by a participant $\exists (\mathsf{cid} \rightarrow k^{\#}_{i} \rightarrow 1) \in \val_{com} \Rightarrow k^{\#}_{i} \in \txKeys$
+  \todo{need to check against head datum ($\hppuv$)?}
+  \item No minting or burning happens $\txMint = \varnothing$
 \end{menumerate}
 
 \noindent The $\nuCommit$ validator ensures the output is collected by either a \mtxCCom{} or \mtxAbort{} transaction of the on-chain state machine.
