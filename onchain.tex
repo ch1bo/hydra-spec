@@ -111,7 +111,7 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
   \item The currencty id and committed output are recorded in the output datum
   $\delta_{com} = (\mathsf{cid}, U_{i})$ where
   $U_{i} = (\txOutRef_{commit},\bytes(o_{commit}))$
-  \item Transaction is signed by a participant $\exists (\mathsf{cid} \rightarrow k^{\#}_{i} \rightarrow 1) \in \val_{com} \Rightarrow k^{\#}_{i} \in \txKeys$
+  \item Transaction is signed by a participant $\exists (\mathsf{cid} \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{com} \Rightarrow \keyHash_{i} \in \txKeys$
   \todo{need to check against head datum ($\hppuv$)?}
   \item No minting or burning happens $\txMint = \varnothing$
 \end{menumerate}
@@ -122,40 +122,43 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 
 \input{fig_SM_initial_open}
 
-The \mtxCCom{} transaction collects all the committed UTxOs $U_{i}$ from
-\mtxCom{} transactions participating in the same head and advances the state of
-the CEM state machine:
+The \mtxCCom{} transaction collects all the committed UTxOs to the same head.
+Consequently \mtxCCom{} has
+\begin{itemize}
+  \item one input spending from $\nuHead$ holding the $\st$, and
+  \item $\forall i \in \{1, \ldots, \nop\}$ inputs spending from \mtxCom{} outputs $(\val_{com_i}, \nuCommit, U_{i})$ with $\pt_{i} \in \val_{com_{i}}$.
+\end{itemize}
+The input spending from and paying to the $\nuHead$ validator, checks the state
+of the CEM is advanced:
 \[
-   (\stInitial,\hpAK,\hppuv,\nop,\cPer) \xrightarrow{\mathsf{collectCom}} (\stOpen,\hpAK,\eta,\hppuv,\nop,\cPer),
+   (\stInitial,\cid,\hpAK,\hppuv,\nop,\cPer) \xrightarrow{\mathsf{collectCom}} (\stOpen,\cid,\hpAK,\hppuv,\nop,\cPer,\eta)
 \]
-where $\eta$ is the hash, of the concatenation, of the serialised representation of committed outputs $U_{i}$, which need to be sorted by their associated $\txOutRef$ to be deterministic:
-\todo{sortByOutRef not defined, needed?}
+where $\eta$ is the hash, of the concatenation, of the serialised representation
+of committed outputs $U_{i}$, which need to be sorted by their associated
+$\txOutRef$ to be deterministic: \todo{sortByOutRef not defined, needed?}
 \todo{is this clear enough?}
 \[
   \underline{U}_{sorted} = \mathsf{sortByOutRef} ( U_{1}, \dots, U_{\nop} )
 \]
 \[
-  \eta = \hash(\bigoplus_{\forall (\cdot, b_{j}) \in \underline{U}_{sorted}} b_{j})
+  \eta = \hash(\bigoplus_{\forall (\cdot, b_{j})~\in~\underline{U}_{sorted}} b_{j})
 \]
 
-\noindent The $\nuHead$ validator additionally checks that:
+\noindent Furthermore, the $\nuHead$ validator additionally checks that:
 \begin{menumerate}
-  \item All committed value captured and no additional funds ``enter'' or ``leave''
-  $\val' = \{\mathsf{ST}\} \cup \bigcup_{i=1}^{n} \mathsf{PT}_{i} \cup \val_{i}$,
+  \item All committed value captured and no additional funds ``enter'' or ``leave''\\
+  $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{com_i})$
   \item All tokens present in output
-  $|\{cid \rightarrow . \rightarrow 1\} ~ \mathsf{in} ~ \val'| = \nop + 1$,
-  \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
-    $
-    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
-    $
+  $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$\todo{enumerate $\pt_{i}$ using $\hppuv$ instead?}
+  \item Transaction is signed by a participant $\exists (\mathsf{cid} \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{com} \Rightarrow \keyHash_{i} \in \txKeys$\todo{also check $\keyHash_{i} \in \hppuv$?}
   \item Unchanged parameters $\mathsf{cid}$, $\hpAK$, $\hppuv$, $\nop$, and
-  $\cPer$ in the data field,
-  \item No minting or burning happens.
+  $\cPer$ \todo{explicitly state this?}
+  \item No minting or burning happens $\txMint = \varnothing$
 \end{menumerate}
 
-\noindent Each of the $\nuCommit^i$ validators, for $i \in \{ 1\dots n\}$, additionally checks:
+\noindent The $\nuCommit$ validator ensures that:
 \begin{menumerate}
-    \item The ST token is present in the output value $(cid \rightarrow ST \rightarrow 1) \in \val'$, where $(cid,.) = \delta_{com}$ is given by the datum of the commit output $o_{com}$.
+    \item The ST token is present in the output value $(\cid \rightarrow ST \rightarrow 1) \in \val'$, where $(\cid,.) = \delta_{com}$ is given by the datum of the commit output $o_{com}$.
 \end{menumerate}
 
 \subsection{Abort Transaction}\label{sec:abort-tx}
@@ -191,7 +194,7 @@ $$
 \begin{menumerate}
   \item The ST token is getting burned
   $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$, where
-  $(cid,.) = \delta_{com}$ is given by the datum of the spent commit output.
+  $(\cid,.) = \delta_{com}$ is given by the datum of the spent commit output.
 \end{menumerate}
 
 \subsection{Close Transaction}\label{sec:close-tx}
