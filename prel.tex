@@ -6,9 +6,9 @@ of the specification.
 \subsection{Notation}
 
 The specification uses set-notation based approach while also inspired
-by~\cite{eutxo-2}~and~\cite{eutxo}.\todo{handwavy} Values $a$ are of a set
-$a \in \mathcal{A}$, also indicated as being of some type $a : \mathcal{A}$, and
-complex values are tuples drawn from a $\times$ product of multiple sets, e.g.
+by~\cite{eutxo-2}~and~\cite{eutxo}. Values $a$ are of a set $a \in \mathcal{A}$,
+also indicated as being of some type $a : \mathcal{A}$, and complex values are
+tuples drawn from a $\times$ product of multiple sets, e.g.
 $(a,b) \in (\mathcal{A} \times \mathcal{B})$. An empty set is indicated by
 $\emptyset$. Sets may be enumerated using $\{\}$, the $=$ operator means
 correspondence and $\gets$ is explicit assignment of a variable or value to one
@@ -55,40 +55,37 @@ application of a function $f$ to an argument $x$ is written as $f(x)$. \\
 \subsection{Public key cryptography and multi-signature scheme}\label{sec:multisig}
 
 \todo{be specific!?}
-% TODO: Not keep this generic and only specific (naiive) as it is right now?
-A multisignature scheme~\cite{itakura1983public,CCS:MicOhtRey01}\todo{is this consistent with refs?} is a
-tuple of algorithms:
+\noindent A multisignature scheme is a tuple of algorithms:
 \[
 \ms \in (\msSetup \times \allowbreak\msKeyGen \times \allowbreak\msCombVK \times \allowbreak
 \msSign \times \allowbreak\msComb \times \allowbreak\msVfy)
 \]
-Where $\msSetup$ generates public parameters $\msParams$, such that
+where $\msSetup$ generates public parameters $\msParams$, such that
 \begin{itemize}
   \item $(\msVK,\msSK) \gets \msKeyGen(\msParams)$ can be used to generate fresh
         key pairs,
   \item $\msSig \gets \msSign(\msParams,\msSK,\msMsg)$ signs a message $\msMsg$
         using key $\msSK$,
-  \item $\msCSig \gets \msComb(\msParams,\msMsg,\msVKL,\msSigL)$ aggregates
-        \todo{requires a message?} a list $\msSigL$ of signatures into a single,
-        aggregate signature~$\msCSig$.
-  \item $\msCVK \gets \msCombVK(\msParams,\msVKL)$ aggregates a tuple\todo{set?}
-        $\msVKL$ of verification keys into a single, aggregate key
-        $\msCVK$\todo{difference $\msCVK$ vs. $\msVKL$?},
+  \item $\msCSig \gets \msComb(\msParams,\msMsg,\msVKL,\msSigL)$ aggregates a
+        list $\msSigL$ of signatures into a single, aggregate
+        signature~$\msCSig$.
+  \item $\msCVK \gets \msCombVK(\msParams,\msVKL)$ aggregates a tuple $\msVKL$
+        of verification keys into a single, aggregate key $\msCVK$,
   \item $\msVfy(\msParams,\msCVK,\msMsg,\msCSig) \in \tyBool$ verifies an aggregate
         signature $\msCSig$ of message $\msMsg$ under an aggregate verification
         key $\msCVK$.
 \end{itemize}
 
+The security definition of a multisignature scheme
+from~\cite{itakura1983public,CCS:MicOhtRey01} guarantees that, if $\msCVK$ is
+produced from a tuple of verification keys $\msVKL$ via $\msCombVK$, then no
+aggregate signature $\msCSig$ can pass verification
+$\msVfy(\msCVK,\msMsg,\msCSig)$ unless all honest parties holding keys in
+$\msVKL$ signed $m$.
+
 Note that in the following, we make the parameter~$\msParams$ implicit and leave
 out the $ver$ suffix for verification key such that $k = k^{ver}$ for better
 readability.
-
-The security definition of a multisignature scheme
-from~\cite{itakura1983public,CCS:MicOhtRey01} guarantees that, if $\msCVK$ is
-produced from a tuple\todo{set?} of verification keys $\msVKL$ via $\msCombVK$,
-then no aggregate signature $\msCSig$ can pass verification
-$\msVfy(\msCVK,\msMsg,\msCSig)$ unless all honest parties holding keys in
-$\msVKL$ signed $m$.
 
 \subsection{Extended UTxO}\label{sec:eutxo}
 The Hydra Head protocol is specified to work on the so-called Extended UTxO (EUTxO) ledgers
@@ -171,25 +168,22 @@ specification) as a \emph{spending} or \emph{minting} policy script.
 \end{definition}
 
 \begin{definition}[Outputs]
-  An output $o \in \tyOutputs$ stores some value $\val \in \tyValue$ at some address,
-  defined by the hash of a validator script $\nu^{\#} \in \hash(\mathcal{V})$,
+  An output $o \in \txOutputs$ stores some value $\val \in \tyValue$ at some address,
+  defined by the hash of a validator script $\nu^{\#} \in \tyBytes = \hash(\nu \in \mathcal{V})$,
   and may store (reference) some data $\delta \in \tyData$:
   \[
-    o \in \tyOutputs = (\val : \tyValue \times \nu^{\#} : \mathcal{V} \times \delta : \tyData)
+    o \in \txOutputs = (\val : \tyValue \times \nu^{\#} : \tyBytes \times \delta : \tyData)
   \]
 \end{definition}
 
 \begin{definition}[Inputs]
-  An input $i \in \tyInputs$ is a reference to some output $\txOutRef$ and a
-  corresponding redeemer $\rho \in \tyData$:
+  An input $i \in \txInputs$ is a reference to some output
+  $\txOutRef \in \mathcal{R}$ and a corresponding redeemer $\rho \in \tyData$:
   \[
-    i \in \tyInputs = (\txOutRef : \tyBytes \times \rho : \tyData)
+    i \in \txInputs = (\txOutRef : \mathcal{R} \times \rho : \tyData)
   \]
-  \todo{$\tyBytes$ is wrong here}
-  where
-  $\txOutRef \in (\mathsf{id} : \mathsf{TxId} \times \mathsf{idx} : \mathbb{N})$
-  points to a transaction with $\mathsf{txId} \in \tyBytes$ (being a hash of the
-  transaction) and an output at index $idx \in \tyNatural$
+  where $\mathcal{R} = (\tyBytes \times \mathbb{N})$ references an output of a
+  transaction by its id (that is, a hash of the transaction) and index.
 \end{definition}
 
 \todo{define transaction or context or both?}
@@ -200,13 +194,12 @@ specification) as a \emph{spending} or \emph{minting} policy script.
     \txContext \in \tyContext = (\tyInputs \times \tyOutputs \times \tyValue \times \mathcal{S}^{\leftrightarrow} \times \mathcal{K})
   \]
   where $\txInputs \in \tyInputs$ \todo{define $\mathcal{A^{*}}$ notation?} is a
-  \textbf{set} of inputs of length $u$, $\txOutputs \in \tyOutputs$ is a
-  \textbf{list} of outputs of length $v$, $\txMint \in \tyValue$ is the
-  minted (or burned) value,
+  \textbf{set} of inputs, $\txOutputs \in \tyOutputs$ is a \textbf{list} of
+  outputs, $\txMint \in \tyValue$ is the minted (or burned) value,
   $(\txRmin, \txRmax) \in \mathcal{S}^{\leftrightarrow}$
   \todo{$\mathcal{S}^{\leftrightarrow}$ undefined, time \& periods instead?} are
-  the lower and upper validity bounds, and $\txKeys \in \mathcal{K}$ is the set of
-  verification keys which signed the transaction.
+  the lower and upper validity bounds, and $\txKeys \in \mathcal{K}$ is the set
+  of verification keys which signed the transaction.
 \end{definition}
 
 Informally, scripts are evaluated by the ledger when it applies a transaction to

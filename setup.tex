@@ -6,7 +6,7 @@ protocol parameters.
 
 \begin{itemize}
   \item For onchain transaction authentication (Cardano) purposes, each party $\party_i$ generates a
-        corresponding key pair $(\sVKI{i},\sSKI{i})$ and sends their verification key $\sVKI{i}$ to all other parties. In the case of Cardano, these are Ed25519 keys.
+        corresponding key pair $(\msVK_{i},\msSK_{i})$ and sends their verification key $\msVK_{i}$ to all other parties. In the case of Cardano, these are Ed25519 keys.
 
   \item For offchain signing (Hydra) purposes, a very basic multisignature scheme (MS, as defined in Section~\ref{sec:multisig}) based on EdDSA using Ed25519 keys is used:
         \begin{itemize}
