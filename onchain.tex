@@ -125,7 +125,7 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 \noindent The \mtxCCom{} transaction collects all the committed UTxOs to the same head. It has
 \begin{itemize}
   \item one input spending from $\nuHead$ holding the $\st$, and
-  \item $\forall i \in \{1 \dots \nop\}$ inputs spending from \mtxCom{} outputs $(\val_{commit_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{commit_{i}}$.
+  \item $\forall i \in \{1 \dots \nop\}$ inputs spending \mtxCom{} outputs $(\val_{commit_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{commit_{i}}$.
 \end{itemize}
 The input spending from and paying to the $\nuHead$ validator, checks the state
 of the CEM is advanced:
@@ -135,15 +135,14 @@ of the CEM is advanced:
 
 \noindent Furthermore, $\nuHead$ checks these constraints:
 \begin{menumerate}
-  \item Collect commits in $\eta$ as the hash, of the concatenation, of
-  the serialised representation of committed outputs $U_{i}$, which need to be
-  sorted by their associated $\txOutRef$ to be deterministic: \todo{sortByOutRef
+  \item Collect commits in $\eta = (0, U^{\#})$ as the hash, of the concatenation, of
+  the serialised representation of committed outputs $U_{i}$, which are sorted by their associated $\txOutRef$\footnote{Sorting is required to ensure a canonical representation which can also be reproduced from the UTxO set later in the fanout.}: \todo{sortByOutRef
     not defined, needed?} \todo{is this clear enough?}
   \[
     \underline{U}_{sorted} = \mathsf{sortByOutRef} ( U_{1}, \dots, U_{\nop} )
   \]
   \[
-    \eta = (0, \hash(\bigoplus_{\forall (\cdot, b_{j})~\in~\underline{U}_{sorted}} b_{j}))
+    U^{\#} = \hash(\bigoplus_{\forall (\cdot, b_{j})~\in~\underline{U}_{sorted}} b_{j}))
   \]
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{commit_i})$
@@ -238,7 +237,7 @@ the state of the CEM is advanced:
 \noindent The $\nuHead$ validator performs these checks:
 \begin{enumerate}
   \item Recorded the initial snapshot state $\eta_0 = \eta$
-  \item New snapshot state $(s', U^{\#}') = \eta'$ is the initial $\eta_{0}$
+  \item New snapshot state $(s', \cdot) = \eta'$ is the initial $\eta_{0}$
         or correctly signed via $\xi$ \\
         \[
           \left\{\begin{array}{ll}
@@ -273,7 +272,7 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
 \noindent The $\nuHead$ validator performs these checks:
 \begin{menumerate}
   \item Contest snapshot is newer $s' > s$, where $(s, \cdot) = \eta$ is the current and $(s', \cdot) = \eta'$ is the contest snapshot number
-  \item $\xi$ is a valid multi-signature of the new snapshost state
+  \item $\xi$ is a valid multi-signature of the new snapshot state
   $\msVfy(\hpAK,(\cid || \eta_{0} || \eta'),\xi) = \true$
   \item The single signer $\{\keyHash\} = \txKeys$ has not already contested $\keyHash \not\in \contesters$ and is added to the set of contesters $\contesters' = \contesters \cup \keyHash$
   \item Transaction is posted before deadline $\txRmax \leq \Tfinal$
@@ -290,7 +289,6 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
 \end{menumerate}
 
 \subsection{Fan-Out Transaction}
-\todo{Mention this is a final state / has no state machine output}
 
 \input{fig_SM_closed_final}
 
