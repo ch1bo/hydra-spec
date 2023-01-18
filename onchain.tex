@@ -113,7 +113,7 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
   $U_{i} = (\txOutRef_{committed},\bytes(o_{committed}))$
   \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{commit} \Rightarrow \keyHash_{i} \in \txKeys$
   \todo{need to check against head datum ($\hppuv$)?}
-  \item No minting or burning happens $\txMint = \varnothing$
+  \item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
 
 \noindent The $\nuCommit$ validator ensures the output is collected by either a \mtxCCom{}~\ref{sec:collect-tx} or \mtxAbort{}~\ref{sec:abort-tx} transaction of the on-chain state machine, selected by the appropriate redeemer.
@@ -143,7 +143,7 @@ of the CEM is advanced:
     \underline{U}_{sorted} = \mathsf{sortByOutRef} ( U_{1}, \dots, U_{\nop} )
   \]
   \[
-    \eta = \hash(\bigoplus_{\forall (\cdot, b_{j})~\in~\underline{U}_{sorted}} b_{j})
+    \eta = (0, \hash(\bigoplus_{\forall (\cdot, b_{j})~\in~\underline{U}_{sorted}} b_{j}))
   \]
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{commit_i})$
@@ -152,7 +152,7 @@ of the CEM is advanced:
   \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{commit} \Rightarrow \keyHash_{i} \in \txKeys$\todo{also check $\keyHash_{i} \in \hppuv$?}
   \item Unchanged parameters $\cid$, $\hpAK$, $\hppuv$, $\nop$, and
   $\cPer$ \todo{explicitly state this?}
-  \item No minting or burning happens $\txMint = \varnothing$
+  \item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
 
 \noindent Each spent $\nuCommit$ validator ensures that:
@@ -225,31 +225,35 @@ advanced to the final $\stFinal$ as follows:
 
 \input{fig_SM_open_closed}
 
-In order to close a head, a head member may post the \mtxClose{} transaction (see Fig.~\ref{fig:SM_open_closed}), which results in a SM transition
-from the $\stOpen$ state to the $\stClosed$ state:
-$$
-(\stOpen,\hpAK,\eta,\hppuv,\nop,\cPer) \xrightarrow[\xi]{\mathsf{close}} (\stClosed,\hpAK,\eta',\eta_0,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) 
-$$
-with $\eta_0 = \eta$. \\
+In order to close a head, a head member may post the \mtxClose{} transaction
+(see Figure~\ref{fig:SM_open_closed}). This transaction has a single input
+spending from the $\nuHead$ and paying to the $\nuHead$ validator, which checks
+the state of the CEM is advanced:
+\[
+  (\stOpen,\cid,\hpAK,\hppuv,\nop,\cPer,\eta) \xrightarrow[\xi]{\mathsf{close}} (\stClosed,\hpAK,\hppuv,\nop,\cPer,\eta_0,\eta',\mathcal{C},\Tfinal)
+\]
 
-\noindent The $\nuHead$ validator perform those additional checks:
+\noindent The $\nuHead$ validator performs these checks:
 \begin{enumerate}
-  \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
-    $
-    \exists (\cid \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
-    $
-  \item $\xi$ is a valid multi-signature of $\eta'$ w.r.t. to $\hpAK$,
-  \item Recorded snapshot state is consistent:
-    $$
-    \eta' = \left\{\begin{array}{ll}
-         (s, \hash(U')), & \mathrm{if}\ s > 0,\\
-         (0, \eta_0) & \mathit{otherwise} 
-    \end{array}\right.,
-    $$
-  \item Record contestation deadline, $\Tfinal = \txRmax + T$,
-  \item Ensure timeliness of the transaction $\txRmax - \txRmin \leq T$ 
-  \item Initialize the set of contesters $\mathcal{C} = \emptyset$\todo{explain why in footnote}
-  \item Value in the head is preserved, $val' = val$
+  \item Recorded the initial snapshot state $\eta_0 = \eta$
+  \item New snapshot state $(s', U^{\#}') = \eta'$ is the initial $\eta_{0}$
+        or correctly signed via $\xi$ \\
+        \[
+          \left\{\begin{array}{ll}
+                  \msVfy(\hpAK,(\cid || \eta_{0} || s' || \eta'),\xi) = \true & \mathrm{if} ~ s' > 0, \\
+                  \eta' = \eta_{0} & \mathrm{otherwise}
+                 \end{array}
+        \]\todo{factor out $s'$?}
+  \item Initialize the set of contesters \footnote{This allows the closing party
+        to also contest and is required for use cases where pre-signed, valid in
+        the future, close transactions are used to delegate head closing}
+        $\contesters = \emptyset$
+  \item Correct contestation deadline $\Tfinal = \txRmax + T$
+  \item Bounded confirmation window\footnote{Ensures head $\Tfinal$ is at most
+        $2*T$ in the future} $\txRmax - \txRmin \leq T$
+  \item Value in the head is preserved $\val' = \val$
+  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val' \Rightarrow \keyHash_{i} \in \txKeys$
+  \item No minting or burning $\txMint = \varnothing$
 \end{enumerate}
 
 \subsection{Contest Transaction}\label{sec:contest-tx}
@@ -282,7 +286,7 @@ with $\eta = (s, \hash(U))$ and $\eta' = (s', \hash(U')).$ \\
              \Tfinal + T, &  \mathit{otherwise} \\
         \end{array}\right.,
      $$
-  \item No minting or burning happens.
+  \item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
 
 
