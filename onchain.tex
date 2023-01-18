@@ -242,7 +242,7 @@ the state of the CEM is advanced:
           \left\{\begin{array}{ll}
                   \msVfy(\hpAK,(\cid || \eta_{0} || \eta'),\xi) = \true & \mathrm{if} ~ s' > 0, \\
                   \eta' = \eta_{0} & \mathrm{otherwise}
-                 \end{array}
+                 \end{array}\right.
         \]\todo{factor out $s'$?}
   \item Initialize the set of contesters\footnote{This allows the closing party
         to also contest and is required for use cases where pre-signed, valid in
@@ -278,9 +278,9 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
   \item Contestation deadline is updated correctly
      \[
        \Tfinal' = \left\{\begin{array}{ll}
-                           \Tfinal     &  \mathrm{if} ~ |\contesters'| = n, \\
-                           \Tfinal + T &  \mathrm{otherwise} \\
-        \end{array}
+                           \Tfinal     & \mathrm{if} ~ |\contesters'| = n, \\
+                           \Tfinal + T & \mathrm{otherwise}
+                         \end{array}\right.
     \]
   \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val' \Rightarrow \keyHash_{i} \in \txKeys$
   \item Value in the head is preserved $\val' = \val$
