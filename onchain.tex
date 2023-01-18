@@ -1,5 +1,7 @@
 \section{On-chain Protocol}\label{sec:on-chain}
 
+\todo{Problem: Always ensure abort is possible. E.g. by individual aborts!?}
+
 We describe the details of the \emph{on-chain} protocol controlling a
 Hydra head (see Fig.~\ref{fig:SM_states_basic}) using the CEM abstraction \&
 notation (see Section~\ref{sec:cem}). In addition of standard CEM modeling, we
@@ -35,7 +37,7 @@ the parameterized $\muHead$ minting policy script:
 $\muHead(i_{seed})$ minting policy validator checks:
 \begin{menumerate}
   \item $i_{seed}$ is spent in this transaction
-  $i_{seed} \in \txInputs$
+  $i_{seed} \in \txInputs$\todo{Only when minting, allow burning always}
 \end{menumerate}
 
 \vspace{0.1cm}
@@ -67,7 +69,7 @@ $\muHead(i_{seed})$ minting policy validator checks:
 \noindent The initial state of the protocol is captured in the state-machine output datum
 \[
   \datum_{\mathsf{head}} = (\stInitial,\cid,\hpAK,\hppuv,\nop,\cPer)
-\]
+\]\todo{Explicitly NOT include $\hppuv$! as it is not guaranteed on-chain to be consistent with PTs}
 where
 \begin{mitemize}
   \item $\stInitial$ is a state identifier,
@@ -146,7 +148,7 @@ of the CEM is advanced:
   \]
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{commit_i})$
-  \item All tokens present in output
+  \item All tokens present in output\footnote{This is sufficient as a Head participant would check off-chain whether a Head is initialized correctly with the right number of tokens.}
   $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$\todo{notation? enumerate $\pt_{i}$ using $\hppuv$ instead?}
   \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{commit} \Rightarrow \keyHash_{i} \in \txKeys$\todo{also check $\keyHash_{i} \in \hppuv$?}
   \item Unchanged parameters $\cid$, $\hpAK$, $\hppuv$, $\nop$, and
