@@ -44,11 +44,11 @@ $\muHead(i_{seed})$ minting policy validator checks:
   \item A single \emph{State Thread (ST)} token marking the output carrying the state
         of the protocol on-chain, whose name is the well known string
         \texttt{HydraHeadV1}, i.e.
-        $\st = (\cid \rightarrow \texttt{HydraHeadV1} \rightarrow 1)$
+        $\st = (\cid \rightarrow \texttt{HydraHeadV1} \rightarrow 1)$\todo{$\st = (\cid \rightarrow \texttt{HydraHeadV1}$}
   \item One \emph{Participation Token (PT)} per participant
         $i \in \{1 \dots \nop \}$, where the token name is the participant's
-        verification key hash $k_i^{\#}$, i.e.
-        $\pt_{i} = (\cid \rightarrow k_{i}^{\#} \rightarrow 1)$.
+        verification key hash $\keyHash_{i}$, i.e.
+        $\pt_{i} = (\cid \rightarrow \keyHash_{i} \rightarrow 1)$.\todo{$\pt = (\cid \rightarrow \keyHash_{i})$}
 \end{itemize}
 
 \noindent Consequently, the \mtxInit{} transaction
@@ -61,7 +61,7 @@ $\muHead(i_{seed})$ minting policy validator checks:
         $\datum_{\mathsf{head}}$
   \item has $\nop$ outputs, where each output is locked by $\nuInitial$ and the
         $\ith i$ output has the participation token $\pt_i$ in its value, and
-        $\mathsf{cid}$ as datum.
+        $\cid$ as datum.
 \end{itemize}
 
 \noindent The initial state of the protocol is captured in the state-machine output datum
@@ -93,7 +93,7 @@ consistent with parameters agreed during setup.
 \subsection{Commit Transaction}\label{sec:commit-tx}
 
 A \mtxCom{} transaction may be submitted by each participant
-$\forall i \in \{1, \ldots, \nop\}$ and is depicted on the right hand side of
+$\forall i \in \{1 \dots \nop\}$ and is depicted on the right hand side of
 Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 \begin{itemize}
   \item One input $i_{initial} = (\txOutRef_{initial}, \redeemer_{initial})$
@@ -105,13 +105,13 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 
 \noindent The $\nuInitial$ validator ensures that:
 \begin{menumerate}
-  \item The initial datum provides the currency id $\mathsf{cid} = \datum_{initial}$
+  \item The initial datum provides the currency id $\cid = \datum_{initial}$
   \item The initial redeemer references the committed output $\redeemer_{initial} = \txOutRef_{commit}$
   \item The committed value is in the output $\val_{com} = \val_{initial} \cup \val_{commit}$
   \item The currencty id and committed output are recorded in the output datum
-  $\delta_{com} = (\mathsf{cid}, U_{i})$ where
+  $\delta_{com} = (\cid, U_{i})$ where
   $U_{i} = (\txOutRef_{commit},\bytes(o_{commit}))$
-  \item Transaction is signed by a participant $\exists (\mathsf{cid} \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{com} \Rightarrow \keyHash_{i} \in \txKeys$
+  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{com} \Rightarrow \keyHash_{i} \in \txKeys$
   \todo{need to check against head datum ($\hppuv$)?}
   \item No minting or burning happens $\txMint = \varnothing$
 \end{menumerate}
@@ -125,7 +125,7 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 \noindent The \mtxCCom{} transaction collects all the committed UTxOs to the same head. It has
 \begin{itemize}
   \item one input spending from $\nuHead$ holding the $\st$, and
-  \item $\forall i \in \{1, \ldots, \nop\}$ inputs spending from \mtxCom{} outputs $(\val_{com_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{com_{i}}$.
+  \item $\forall i \in \{1 \dots \nop\}$ inputs spending from \mtxCom{} outputs $(\val_{com_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{com_{i}}$.
 \end{itemize}
 The input spending from and paying to the $\nuHead$ validator, checks the state
 of the CEM is advanced:
@@ -149,15 +149,18 @@ of the CEM is advanced:
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{com_i})$
   \item All tokens present in output
   $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$\todo{notation? enumerate $\pt_{i}$ using $\hppuv$ instead?}
-  \item Transaction is signed by a participant $\exists (\mathsf{cid} \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{com} \Rightarrow \keyHash_{i} \in \txKeys$\todo{also check $\keyHash_{i} \in \hppuv$?}
-  \item Unchanged parameters $\mathsf{cid}$, $\hpAK$, $\hppuv$, $\nop$, and
+  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{com} \Rightarrow \keyHash_{i} \in \txKeys$\todo{also check $\keyHash_{i} \in \hppuv$?}
+  \item Unchanged parameters $\cid$, $\hpAK$, $\hppuv$, $\nop$, and
   $\cPer$ \todo{explicitly state this?}
   \item No minting or burning happens $\txMint = \varnothing$
 \end{menumerate}
 
-\noindent The $\nuCommit$ validator ensures that:
+\noindent Each spent $\nuCommit$ validator ensures that:
 \begin{menumerate}
-    \item The ST token is present in the output value $(\cid \rightarrow ST \rightarrow 1) \in \val'$, where $(\cid,.) = \delta_{com}$ is given by the datum of the commit output $o_{com}$.
+  \item The ST token is present in the output value
+  $\st = (\cid \rightarrow ``HydraHeadV1'' \rightarrow 1) \in \val'$, where
+  $(\cid,.) = \delta_{com}$ is given by the datum of the commit output
+  $o_{com}$.
 \end{menumerate}
 
 \subsection{Abort Transaction}\label{sec:abort-tx}
@@ -165,44 +168,52 @@ of the CEM is advanced:
 \input{fig_SM_initial_final.tex}
 
 The \mtxAbort{} transaction (see Fig.~\ref{fig:SM_initial_final}) allows a party
-to abort the creation of a head. Its structure is as follows
+to abort the creation of a head. It is comprised of
 \begin{itemize}
   \item one input spending from $\nuHead$ holding the $\st$, and
-  \item $\forall i \in \{1, \ldots, \nop\}$ inputs either
+  \item $\forall i \in \{1 \dots \nop\}$ inputs either
     \begin{itemize}
-      \item spending from already comitted output $(\val_{com_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{com_{i}}$, or
-      \item spending from an initial output $(\val_{initial_i}, \nuInitial, \cid)$.
+      \item spending from an initial output $(\val_{initial_i}, \nuInitial, \cid)$ with $\pt_{i} \in \val_{initial_i}$, or
+      \item spending from already committed output $(\val_{com_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{com_{i}}$,\todo{detail datums below?}
     \end{itemize}
+  \item $m$ outputs to redistribute already committed UTxOs.
 \end{itemize}
-The input spending from $\nuHead$ checks the state of the CEM is advanced to the final $\stFinal$ as follows:
-\todo{Mention this is a final state / has no state machine output}
+Note that \mtxAbort{} represents a final transition of the CEM and hence there
+is no state machine output. The input spending from $\nuHead$ does provide the
+number of reimbursed outputs $m$ as redeemer and checks the state of the CEM is
+advanced to the final $\stFinal$ as follows:
 
-$$
-   (\stInitial,\hpAK,\hppuv,\nop,\cPer) \xrightarrow{\mathsf{abort}} \stFinal.
-$$
+\[
+   (\stInitial,\hpAK,\hppuv,\nop,\cPer) \xrightarrow[m]{\mathsf{abort}} \stFinal.
+\]
 
 \noindent The $\nuHead$ validator ensures that:
 \begin{menumerate}
- \item All outputs committed into the head are recreated as is: $\forall i \in \{1\dots\nop\}, \hash(O_\sigma[i]) = \delta_i$,
-  \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
-    $
-    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
-    $
- \item All participation tokens are burnt: $\forall i \in \{1\dots\nop\}, \{\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1\} \subseteq \mathsf{Mint}.$\todo{number of tokens burned vs. explicit enumeration what to burn?}
+  \item All UTxOs committed into the head are directly reimbursed\todo{check this}
+  \[
+    \underline{U}_{committed} = \sum_{i=i}^{\nop} U_{i} \neq \bot \Rightarrow U_{i}
+  \]
+  \[
+    \forall j \in \{1\dots|\underline{U}_{committed}|\}: \hash(\txOutputs[j]) = \underline{U}_{committed}[j][2]
+  \]\todo{notation: access on tuples}
+
+  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{com} \Rightarrow \keyHash_{i} \in \txKeys$
+ \item All tokens are burnt $|\{\cid \rightarrow \cdot \rightarrow -1\} \in \txMint| = n + 1$\todo{number of tokens burned vs. explicit enumeration what to burn?}
 \end{menumerate} 
 
-\noindent For each of the $\nuInitial$ validators consumed, checks:
+\noindent Each $\nuInitial$ validator checks:
 \begin{menumerate}
   \item The ST is getting burned
-  $\{cid \rightarrow "HeadV1" \rightarrow -1\} \subseteq \mathsf{Mint}$, where
-  $cid = \delta_{initial}$ is given by the datum of the spent initial output.
+  $(\cid \rightarrow \texttt{HydraHeadV1} \rightarrow -1) \subseteq \txMint$,
+  where $\cid$ is given by the datum of the spent initial output
+  $\cid = \delta_{initial}$.
 \end{menumerate}
 
-\noindent For each of the $\nuCommit$ validators consumed, checks:
+\noindent Each $\nuCommit$ validators checks:
 \begin{menumerate}
-  \item The ST token is getting burned
-  $\{cid \rightarrow ST \rightarrow -1\} \subseteq \mathsf{Mint}$, where
-  $(\cid,.) = \delta_{com}$ is given by the datum of the spent commit output.
+  \item The ST is getting burned
+  $(\cid \rightarrow \texttt{HydraHeadV1} \rightarrow -1) \subseteq \txMint$,
+  where $\cid$ is given by the datum of the spent commit output $(\cid,.) = \delta_{com}$.
 \end{menumerate}
 
 \subsection{Close Transaction}\label{sec:close-tx}
@@ -220,7 +231,7 @@ with $\eta_0 = \eta$. \\
 \begin{enumerate}
   \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
     $
-    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
+    \exists (\cid \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
     $
   \item $\xi$ is a valid multi-signature of $\eta'$ w.r.t. to $\hpAK$,
   \item Recorded snapshot state is consistent:
@@ -252,7 +263,7 @@ with $\eta = (s, \hash(U))$ and $\eta' = (s', \hash(U')).$ \\
   \item Value is preserved $\val' = \val$,
   \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
     $
-    \exists (\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
+    \exists (\cid \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
     $
   \item The signer has not already contested $k' \not\in \mathcal{C},$  and it's added to the signers set: $\mathcal{C}' = \mathcal{C} \cup k',$
   \item $\xi$ is a valid multi-signature of $(\eta_0 || \eta')$ with respect to $\hpAK$, 
@@ -295,8 +306,13 @@ The $\nuHead$ validator performs the following checks:
     \end{array}
     \right.,
   $$
+  % TODO: use this in fanout
+  % \[
+  %   \hash(\bigoplus_{j=1}^{m} \bytes(\txOutputs[j])) = \eta
+  % \]
+
   \item All tokens are burnt: 
-     $\mathsf{ST} \cup \{(\mathsf{cid} \rightarrow \mathsf{PT}_i \rightarrow -1) \mid i \in \{1\dots\nop\}\} \subseteq \mathsf{Mint},$
+     $\mathsf{ST} \cup \{(\cid \rightarrow \mathsf{PT}_i \rightarrow -1) \mid i \in \{1\dots\nop\}\} \subseteq \mathsf{Mint},$
   \item Transaction is posted after contestation deadline $\txRmin > \Tfinal.$
 \end{enumerate}
 
