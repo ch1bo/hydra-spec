@@ -50,7 +50,7 @@ $\muHead(i_{seed})$ minting policy validator checks:
   \item One \emph{Participation Token (PT)} per participant
         $i \in \{1 \dots \nop \}$, where the token name is the participant's
         verification key hash $\keyHash_{i}$, i.e.
-        $\pt_{i} = (\cid \rightarrow \keyHash_{i} \rightarrow 1)$.\todo{$\pt = (\cid \rightarrow \keyHash_{i})$}
+        $\pt_{i} = (\cid \rightarrow \keyHash_{i} \rightarrow 1)$.\todo{$\pt = (\cid \rightarrow \keyHash_{i})$}\todo{refer to protocol setup}
 \end{itemize}
 
 \noindent Consequently, the \mtxInit{} transaction
@@ -68,15 +68,14 @@ $\muHead(i_{seed})$ minting policy validator checks:
 
 \noindent The initial state of the protocol is captured in the state-machine output datum
 \[
-  \datum_{\mathsf{head}} = (\stInitial,\cid,\hpAK,\hppuv,\nop,\cPer)
-\]\todo{Explicitly NOT include $\hppuv$! as it is not guaranteed on-chain to be consistent with PTs}
+  \datum_{\mathsf{head}} = (\stInitial,\cid,\hpAK,\nop,\cPer)
+\]
 where
 \begin{mitemize}
   \item $\stInitial$ is a state identifier,
   \item $\cid$ is the unique currency id of this instance,
   \item $\hpAK$ is the aggregated off-chain multi-signature key established during the
   setup phase,
-  \item $\hppuv$ is the list of all participants verification keys
   $(k_1,\ldots,k_\nop)$ exchanged during the setup phase and identifying the
   head members on-chain,
   \item $\nop$ is the number of head participants, and
@@ -116,7 +115,6 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
   $\delta_{commit} = (\cid, U_{i})$ where
   $U_{i} = (\txOutRef_{committed},\bytes(o_{committed}))$
   \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{commit} \Rightarrow \keyHash_{i} \in \txKeys$
-  \todo{need to check against head datum ($\hppuv$)?}
   \item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
 
@@ -134,7 +132,7 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 The input spending from and paying to the $\nuHead$ validator, checks the state
 of the CEM is advanced:
 \[
-   (\stInitial,\cid,\hpAK,\hppuv,\nop,\cPer) \xrightarrow{\mathsf{collectCom}} (\stOpen,\cid,\hpAK,\hppuv,\nop,\cPer,\eta)
+   (\stInitial,\cid,\hpAK,\nop,\cPer) \xrightarrow{\mathsf{collectCom}} (\stOpen,\cid,\hpAK,\nop,\cPer,\eta)
 \]
 
 \noindent Furthermore, $\nuHead$ checks these constraints:
@@ -151,9 +149,9 @@ of the CEM is advanced:
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{commit_i})$
   \item All tokens present in output\footnote{This is sufficient as a Head participant would check off-chain whether a Head is initialized correctly with the right number of tokens.}
-  $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$\todo{notation? enumerate $\pt_{i}$ using $\hppuv$ instead?}
-  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{commit} \Rightarrow \keyHash_{i} \in \txKeys$\todo{also check $\keyHash_{i} \in \hppuv$?}
-  \item Unchanged parameters $\cid$, $\hpAK$, $\hppuv$, $\nop$, and
+  $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$
+  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{commit} \Rightarrow \keyHash_{i} \in \txKeys$
+  \item Unchanged parameters $\cid$, $\hpAK$, $\nop$, and
   $\cPer$ \todo{explicitly state this?}
   \item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
@@ -187,7 +185,7 @@ number of reimbursed outputs $m$ as redeemer and checks the state of the CEM is
 advanced to the final $\stFinal$ as follows:
 
 \[
-   (\stInitial,\cid,\hpAK,\hppuv,\nop,\cPer) \xrightarrow[m]{\mathsf{abort}} \stFinal.
+   (\stInitial,\cid,\hpAK,\nop,\cPer) \xrightarrow[m]{\mathsf{abort}} \stFinal.
 \]
 
 \noindent The $\nuHead$ validator ensures that:
@@ -235,7 +233,7 @@ In order to close a head, a head member may post the \mtxClose{} transaction
 spending from the $\nuHead$ and paying to the $\nuHead$ validator, which checks
 the state of the CEM is advanced:
 \[
-  (\stOpen,\cid,\hpAK,\hppuv,\nop,\cPer,\eta) \xrightarrow[\xi]{\mathsf{close}} (\stClosed,\cid,\hpAK,\hppuv,\nop,\cPer,\eta_0,\eta',\contesters,\Tfinal)
+  (\stOpen,\cid,\hpAK,\nop,\cPer,\eta) \xrightarrow[\xi]{\mathsf{close}} (\stClosed,\cid,\hpAK,\nop,\cPer,\eta_0,\eta',\contesters,\Tfinal)
 \]
 
 \noindent The $\nuHead$ validator performs these checks:
@@ -270,7 +268,7 @@ by a party to prove the currently $\stClosed$ state is not the latest one. This
 transaction has a single input spending from the $\nuHead$ and paying to the
 $\nuHead$ validator, which checks the state of the CEM is advanced:
 \[
-  (\stClosed,\cid,\hpAK,\hppuv,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\cid,\hpAK,\hppuv,\nop,\cPer,\eta_0,\eta',\contesters',\Tfinal')
+  (\stClosed,\cid,\hpAK,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\cid,\hpAK,\nop,\cPer,\eta_0,\eta',\contesters',\Tfinal')
 \]
 
 \noindent The $\nuHead$ validator performs these checks:
@@ -308,7 +306,7 @@ is no state machine output. The input spending from $\nuHead$ does provide the
 number of fanned-out outputs $m$ as redeemer and checks the state of the CEM is
 advanced to the final $\stFinal$ as follows:
 \[
-  (\stClosed,\cid,\hpAK,\hppuv,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[m]{\mathsf{fanout}} \stFinal,
+  (\stClosed,\cid,\hpAK,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[m]{\mathsf{fanout}} \stFinal,
 \]
 
 \noindent The $\nuHead$ validator performs these checks:
