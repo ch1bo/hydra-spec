@@ -167,8 +167,8 @@ of the CEM is advanced:
 
 \input{fig_SM_initial_final.tex}
 
-The \mtxAbort{} transaction (see Fig.~\ref{fig:SM_initial_final}) allows a party
-to abort the creation of a head. It is comprised of
+The \mtxAbort{} transaction (see Figure~\ref{fig:SM_initial_final}) allows a
+party to abort the creation of a head. It is comprised of
 \begin{itemize}
   \item one input spending from $\nuHead$ holding the $\st$, and
   \item $\forall i \in \{1 \dots \nop\}$ inputs either
@@ -203,7 +203,9 @@ advanced to the final $\stFinal$ as follows:
   \]
 
   \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow -1) \in \txMint \Rightarrow \keyHash_{i} \in \txKeys$
- \item All tokens are burnt $|\{\cid \rightarrow \cdot \rightarrow -1\} \in \txMint| = n + 1$\todo{number of tokens burned vs. explicit enumeration what to burn?}
+  \item All tokens are burnt
+  $|\{\cid \rightarrow \cdot \rightarrow -1\} \in \txMint| = n + 1$\todo{number
+    of tokens burned vs. explicit enumeration what to burn?}
 \end{menumerate} 
 
 \noindent Each $\nuInitial$ validator checks:\todo{datums/redeemers here?}
@@ -292,34 +294,32 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
 
 \input{fig_SM_closed_final}
 
-Once the contestation phase is over, a head
-may be finalized by posting a \mtxFanout{} transaction, taking the SM
-from $\stClosed$ to $\stFinal$.  
+\noindent Once the contestation phase is over, a head may be finalized by posting a
+\mtxFanout{} transaction (see Figure~\ref{fig:SM_closed_final}), which
+distributes UTxOs from the head according to the latest state. It consists of
+\begin{itemize}
+  \item one input spending from $\nuHead$ holding the $\st$, and
+  \item $m$ outputs to fan-out UTxOs.
+\end{itemize}
+Note that \mtxFanout{} represents a final transition of the CEM and hence there
+is no state machine output. The input spending from $\nuHead$ does provide the
+number of fanned-out outputs $m$ as redeemer and checks the state of the CEM is
+advanced to the final $\stFinal$ as follows:
+\[
+  (\stClosed,\cid,\hpAK,\hppuv,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[m]{\mathsf{fanout}} \stFinal,
+\]
 
-$$
-   (\stClosed,\hpAK,\eta,\eta_0,\contesters,\hppuv,\nop,\cPer,\Tfinal) \xrightarrow{\mathsf{fanout}} \stFinal,
-$$
-with $\eta = (s, H)$ and $\eta_0 = (0, H_0).$
-The $\nuHead$ validator performs the following checks:
+\noindent The $\nuHead$ validator performs these checks:
 \begin{enumerate}
-  \item Correct outputs are created: 
-  $$
-  \hash(\bigoplus_{i=1}^n \bytes(O[i])) = 
-    \left\{
-    \begin{array}{ll}
-        H_0, & s = 0 \\
-        H, &\mathit{otherwise}
-    \end{array}
-    \right.,
-  $$
-  % TODO: use this in fanout
-  % \[
-  %   \hash(\bigoplus_{j=1}^{m} \bytes(\txOutputs[j])) = \eta
-  % \]
-
-  \item All tokens are burnt: 
-     $\mathsf{ST} \cup \{(\cid \rightarrow \mathsf{PT}_i \rightarrow -1) \mid i \in \{1\dots\nop\}\} \subseteq \mathsf{Mint},$
-  \item Transaction is posted after contestation deadline $\txRmin > \Tfinal.$
+  \item The first $m$ outputs are distributing funds according to
+        $(\cdot, U^{\#}) = \eta$\todo{explain ordering?}
+        \[
+        \hash(\bigoplus_{j=1}^{m} \bytes(\txOutputs[j])) = U^{\#}
+        \]
+  \item Transaction is posted after contestation deadline $\txRmin > \Tfinal$
+  \item All tokens are burnt
+        $|\{\cid \rightarrow \cdot \rightarrow -1\} \in \txMint| = n + 1$\todo{number
+        of tokens burned vs. explicit enumeration what to burn?}
 \end{enumerate}
 
 %%% Local Variables:
