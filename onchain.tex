@@ -83,12 +83,14 @@ where
   \item $\cPer$ is the length of the contestation period.
 \end{mitemize}
 
-\noindent Validator $\nuInitial$ ensures that the output is consumed by either
-an \mtxAbort{}~\ref{sec:abort-tx} or a \mtxCom{}~\ref{sec:commit-tx}
-transaction. Note that the general well-formedness and validity of the
-\mtxInit{} transaction is checked on the mainchain, but head members need to
-additionally check whether the initial state has the right $\cid$ and is
-consistent with parameters agreed during setup.
+\noindent \textbf{Important:} While the $\muHead$ minting policy ensures
+uniqueness of $\cid$, the contents of the $\datum_{\mathsf{head}}$ are not
+checked on-chain. All head members are expected to check whether the initial
+state has the right $\cid$, is consistent with parameters agreed during setup
+and whether the right amount of tokens have been minted and payed to $\nuHead$
+and $\nuInitial$ respectively. From there, these validators ensure that the
+output is consumed by either an \mtxAbort{}~\ref{sec:abort-tx} or a
+\mtxCom{}~\ref{sec:commit-tx} transaction.
 
 \input{fig_SM_commit_tx}
 
@@ -101,7 +103,7 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
   \item One input $i_{initial} = (\txOutRef_{initial}, \redeemer_{initial})$
         spending $o_{initial} = (\val_{initial}, \nuInitial, \datum_{initial})$
   \item Zero or one input with reference $\txOutRef_{commit}$ spending output
-        $o_{committed} = (\val_{committed}, \cdot , \cdot)$
+        $o_{committed} = (\val_{committed}, \cdot , \cdot)$ \todo{very restrictive, allow more?}
   \item One output $o_{commit} = (\val_{commit}, \nuCommit, \delta_{commit})$\todo{need to check output address?}
 \end{itemize}
 
