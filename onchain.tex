@@ -230,7 +230,7 @@ In order to close a head, a head member may post the \mtxClose{} transaction
 spending from the $\nuHead$ and paying to the $\nuHead$ validator, which checks
 the state of the CEM is advanced:
 \[
-  (\stOpen,\cid,\hpAK,\hppuv,\nop,\cPer,\eta) \xrightarrow[\xi]{\mathsf{close}} (\stClosed,\hpAK,\hppuv,\nop,\cPer,\eta_0,\eta',\mathcal{C},\Tfinal)
+  (\stOpen,\cid,\hpAK,\hppuv,\nop,\cPer,\eta) \xrightarrow[\xi]{\mathsf{close}} (\stClosed,\cid,\hpAK,\hppuv,\nop,\cPer,\eta_0,\eta',\contesters,\Tfinal)
 \]
 
 \noindent The $\nuHead$ validator performs these checks:
@@ -240,11 +240,11 @@ the state of the CEM is advanced:
         or correctly signed via $\xi$ \\
         \[
           \left\{\begin{array}{ll}
-                  \msVfy(\hpAK,(\cid || \eta_{0} || s' || \eta'),\xi) = \true & \mathrm{if} ~ s' > 0, \\
+                  \msVfy(\hpAK,(\cid || \eta_{0} || \eta'),\xi) = \true & \mathrm{if} ~ s' > 0, \\
                   \eta' = \eta_{0} & \mathrm{otherwise}
                  \end{array}
         \]\todo{factor out $s'$?}
-  \item Initialize the set of contesters \footnote{This allows the closing party
+  \item Initialize the set of contesters\footnote{This allows the closing party
         to also contest and is required for use cases where pre-signed, valid in
         the future, close transactions are used to delegate head closing}
         $\contesters = \emptyset$
@@ -260,35 +260,32 @@ the state of the CEM is advanced:
 
 \input{fig_SM_closed_closed}
 
-The \mtxContest{} transaction (see
-Fig.~\ref{fig:SM_closed_closed}) is posted by a party to prove the currently $\stClosed$ state is not the latest one. This causes the following transition in the CEM state machine (eg. change datum of output locked by $\nuHead$ script):
-$$
-   (\stClosed,\hpAK,\eta,\eta_0,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\hpAK,\eta',\eta_0,\mathcal{C}', \hppuv,\nop,\cPer,\Tfinal'),
-$$
-with $\eta = (s, \hash(U))$ and $\eta' = (s', \hash(U')).$ \\
+The \mtxContest{} transaction (see Figure~\ref{fig:SM_closed_closed}) is posted
+by a party to prove the currently $\stClosed$ state is not the latest one. This
+transaction has a single input spending from the $\nuHead$ and paying to the
+$\nuHead$ validator, which checks the state of the CEM is advanced:
+\[
+  (\stClosed,\cid,\hpAK,\hppuv,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\cid,\hpAK,\hppuv,\nop,\cPer,\eta_0,\eta',\contesters',\Tfinal')
+\]
 
-\noindent The $\nuHead$ validator additionally checks that:
+\noindent The $\nuHead$ validator performs these checks:
 \begin{menumerate}
-  \item Value is preserved $\val' = \val$,
-  \item Signer is one of the participants: $\txKeys = \{\mathsf{k'}\}$, $k' \in \hppuv$ and
-    $
-    \exists (\cid \rightarrow \mathsf{PT}_i \rightarrow 1) \in \val, \hash(\mathsf{k'}) = \mathsf{PT}_i,
-    $
-  \item The signer has not already contested $k' \not\in \mathcal{C},$  and it's added to the signers set: $\mathcal{C}' = \mathcal{C} \cup k',$
-  \item $\xi$ is a valid multi-signature of $(\eta_0 || \eta')$ with respect to $\hpAK$, 
-  \item $s' > s$, 
-  \item Transaction is posted before deadline: $\txRmax \leq \Tfinal$,
-  \item Contestation deadline is updated:
-     $$
-     \Tfinal' = 
-        \left\{\begin{array}{ll}
-             \Tfinal,     &  |\mathcal{C}'| = n, \\
-             \Tfinal + T, &  \mathit{otherwise} \\
-        \end{array}\right.,
-     $$
-  \item No minting or burning  $\txMint = \varnothing$
+  \item Contest snapshot is newer $s' > s$, where $(s, \cdot) = \eta$ is the current and $(s', \cdot) = \eta'$ is the contest snapshot number
+  \item $\xi$ is a valid multi-signature of the new snapshost state
+  $\msVfy(\hpAK,(\cid || \eta_{0} || \eta'),\xi) = \true$
+  \item The single signer $\{\keyHash\} = \txKeys$ has not already contested $\keyHash \not\in \contesters$ and is added to the set of contesters $\contesters' = \contesters \cup \keyHash$
+  \item Transaction is posted before deadline $\txRmax \leq \Tfinal$
+  \item Contestation deadline is updated correctly
+     \[
+       \Tfinal' = \left\{\begin{array}{ll}
+                           \Tfinal     &  \mathrm{if} ~ |\contesters'| = n, \\
+                           \Tfinal + T &  \mathrm{otherwise} \\
+        \end{array}
+    \]
+  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val' \Rightarrow \keyHash_{i} \in \txKeys$
+  \item Value in the head is preserved $\val' = \val$
+  \item No minting or burning $\txMint = \varnothing$
 \end{menumerate}
-
 
 \subsection{Fan-Out Transaction}
 \todo{Mention this is a final state / has no state machine output}
@@ -300,7 +297,7 @@ may be finalized by posting a \mtxFanout{} transaction, taking the SM
 from $\stClosed$ to $\stFinal$.  
 
 $$
-   (\stClosed,\hpAK,\eta,\eta_0,\mathcal{C},\hppuv,\nop,\cPer,\Tfinal) \xrightarrow{\mathsf{fanout}} \stFinal,
+   (\stClosed,\hpAK,\eta,\eta_0,\contesters,\hppuv,\nop,\cPer,\Tfinal) \xrightarrow{\mathsf{fanout}} \stFinal,
 $$
 with $\eta = (s, H)$ and $\eta_0 = (0, H_0).$
 The $\nuHead$ validator performs the following checks:
