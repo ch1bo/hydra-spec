@@ -99,19 +99,19 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
   \item One input $i_{initial} = (\txOutRef_{initial}, \redeemer_{initial})$
         spending $o_{initial} = (\val_{initial}, \nuInitial, \datum_{initial})$
   \item Zero or one input with reference $\txOutRef_{commit}$ spending output
-        $o_{commit} = (\val_{commit}, \cdot , \cdot)$
-  \item One output $o_{com} = (\val_{com}, \nuCommit, \delta_{com})$\todo{need to check output address?}
+        $o_{committed} = (\val_{committed}, \cdot , \cdot)$
+  \item One output $o_{commit} = (\val_{commit}, \nuCommit, \delta_{commit})$\todo{need to check output address?}
 \end{itemize}
 
 \noindent The $\nuInitial$ validator ensures that:
 \begin{menumerate}
   \item The initial datum provides the currency id $\cid = \datum_{initial}$
-  \item The initial redeemer references the committed output $\redeemer_{initial} = \txOutRef_{commit}$
-  \item The committed value is in the output $\val_{com} = \val_{initial} \cup \val_{commit}$
+  \item The initial redeemer references the committed output $\redeemer_{initial} = \txOutRef_{committed}$
+  \item The committed value is in the output $\val_{com} = \val_{initial} \cup \val_{committed}$
   \item The currencty id and committed output are recorded in the output datum
-  $\delta_{com} = (\cid, U_{i})$ where
-  $U_{i} = (\txOutRef_{commit},\bytes(o_{commit}))$
-  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{com} \Rightarrow \keyHash_{i} \in \txKeys$
+  $\delta_{commit} = (\cid, U_{i})$ where
+  $U_{i} = (\txOutRef_{committed},\bytes(o_{committed}))$
+  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{commit} \Rightarrow \keyHash_{i} \in \txKeys$
   \todo{need to check against head datum ($\hppuv$)?}
   \item No minting or burning happens $\txMint = \varnothing$
 \end{menumerate}
@@ -125,7 +125,7 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 \noindent The \mtxCCom{} transaction collects all the committed UTxOs to the same head. It has
 \begin{itemize}
   \item one input spending from $\nuHead$ holding the $\st$, and
-  \item $\forall i \in \{1 \dots \nop\}$ inputs spending from \mtxCom{} outputs $(\val_{com_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{com_{i}}$.
+  \item $\forall i \in \{1 \dots \nop\}$ inputs spending from \mtxCom{} outputs $(\val_{commit_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{commit_{i}}$.
 \end{itemize}
 The input spending from and paying to the $\nuHead$ validator, checks the state
 of the CEM is advanced:
@@ -146,10 +146,10 @@ of the CEM is advanced:
     \eta = \hash(\bigoplus_{\forall (\cdot, b_{j})~\in~\underline{U}_{sorted}} b_{j})
   \]
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
-  $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{com_i})$
+  $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{commit_i})$
   \item All tokens present in output
   $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$\todo{notation? enumerate $\pt_{i}$ using $\hppuv$ instead?}
-  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{com} \Rightarrow \keyHash_{i} \in \txKeys$\todo{also check $\keyHash_{i} \in \hppuv$?}
+  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{commit} \Rightarrow \keyHash_{i} \in \txKeys$\todo{also check $\keyHash_{i} \in \hppuv$?}
   \item Unchanged parameters $\cid$, $\hpAK$, $\hppuv$, $\nop$, and
   $\cPer$ \todo{explicitly state this?}
   \item No minting or burning happens $\txMint = \varnothing$
@@ -159,8 +159,8 @@ of the CEM is advanced:
 \begin{menumerate}
   \item The ST token is present in the output value
   $\st = (\cid \rightarrow ``HydraHeadV1'' \rightarrow 1) \in \val'$, where
-  $(\cid,.) = \delta_{com}$ is given by the datum of the commit output
-  $o_{com}$.
+  $(\cid,\cdot) = \delta_{commit}$ is given by the datum of the commit output
+  $o_{commit}$.
 \end{menumerate}
 
 \subsection{Abort Transaction}\label{sec:abort-tx}
@@ -174,7 +174,7 @@ to abort the creation of a head. It is comprised of
   \item $\forall i \in \{1 \dots \nop\}$ inputs either
     \begin{itemize}
       \item spending from an initial output $(\val_{initial_i}, \nuInitial, \cid)$ with $\pt_{i} \in \val_{initial_i}$, or
-      \item spending from already committed output $(\val_{com_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{com_{i}}$,\todo{detail datums below?}
+      \item spending from a commit output $(\val_{commit_i}, \nuCommit, \datum_{commit_i})$ with $\pt_{i} \in \val_{commit_{i}}$,\todo{detail datums below?}
     \end{itemize}
   \item $m$ outputs to redistribute already committed UTxOs.
 \end{itemize}
@@ -184,24 +184,29 @@ number of reimbursed outputs $m$ as redeemer and checks the state of the CEM is
 advanced to the final $\stFinal$ as follows:
 
 \[
-   (\stInitial,\hpAK,\hppuv,\nop,\cPer) \xrightarrow[m]{\mathsf{abort}} \stFinal.
+   (\stInitial,\cid,\hpAK,\hppuv,\nop,\cPer) \xrightarrow[m]{\mathsf{abort}} \stFinal.
 \]
 
 \noindent The $\nuHead$ validator ensures that:
 \begin{menumerate}
-  \item All UTxOs committed into the head are directly reimbursed\todo{check this}
+  \item All UTxOs committed into the head are reimbursed exactly as they were
+  committed. By comparing hashes of serialised representations of the $m$
+  reimbursing outputs\footnote{Only the first $m$ outputs are used for
+    reimbursing, while more outputs may be present in the transaction, e.g for
+    change} and canonically sorted (by $\txOutRef$) committed UTxOs $U_{i}$ where $(\cdot, U_{i}) = \datum_{commit_{i}}$ from \mtxCom{}~\ref{sec:commit-tx}:
+  \todo{list/tuple comprehensions?}
   \[
-    \underline{U}_{committed} = \sum_{i=i}^{\nop} U_{i} \neq \bot \Rightarrow U_{i}
+    \underline{U}_{sorted} = \mathsf{sortByOutRef} ( \forall i \in \{1\dots\nop\} : U_{i} \neq \bot => U_{i})
   \]
   \[
-    \forall j \in \{1\dots|\underline{U}_{committed}|\}: \hash(\txOutputs[j]) = \underline{U}_{committed}[j][2]
-  \]\todo{notation: access on tuples}
+    \hash(\bigoplus_{j}{\underline{U}_{sorted}[j]}^{\downarrow 2}) = \hash(\bigoplus_{j=1}^{m} \bytes(\txOutputs[j]))
+  \]
 
-  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{com} \Rightarrow \keyHash_{i} \in \txKeys$
+  \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow -1) \in \txMint \Rightarrow \keyHash_{i} \in \txKeys$
  \item All tokens are burnt $|\{\cid \rightarrow \cdot \rightarrow -1\} \in \txMint| = n + 1$\todo{number of tokens burned vs. explicit enumeration what to burn?}
 \end{menumerate} 
 
-\noindent Each $\nuInitial$ validator checks:
+\noindent Each $\nuInitial$ validator checks:\todo{datums/redeemers here?}
 \begin{menumerate}
   \item The ST is getting burned
   $(\cid \rightarrow \texttt{HydraHeadV1} \rightarrow -1) \subseteq \txMint$,
@@ -213,7 +218,7 @@ advanced to the final $\stFinal$ as follows:
 \begin{menumerate}
   \item The ST is getting burned
   $(\cid \rightarrow \texttt{HydraHeadV1} \rightarrow -1) \subseteq \txMint$,
-  where $\cid$ is given by the datum of the spent commit output $(\cid,.) = \delta_{com}$.
+  where $\cid$ is given by the datum of the spent commit output $(\cid,\cdot) = \delta_{commit}$.
 \end{menumerate}
 
 \subsection{Close Transaction}\label{sec:close-tx}
