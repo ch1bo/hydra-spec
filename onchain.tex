@@ -122,8 +122,7 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 
 \input{fig_SM_initial_open}
 
-The \mtxCCom{} transaction collects all the committed UTxOs to the same head.
-Consequently \mtxCCom{} has
+\noindent The \mtxCCom{} transaction collects all the committed UTxOs to the same head. It has
 \begin{itemize}
   \item one input spending from $\nuHead$ holding the $\st$, and
   \item $\forall i \in \{1, \ldots, \nop\}$ inputs spending from \mtxCom{} outputs $(\val_{com_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{com_{i}}$.
@@ -133,23 +132,23 @@ of the CEM is advanced:
 \[
    (\stInitial,\cid,\hpAK,\hppuv,\nop,\cPer) \xrightarrow{\mathsf{collectCom}} (\stOpen,\cid,\hpAK,\hppuv,\nop,\cPer,\eta)
 \]
-where $\eta$ is the hash, of the concatenation, of the serialised representation
-of committed outputs $U_{i}$, which need to be sorted by their associated
-$\txOutRef$ to be deterministic: \todo{sortByOutRef not defined, needed?}
-\todo{is this clear enough?}
-\[
-  \underline{U}_{sorted} = \mathsf{sortByOutRef} ( U_{1}, \dots, U_{\nop} )
-\]
-\[
-  \eta = \hash(\bigoplus_{\forall (\cdot, b_{j})~\in~\underline{U}_{sorted}} b_{j})
-\]
 
-\noindent Furthermore, the $\nuHead$ validator additionally checks that:
+\noindent Furthermore, $\nuHead$ checks these constraints:
 \begin{menumerate}
+  \item Collect commits in $\eta$ as the hash, of the concatenation, of
+  the serialised representation of committed outputs $U_{i}$, which need to be
+  sorted by their associated $\txOutRef$ to be deterministic: \todo{sortByOutRef
+    not defined, needed?} \todo{is this clear enough?}
+  \[
+    \underline{U}_{sorted} = \mathsf{sortByOutRef} ( U_{1}, \dots, U_{\nop} )
+  \]
+  \[
+    \eta = \hash(\bigoplus_{\forall (\cdot, b_{j})~\in~\underline{U}_{sorted}} b_{j})
+  \]
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{com_i})$
   \item All tokens present in output
-  $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$\todo{enumerate $\pt_{i}$ using $\hppuv$ instead?}
+  $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$\todo{notation? enumerate $\pt_{i}$ using $\hppuv$ instead?}
   \item Transaction is signed by a participant $\exists (\mathsf{cid} \rightarrow \keyHash_{i} \rightarrow 1) \in \val_{com} \Rightarrow \keyHash_{i} \in \txKeys$\todo{also check $\keyHash_{i} \in \hppuv$?}
   \item Unchanged parameters $\mathsf{cid}$, $\hpAK$, $\hppuv$, $\nop$, and
   $\cPer$ \todo{explicitly state this?}
