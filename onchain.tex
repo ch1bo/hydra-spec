@@ -36,8 +36,8 @@ the parameterized $\muHead$ minting policy script:
 \noindent where $i_{seed} \in \txInputs$ is a transaction input and the
 $\muHead(i_{seed})$ minting policy validator checks:
 \begin{menumerate}
-  \item $i_{seed}$ is spent in this transaction
-  $i_{seed} \in \txInputs$\todo{Only when minting, allow burning always}
+  \item When minting at least one token of this policy $\exists \{\cid \rightarrow \cdot \rightarrow q\} \in \txMint : q > 0$, $i_{seed}$ needs to be spent in this transaction
+  $i_{seed} \in \txInputs$
 \end{menumerate}
 
 \vspace{0.1cm}
@@ -205,9 +205,8 @@ advanced to the final $\stFinal$ as follows:
 
   \item Transaction is signed by a participant $\exists (\cid \rightarrow \keyHash_{i} \rightarrow -1) \in \txMint \Rightarrow \keyHash_{i} \in \txKeys$
   \item All tokens are burnt
-  $|\{\cid \rightarrow \cdot \rightarrow -1\} \in \txMint| = n + 1$\todo{number
-    of tokens burned vs. explicit enumeration what to burn?}
-\end{menumerate} 
+  $|\{\cid \rightarrow \cdot \rightarrow -1\} \in \txMint| = \nop + 1$
+\end{menumerate}
 
 \noindent Each $\nuInitial$ validator checks:\todo{datums/redeemers here?}
 \begin{menumerate}
