@@ -338,14 +338,16 @@
 \newcommand{\hpPr}{K_{\pr}}
 \newcommand{\hpPri}[1]{K_{\pr,#1}}
 
-\newcommand{\hpAK}{\tilde{k}_{\mathsf{H}}} % Aggregated hydra key
-\newcommand{\hppuv}{\underline{k}_C} % List of cardano keys
+\newcommand{\hydraKeys}{\underline{k}_{\mathsf{H}}} % List of hydra keys
+\newcommand{\hydraKeysAgg}{\tilde{k}_{\mathsf{H}}} % Aggregated hydra key
+\newcommand{\cardanoKeys}{\underline{k}_\mathsf{C}} % List of cardano keys
+\newcommand{\cardanoSigningKey}{\msSK_\mathsf{C}}
 \newcommand{\keyHash}{k^{\#}} % Some verification key hash
 
 \newcommand{\hpPuvInit}{\initial{\underline{K}}_\pu}
 
-\newcommand{\hpAKchain}{\hpAK^{\mathsf{chain}}}
-\newcommand{\hpAKinit}{\hpAK^{\mathsf{setup}}}
+\newcommand{\hydraKeysAggchain}{\hydraKeysAgg^{\mathsf{chain}}}
+\newcommand{\hydraKeysAgginit}{\hydraKeysAgg^{\mathsf{setup}}}
 
 %\newcommand{\initial}{\mathsf{init}}
 \newcommand{\daPuII}[1]{\initial{K}_{#1,\pu}}
@@ -353,7 +355,7 @@
 %\newcommand{\sVKI}{\mathsf{vk}^{\initial}}
 %\newcommand{\sSKI}{\mathsf{sk}^{\initial}}
 
-\newcommand{\hppuvinit}{\initial{\underline{k}}_\pu}
+\newcommand{\cardanoKeysinit}{\initial{\underline{k}}_\pu}
 
 
 \newcommand{\hats}{\hat s}
@@ -399,6 +401,7 @@
 
 \newcommand{\hash}{\mathsf{hash}}
 \newcommand{\bytes}{\mathsf{bytes}}
+\newcommand{\combine}{\mathsf{combine}}
 
 \newcommand{\Txo}{\mathsf{txObj}}
 \newcommand{\Sno}{\mathsf{snObj}}

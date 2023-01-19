@@ -71,13 +71,13 @@ $\muHead(i_{seed})$ minting policy validator checks:
 
 \noindent The initial state of the protocol is captured in the state-machine output datum
 \[
-  \datum_{\mathsf{head}} = (\stInitial,\cid,\hpAK,\nop,\cPer)
+  \datum_{\mathsf{head}} = (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer)
 \]
 where
 \begin{mitemize}
   \item $\stInitial$ is a state identifier,
   \item $\cid$ is the unique currency id of this instance,
-  \item $\hpAK$ is the aggregated off-chain multi-signature key established during the
+  \item $\hydraKeysAgg$ is the aggregated off-chain multi-signature key established during the
   setup phase,
   $(k_1,\ldots,k_\nop)$ exchanged during the setup phase and identifying the
   head members on-chain,
@@ -136,7 +136,7 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 The input spending from and paying to the $\nuHead$ validator, checks the state
 of the CEM is advanced:
 \[
-   (\stInitial,\cid,\hpAK,\nop,\cPer) \xrightarrow{\mathsf{collectCom}} (\stOpen,\cid,\hpAK,\nop,\cPer,\eta)
+   (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer) \xrightarrow{\mathsf{collectCom}} (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta)
 \]
 
 \noindent Furthermore, $\nuHead$ checks these constraints:
@@ -186,7 +186,7 @@ number of reimbursed outputs $m$ as redeemer and checks the state of the CEM is
 advanced to the final $\stFinal$ as follows:
 
 \[
-   (\stInitial,\cid,\hpAK,\nop,\cPer) \xrightarrow[m]{\mathsf{abort}} \stFinal.
+   (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer) \xrightarrow[m]{\mathsf{abort}} \stFinal.
 \]
 
 \noindent The $\nuHead$ validator ensures that:
@@ -232,7 +232,7 @@ In order to close a head, a head member may post the \mtxClose{} transaction
 spending from the $\nuHead$ and paying to the $\nuHead$ validator, which checks
 the state of the CEM is advanced:
 \[
-  (\stOpen,\cid,\hpAK,\nop,\cPer,\eta) \xrightarrow[\xi]{\mathsf{close}} (\stClosed,\cid,\hpAK,\nop,\cPer,\eta_0,\eta',\contesters,\Tfinal)
+  (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta) \xrightarrow[\xi]{\mathsf{close}} (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta',\contesters,\Tfinal)
 \]
 
 \noindent The $\nuHead$ validator performs these checks:
@@ -242,7 +242,7 @@ the state of the CEM is advanced:
         or correctly signed via $\xi$ \\
         \[
           \left\{\begin{array}{ll}
-                  \msVfy(\hpAK,(\cid || \eta_{0} || \eta'),\xi) = \true & \mathrm{if} ~ s' > 0, \\
+                  \msVfy(\hydraKeysAgg,(\cid || \eta_{0} || \eta'),\xi) = \true & \mathrm{if} ~ s' > 0, \\
                   \eta' = \eta_{0} & \mathrm{otherwise}
                  \end{array}\right.
         \]
@@ -267,14 +267,14 @@ by a party to prove the currently $\stClosed$ state is not the latest one. This
 transaction has a single input spending from the $\nuHead$ and paying to the
 $\nuHead$ validator, which checks the state of the CEM is advanced:
 \[
-  (\stClosed,\cid,\hpAK,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\cid,\hpAK,\nop,\cPer,\eta_0,\eta',\contesters',\Tfinal')
+  (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta',\contesters',\Tfinal')
 \]
 
 \noindent The $\nuHead$ validator performs these checks:
 \begin{menumerate}
   \item Contest snapshot is newer $s' > s$, where $(s, \cdot) = \eta$ is the current and $(s', \cdot) = \eta'$ is the contest snapshot number
   \item $\xi$ is a valid multi-signature of the new snapshot state
-  $\msVfy(\hpAK,(\cid || \eta_{0} || \eta'),\xi) = \true$
+  $\msVfy(\hydraKeysAgg,(\cid || \eta_{0} || \eta'),\xi) = \true$
   \item The single signer $\{\keyHash\} = \txKeys$ has not already contested $\keyHash \not\in \contesters$ and is added to the set of contesters $\contesters' = \contesters \cup \keyHash$
   \item Transaction is posted before deadline $\txRmax \leq \Tfinal$
   \item Contestation deadline is updated correctly
@@ -305,7 +305,7 @@ is no state machine output. The input spending from $\nuHead$ does provide the
 number of fanned-out outputs $m$ as redeemer and checks the state of the CEM is
 advanced to the final $\stFinal$ as follows:
 \[
-  (\stClosed,\cid,\hpAK,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[m]{\mathsf{fanout}} \stFinal,
+  (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[m]{\mathsf{fanout}} \stFinal,
 \]
 
 \noindent The $\nuHead$ validator performs these checks:

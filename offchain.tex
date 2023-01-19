@@ -114,7 +114,7 @@ party's local state consists of the following variables:
 \dparagraph{$\hpInit$.}\quad Before a head can be initialized, all
 parties need to exchange and agree on protocol parameters during the protocol
 setup phase (see Section~\ref{sec:setup}), so we can assume the public Cardano
-keys $\hppuv^{setup}$, Hydra keys $\hpAK^{setup}$, as well as the contestation
+keys $\cardanoKeys^{setup}$, Hydra keys $\hydraKeysAgg^{setup}$, as well as the contestation
 period $\cPer^{setup}$ are available. One of the clients then can start head initialization using the $\hpInit$ command, which will result in an $\mtxInit$ transaction being posted.\\
 
 \dparagraph{$\mathtt{initialTx}$.}\quad All parties will receive this $\mtxInit$
