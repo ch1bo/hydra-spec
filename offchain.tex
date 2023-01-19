@@ -122,8 +122,9 @@ period $\cPer^{setup}$ are available. One of the clients then can start head ini
 
 \dparagraph{$\mathtt{initialTx}$.}\quad All parties will receive this $\mtxInit$
 transaction and validate announced parameters against the pre-agreed $setup$
-parameters. This is a vital step to ensure the initialized Head is valid, which
-is not checked completely on-chain (see also Section~\ref{sec:init-tx}). \\
+parameters, as well as the structure of the transaction and the minting policy
+used. This is a vital step to ensure the initialized Head is valid, which
+cannot be checked completely on-chain (see also Section~\ref{sec:init-tx}). \\
 
 \dparagraph{$\mathtt{commitTx}$.}\quad As each party $p_{j}$ posts a
 $\mtxCommit$ transaction, the protocol records observed committed UTxOs of each

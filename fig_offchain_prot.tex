@@ -20,10 +20,10 @@
 
           \On{$(\gcChainInitial, \cid, \nop, \hydraKeysAgg, \cardanoKeys^{\#}, \cPer)$ from chain}{ %
            \Req{} $\hydraKeysAgg=\hydraKeysAgg^{setup}$\; %
-           % TODO: \diamond: fmap notation?
-           \Req{} $\cardanoKeys^{\#}=\hash \diamond \cardanoKeys^{setup}$\; %
+           \Req{} $\cardanoKeys^{\#}= [ \hash(k) | \forall k \in \cardanoKeys^{setup}]$\; %
            \Req{} $\cPer=\cPer^{setup}$\; %
-           % TODO: missing cid check
+           % TODO: cid check good enough?
+           \Req{} $\cid = \hash(\muHead(i_{seed}))$ \; %
           }
         \end{walgo}
         }
@@ -42,8 +42,7 @@
 
           \vspace{12pt}
 
-          % TODO: params? \hpPuv,\hpPr
-          \On{$(\gcChainCollectCom)$ from chain}{ %
+          \On{$(\gcChainCollectCom, \eta_{0})$ from chain}{ %
             \Req{} $\forall j \in [1..n]: U_j \neq \undefined$ \; %
             $\Uinit \gets \bigcup_{j=1}^{n} U_j$ \; %
             $\hatmU, \barmU, \hatmL \gets \Uinit$ \; %
