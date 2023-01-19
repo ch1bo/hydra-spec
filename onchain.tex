@@ -141,14 +141,14 @@ of the CEM is advanced:
 
 \noindent Furthermore, $\nuHead$ checks these constraints:
 \begin{menumerate}
-  \item Collect commits in $\eta = (0, U^{\#})$ as the hash, of the concatenation, of
-  the serialised representation of committed outputs $U_{i}$, which are sorted by their associated $\txOutRef$\footnote{Sorting is required to ensure a canonical representation which can also be reproduced from the UTxO set later in the fanout.}: \todo{sortByOutRef
-    not defined, needed?} \todo{is this clear enough?}
+  \item Collect commits in $\eta = (0, U^{\#})$, where
+  $U^{\#} = \combine([U_{1}, \dots, U_{\nop}])$. That is, the hash, of the
+  concatenation, of the serialised representation of a list of $\underline{U}$,
+  which are sorted by their associated $\txOutRef$\footnote{Sorting is required
+    to ensure a canonical representation which can also be reproduced from the
+    UTxO set later in the fanout.}: \todo{define sortByOutRef?}\todo{define concat}
   \[
-    \underline{U}_{sorted} = \mathsf{sortByOutRef} ( U_{1}, \dots, U_{\nop} )
-  \]
-  \[
-    U^{\#} = \hash(\bigoplus_{\forall (\cdot, b_{j})~\in~\underline{U}_{sorted}} b_{j}))
+    \combine(\underline{U}) = \hash(\concat \sortByOutRef(\underline{U}))
   \]
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{commit_i})$
@@ -195,13 +195,10 @@ advanced to the final $\stFinal$ as follows:
   committed. By comparing hashes of serialised representations of the $m$
   reimbursing outputs\footnote{Only the first $m$ outputs are used for
     reimbursing, while more outputs may be present in the transaction, e.g for
-    change} and canonically sorted (by $\txOutRef$) committed UTxOs $U_{i}$ where $(\cdot, U_{i}) = \datum_{commit_{i}}$ from \mtxCom{}~\ref{sec:commit-tx}:
+    change} and canonically combined committed UTxOs $U_{i}$ where $(\cdot, U_{i}) = \datum_{commit_{i}}$ from \mtxCom{}~\ref{sec:commit-tx}:
   \todo{list/tuple comprehensions?}
   \[
-    \underline{U}_{sorted} = \mathsf{sortByOutRef} ( \forall i \in \{1\dots\nop\} : U_{i} \neq \bot => U_{i})
-  \]
-  \[
-    \hash(\bigoplus_{j}{\underline{U}_{sorted}[j]}^{\downarrow 2}) = \hash(\bigoplus_{j=1}^{m} \bytes(\txOutputs[j]))
+    \hash(\bigoplus_{j=1}^{m} \bytes(\txOutputs[j])) = \combine([U_{i} ~ | ~ \forall [1\dots\nop], U_{i} \neq \bot])
   \]
 
   \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto -1\} \in \txMint \Rightarrow \keyHash_{i} \in \txKeys$
@@ -311,7 +308,9 @@ advanced to the final $\stFinal$ as follows:
 \noindent The $\nuHead$ validator performs these checks:
 \begin{enumerate}
   \item The first $m$ outputs are distributing funds according to
-        $(\cdot, U^{\#}) = \eta$\todo{explain ordering?}
+        $(\cdot, U^{\#}) = \eta$. That is, the outputs correspond (in the same
+        order) to the UTxO canonically combined (see~\ref{sec:collect-tx}) into
+        $U^{\#}$
         \[
         \hash(\bigoplus_{j=1}^{m} \bytes(\txOutputs[j])) = U^{\#}
         \]
