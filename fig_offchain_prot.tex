@@ -20,7 +20,7 @@
 
           \On{$(\gcChainInitial, \cid, \nop, \hydraKeysAgg, \cardanoKeys^{\#}, \cPer)$ from chain}{ %
            \Req{} $\hydraKeysAgg=\hydraKeysAgg^{setup}$\; %
-           \Req{} $\cardanoKeys^{\#}= [ \hash(k) | \forall k \in \cardanoKeys^{setup}]$\; %
+           \Req{} $\cardanoKeys^{\#}= [ \hash(k)~|~\forall k \in \cardanoKeys^{setup}]$\; %
            \Req{} $\cPer=\cPer^{setup}$\; %
            % TODO: cid check good enough?
            \Req{} $\cid = \hash(\muHead(i_{seed}))$ \; %
@@ -107,17 +107,15 @@
               \Wait{$\barmU \applytx \mT_{res} \not= \bot$}{ %
                 $\hats \gets \bars + 1$ \; %
 
-                % TODO: update security definition to observe without output keyword
-                % $\forall\tx\in\Reach^{\mT}(T)$:
-                %  \Out $(\hpSeen,\tx)$ \; %
-
                 $\hatmU \gets \barmU \applytx \mT_{res}$ \; %
 
                 $\eta' \gets (\hats, \combine(\hatmU))$ \; %
                 $\msSig_i \gets \msSign(\hydraSigningKey, (\cid || \eta_{0} || \eta'))$ \; %
-                $\Sigma \gets \emptyset$
+                $\hatSigma \gets \emptyset$
 
-                $\Multi{}~(\hpAS,\hats,\msSig_i)$ %
+                $\Multi{}~(\hpAS,\hats,\msSig_i)$ \; %
+
+                $\forall \tx \in \mT_{res}: \Out~(\hpSeen,\tx)$ \; %
 
                 % TODO: pruning is handwavy
                 $\hatmT :\subseteq_{\mbox{max}} \mT$ s.t. $\hatmU\applytx\hatmT\not=\bot$ \; %
@@ -135,32 +133,25 @@
           %%% ACK SN
           \On{$(\hpAS,s,\msSig_j)$ from $\party_j$}{ %
 
-            \Req{} $s \in \{\hats,\hats+1\} ~ \land ~ (j,\msSig_j) \notin \Sigma$
+            \Req{} $s \in \{\hats,\hats+1\} ~ \land ~ (j,\msSig_j) \notin \hatSigma$
             \; %
 
             \Wait{$\hats=s$
             }{ %
             
 
-            $\Sigma \gets \Sigma \cup (j,\msSig_j)$ \; %
+            $\hatSigma \gets \hatSigma \cup (j,\msSig_j)$ \; %
 
-            \If{$\forall k \in [1..n]: (k,\cdot) \in \Sigma$}{ %
-              $\msCSig \gets \msComb(\hydraKeys, \Sigma)$ \; %
+            \If{$\forall k \in [1..n]: (k,\cdot) \in \hatSigma$}{ %
+              $\msCSig \gets \msComb(\hydraKeys, \hatSigma)$ \; %
 
-              % TODO: make signed message consistent
-              % REVIEW: require instead of fail (in else)
               $\eta' \gets (\hats, \combine(\hatmU))$ \; %
               \Req{} $\msVfy(\msCVK, (\cid || \eta_{0} || \eta'), \msCSig)$ \;
               $\barmU \gets \hatmU$ \; %
               $\bars \gets \hats$ \; %
               $\barsigma \gets \msCSig$ \; %
 
-              % REVIEW: bar T was unused?
-              % $\barmT \gets \barmT \cup \barmU.T$ \; %
-
-              % TODO: update security definition to observe without output
-              % keyword
-              % $\forall \tx\in T$: \Out $(\hpConf,\tx)$ \; %
+              $\forall \tx \in \mT_{res} : \Out (\hpConf,\tx)$ \; %
 
               % issue snapshot if we are leader
               \If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
