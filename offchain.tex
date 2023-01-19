@@ -164,24 +164,25 @@ snapshot ``in flight'' ($\hats = \bars$) and the receiving party $i$ is the next
 snapshot leader, a message to request snapshot signatures $\hpRS$ is sent. Note
 that only transaction hashes are submitted in this message. \\
 
-\dparagraph{$\hpRS$.}\quad Upon receiving request $(\hpRS,s,T)$ from party $\party_j$,
-the receiver $\party_i$ checks that $s$ is the next snapshot number and that
-party $\party_j$ is responsible for leading its creation. Party $\party_i$ then
-waits until the previous snapshot is confirmed ($\bars = \hats$) and all
-transactions referred in $T$ \todo{resolve $T \rightarrow \mT$} are
-resolvable\todo{also "output seen" for security}. Only then, $\party_i$
-increments their seen-snapshot counter $\hats$, resets the signature accumulator
-$\Sigma$, and computes the UTxO set $\hatmU$ of the new (seen) snapshot as
-$\hatmU \gets \barmU \applytx T$. Then, $\party_i$ creates a signature
-$\msSig_i$ using their signing key $\hyPr_i$ on a message comprised by a hash of
-the initial UTxO set $\Uinit$, a hash\todo{order + hash like~\ref{sec:close-tx}}
-of the new snapshot UTxO set $\hatmU$, and the new snapshot's number $\hats$.
-The signature is sent to \emph{all} head members via message
-$(\hpAS,\hats,\msSig_i)$. Note that no UTxO sets have to be exchanged in this
-process as the parties all locally compute a new snapshot by the given
-transaction hashes. Finally, the pending transaction set $\hatmT$ gets pruned by
-the just requested transactions $T$ and the local ledger state
-$\hatmL$ is updated accordingly.\\
+\dparagraph{$\hpRS$.}\quad Upon receiving request $(\hpRS,s,\mT^{\#}_{req})$
+from party $\party_j$, the receiver $\party_i$ checks that $s$ is the next
+snapshot number and that party $\party_j$ is responsible for leading its
+creation.\todo{define $\hpLdr$?} Party $\party_i$ then waits until the previous
+snapshot is confirmed ($\bars = \hats$) and all transactions referred by hashes
+in $\mT^{\#}_{req}$ are resolvable to $\mT_{res}$\todo{also "output seen" for
+  security}. Only then, $\party_i$ increments their seen-snapshot counter
+$\hats$, resets the signature accumulator $\Sigma$, and computes the UTxO set
+$\hatmU$ of the new (seen) snapshot as $\hatmU \gets \barmU \applytx \mT_{res}$.
+Then, $\party_i$ creates a signature $\msSig_i$ using their signing key
+$\hydraSigningKey$ on a message comprised by the $\cid$, the $\eta_{0}$
+corresponding to the initial UTxO set $\Uinit$, and the new $\eta'$ given by the
+new snapshot's number $\hats$ a canonically combining $\hatmU$ (see
+Section~\ref{sec:close-tx} for details). The signature is sent to \emph{all}
+head members via message $(\hpAS,\hats,\msSig_i)$. Note that no UTxO sets have
+to be exchanged in this process as the parties all locally compute a new
+snapshot by the given transaction hashes. Finally, the pending transaction set
+$\hatmT$ gets pruned by the just requested transactions $\mT_{res}$ and the
+local ledger state $\hatmL$ is updated accordingly.\\
 
 \dparagraph{$\hpAS$.}\quad Upon receiving acknowledgment $(\hpAS,s,\msSig_j)$,
 all participants $\Req$ that it is from an expected snapshot (either the last

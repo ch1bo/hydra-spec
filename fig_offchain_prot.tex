@@ -83,11 +83,10 @@
 
             $\hatmL \gets \hatmL\applytx\tx$ %
 
-            % issue snapshot?
+            % issue snapshot if we are leader
             \If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
               \Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
             }
-            
           }
 
           \vspace{12pt} %
@@ -108,9 +107,9 @@
               \Wait{$\barmU \applytx \mT_{res} \not= \bot$}{ %
                 $\hats \gets \bars + 1$ \; %
 
-               % TODO: update security definition to observe without output keyword
-               % $\forall\tx\in\Reach^{\mT}(T)$:
-               %  \Out $(\hpSeen,\tx)$ \; %
+                % TODO: update security definition to observe without output keyword
+                % $\forall\tx\in\Reach^{\mT}(T)$:
+                %  \Out $(\hpSeen,\tx)$ \; %
 
                 $\hatmU \gets \barmU \applytx \mT_{res}$ \; %
 
@@ -123,6 +122,7 @@
                 % TODO: pruning is handwavy
                 $\hatmT :\subseteq_{\mbox{max}} \mT$ s.t. $\hatmU\applytx\hatmT\not=\bot$ \; %
                 $\hatmL \gets \hatmU\applytx\hatmT$
+              }
             }
            }
           
@@ -145,13 +145,15 @@
             $\Sigma \gets \Sigma \cup (j,\msSig_j)$ \; %
 
             \If{$\forall k \in [1..n]: (k,\cdot) \in \Sigma$}{ %
-              $\msCSig \gets \msComb(\msVKL, \Sigma)$ \; %
+              $\msCSig \gets \msComb(\hydraKeys, \Sigma)$ \; %
 
               % TODO: make signed message consistent
               % REVIEW: require instead of fail (in else)
-              \Req{} $\msVfy(\msCVK, (\Uinit, \hatmU, \hats), \msCSig)$ \;
+              $\eta' \gets (\hats, \combine(\hatmU))$ \; %
+              \Req{} $\msVfy(\msCVK, (\cid || \eta_{0} || \eta'), \msCSig)$ \;
+              $\barmU \gets \hatmU$ \; %
               $\bars \gets \hats$ \; %
-              $\barmU \gets (\hatmU, \bars, \msCSig)$ \; %
+              $\barsigma \gets \msCSig$ \; %
 
               % REVIEW: bar T was unused?
               % $\barmT \gets \barmT \cup \barmU.T$ \; %
@@ -160,9 +162,9 @@
               % keyword
               % $\forall \tx\in T$: \Out $(\hpConf,\tx)$ \; %
 
-              % issue snapshot?
-              \If{$\hats = \bars \land \hpLdr(\bars + 1) = i \land \hatmT \neq \emptyset$}{%
-                \Multi{} $(\hpRS,\bars+1,\hatmT\hpProjH)$ \;%
+              % issue snapshot if we are leader
+              \If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
+                \Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
               }
             }
           } }
@@ -183,9 +185,8 @@
 
           % CLOSE from client
           \On{$(\hpClose)$ from client}{ %
-            $(U, s, \msCSig) \gets \barmU$ \; %
-            $\eta' \gets (s, \hash(U))$ \; %
-            $\xi \gets \msCSig$ \; %
+            $\eta' \gets (\bars, \combine(\barmU))$ \; %
+            $\xi \gets \barsigma$ \; %
             $\PostTx{}~(\mtxClose, \eta', \xi)$ \; %
           }
 
@@ -195,11 +196,10 @@
           \begin{walgo}{0.6}
 
           \On{$(\gcChainClose, \eta) \lor (\gcChainContest, \eta)$ from chain}{ %
-            $(U, s, \msCSig) \gets \barmU$ \; %
             $(s_{c}, \cdot) \gets \eta$ \;
-            \If{$s > s_{c}$}{%
-              $\eta' \gets (s, \hash(U))$ \; %
-              $\xi \gets \msCSig$ \; %
+            \If{$\bars > s_{c}$}{%
+              $\eta' \gets (\bars, \combine(\barmU))$ \; %
+              $\xi \gets \barsigma$ \; %
               $\PostTx{}~(\mtxContest, \eta', \xi)$ \; %
             } }
 
