@@ -10,7 +10,7 @@
         \adjustbox{valign=t,scale=\sfact}{
          \begin{walgo}{0.6}
           %%% INIT
-           \On{$(\hpInit,\hydraKeys,\cardanoKeys,\cardanoSigningKey,\cPer)$ from client}{ %
+           \On{$(\hpInit,\hydraKeys,\hydraSigningKey,\cardanoKeys,\cPer)$ from client}{ %
              $\hydraKeysAgg^{setup} \gets \msCombVK(\hydraKeys)$ \; %
              $\cardanoKeys^{setup} \gets \cardanoKeys$ \; %
              $\cPer^{setup} \gets \cPer$ \; %
@@ -75,16 +75,18 @@
           %%% REQ TX
           \On{$(\hpRT,\tx)$ from $\party_j$}{%
             \Req{} $\validTx(\tx) \land \hatmL \applytx \tx \neq \bot$ \;
-            
-            $\mT[\hash] \gets \tx$ % all seen txs
 
-            $\hatmT[\hash] \gets \mT[\hash]$ % candidates for next snapshot \; %
+            $\tx^{\#} \gets \hash(\tx)$ %
+
+            $\mT \gets \mT \cup (\tx^{\#}, \tx)$ % all seen txs
+
+            $\hatmT \gets \hatmT \cup (\tx^{\#}, \tx)$ % candidates for next snapshot
 
             $\hatmL \gets \hatmL\applytx\tx$ %
 
             % issue snapshot?
             \If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
-              \Multi{} $(\hpRS,\bars+1,\hatmT\hpProjH)$ \;%
+              \Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
             }
             
           }
@@ -92,11 +94,15 @@
           \vspace{12pt} %
 
           %%% REQ SN
-          \On{$(\hpRS,s,T)$ from $\party_j$}{ %
+          \On{$(\hpRS,s,\mT^{\#}_{req})$ from $\party_j$}{ %
 
             \Req{} $s = \hats + 1 \land \hpLdr(s) = j$ \; %
 
-            \Wait{$\bars = \hats \land \barmU\applytx T \not= \bot$ % meaning reach is 'complete' for extension
+
+            $\mT_{res} \gets [ \mT[h] ~ | ~ \mT[h] \neq \bot, \forall h \in \mT^{\#}_{req}]$
+
+            % TODO: wait in wait more readable?
+            \Wait{$\bars = \hats \land |\mT_{res}| = |\mT^{\#}_{req}| \land \barmU\applytx \mT_{res} \not= \bot$ % meaning reach is 'complete' for extension
             }{ %
                $\hats \gets \bars + 1$ \; %
 
@@ -107,10 +113,10 @@
                % TODO: explain \Sigma variable
                $\Sigma \gets \emptyset$
 
-               $\hatmU \gets \barmU \applytx T$ \; %
+               $\hatmU \gets \barmU \applytx \mT_{res}$ \; %
 
                % TODO: make signed message consistent
-               $\msSig_i \gets \msSign(\hyPr, (\Uinit, \hatmU, \hats))$ \; %
+               $\msSig_i \gets \msSign(\hydraSigningKey, (\Uinit, \hatmU, \hats))$ \; %
  
                $\Multi{}~(\hpAS,\hats,\msSig_i)$ %
 

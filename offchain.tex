@@ -97,12 +97,15 @@ party's local state consists of the following variables:
   \item $\bars$: Sequence number of confirmed snapshot.
   \item $\hatmL$: Local ledger state used to validate new and requested
         transactions against.
-  \item $\mT$: Set of all transactions ever received via $\mathtt{reqTx}$
-        (independent of their validity).
-  \item $\hatmT$: Set of transactions that extend from the last confirmed
-        snapshot $\barmU$ to form $\hatmL$. These are also the transactions that
-        would go into the next snapshot (if this party is the next leader).
-  \item $\Sigma$: Accumulator of signatures, indexed by parties.
+  \item $\mT_{all} \in {(\tyBytes \times \mT)}^{*}$: Set of all transactions,
+        indexed by their transaction id, ever received via $\mathtt{reqTx}$
+        (independent of their validity).\todo{needed? prune by removing from
+        $\hatmT$?}
+  \item $\hatmT \in {(\tyBytes \times \mT)}^{*}$: Set of transactions, indexed by
+        their transaction id, that extend from the last confirmed snapshot
+        $\barmU$ to form $\hatmL$. These are also the transactions that would go
+        into the next snapshot (if this party is the next leader).
+  \item $\Sigma \in {(\tyNatural \times \tyBytes)}^{*}$: Accumulator of signatures, indexed by parties.
 \end{itemize}
 
 \subsection{Protocol flow}
@@ -154,7 +157,7 @@ $\hatmL \applytx \tx \neq \bot$. If the checks
 pass, a $(\hpRT,\tx)$ message is sent out to all parties.\\
 
 \dparagraph{$\hpRT$.}\quad Upon receiving request $(\hpRT,\tx)$, the transaction gets
-recorded in $\mT$ and $\barmT$ using the tx hash $h = H(tx)$ and applied to the
+recorded in $\mT$ and $\barmT$ using the tx hash $tx^{\#} = \hash(tx)$ and applied to the
 local \emph{seen} ledger state $\hatmL \applytx \tx$. If there is no current
 snapshot ``in flight'' ($\hats = \bars$) and the receiving party $i$ is the next
 snapshot leader, a message to request snapshot signatures $\hpRS$ is sent. Note

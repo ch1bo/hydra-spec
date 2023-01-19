@@ -16,6 +16,9 @@ or more variables. Functions are morphisms mapping from one to another set
 $x : \mathcal{A} \to f(x) : \mathcal{B}$, where function
 application of a function $f$ to an argument $x$ is written as $f(x)$. \\
 
+\todo{define sets of sets $\mathcal{A^{*}}$}
+\todo{define projections $x^{\downarrow y}$}
+
 % TODO: use ^* or FinSup for values?
 % \noindent Given a set $\mathcal{A}$, let
 % \begin{itemize}
@@ -25,12 +28,12 @@ application of a function $f$ to an argument $x$ is written as $f(x)$. \\
 %   \item $\mathcal{A}^* = \bigcup_{i=0}^{n \in \tyNatural} \mathcal{A}^{i}$.
 % \end{itemize}
 
-\noindent Variables may have modifiers: when $x$ is a single value,
+\noindent Variables may have modifiers; when $x$ is a single value,
 \begin{itemize}
   \item $x'$ is a modified value (but from same set / type),
-  \item $\underline{x}$ is list of values,
-  \item $\tilde{x}$ is an aggregated value, and
-  \item $x^{\#}$ is the result of $\hash(x)$.
+  \item $\tilde{x}$ is an aggregated value,
+  \item $x^{\#}$ is the result of $\hash(x)$, and
+  \item $\underline{x}$ is list of values.
 \end{itemize}
 
 \noindent With this, we further define:
@@ -193,9 +196,9 @@ specification) as a \emph{spending} or \emph{minting} policy script.
   \[
     \txContext \in \tyContext = (\tyInputs \times \tyOutputs \times \tyValue \times \mathcal{S}^{\leftrightarrow} \times \mathcal{K})
   \]
-  where $\txInputs \in \tyInputs$ \todo{define $\mathcal{A^{*}}$ notation?} is a
-  \textbf{set} of inputs, $\txOutputs \in \tyOutputs$ is a \textbf{list} of
-  outputs, $\txMint \in \tyValue$ is the minted (or burned) value,
+  where $\txInputs \in \tyInputs$ is a \textbf{set} of inputs,
+  $\txOutputs \in \tyOutputs$ is a \textbf{list} of outputs,
+  $\txMint \in \tyValue$ is the minted (or burned) value,
   $(\txRmin, \txRmax) \in \mathcal{S}^{\leftrightarrow}$
   \todo{$\mathcal{S}^{\leftrightarrow}$ undefined, time \& periods instead?} are
   the lower and upper validity bounds, and $\txKeys \in \mathcal{K}$ is the set
