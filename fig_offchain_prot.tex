@@ -93,36 +93,36 @@
           \vspace{12pt} %
 
           %%% REQ SN
+          %TODO: avoid hash resolution complexity? it's handwavy at best right now
           \On{$(\hpRS,s,\mT^{\#}_{req})$ from $\party_j$}{ %
 
             \Req{} $s = \hats + 1 \land \hpLdr(s) = j$ \; %
 
 
-            $\mT_{res} \gets [ \mT[h] ~ | ~ \mT[h] \neq \bot, \forall h \in \mT^{\#}_{req}]$
+            % Wait for snapshot no snapshot in flight anymore and all txs resolvable
+            \Wait{$\bars = \hats \land \forall h \in \mT^{\#}_{req} : (h, \cdot) \in \mT$}{ %
 
-            % TODO: wait in wait more readable?
-            \Wait{$\bars = \hats \land |\mT_{res}| = |\mT^{\#}_{req}| \land \barmU\applytx \mT_{res} \not= \bot$ % meaning reach is 'complete' for extension
-            }{ %
-               $\hats \gets \bars + 1$ \; %
+              % resolve requested transactions
+              $\mT_{res} \gets [ \mT[h] ~ | ~ \forall h \in \mT^{\#}_{req}]$
+
+              \Wait{$\barmU \applytx \mT_{res} \not= \bot$}{ %
+                $\hats \gets \bars + 1$ \; %
 
                % TODO: update security definition to observe without output keyword
                % $\forall\tx\in\Reach^{\mT}(T)$:
                %  \Out $(\hpSeen,\tx)$ \; %
 
-               % TODO: explain \Sigma variable
-               $\Sigma \gets \emptyset$
+                $\hatmU \gets \barmU \applytx \mT_{res}$ \; %
 
-               $\hatmU \gets \barmU \applytx \mT_{res}$ \; %
+                $\eta' \gets (\hats, \combine(\hatmU))$ \; %
+                $\msSig_i \gets \msSign(\hydraSigningKey, (\cid || \eta_{0} || \eta'))$ \; %
+                $\Sigma \gets \emptyset$
 
-               % TODO: make signed message consistent
-               $\msSig_i \gets \msSign(\hydraSigningKey, (\Uinit, \hatmU, \hats))$ \; %
- 
-               $\Multi{}~(\hpAS,\hats,\msSig_i)$ %
+                $\Multi{}~(\hpAS,\hats,\msSig_i)$ %
 
-               % \If{$\hpLdr(\hats+1) = i$}{
-                 $\hatmT :\subseteq_{\mbox{max}} \mT$ s.t. $\hatmU\applytx\hatmT\not=\bot$ \; %
-                 $\hatmL \gets \hatmU\applytx\hatmT$
-               % }
+                % TODO: pruning is handwavy
+                $\hatmT :\subseteq_{\mbox{max}} \mT$ s.t. $\hatmU\applytx\hatmT\not=\bot$ \; %
+                $\hatmL \gets \hatmU\applytx\hatmT$
             }
            }
           
