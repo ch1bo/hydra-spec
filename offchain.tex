@@ -80,12 +80,12 @@ off-chain protocol logic relies on these assumptions:
         and sent to all participants of this head, including the sender.
   \item $\PostTx{}~tx$ has a party create transaction $tx$, potentially from
         some data, and submit it on-chain. See Section~\ref{sec:on-chain} for
-        individual transaction details. \todo{fail not used anymore? do we need
-        it?}
+        individual transaction details.
   \item $\Out{}~event$ signals an observation of $event$, which is used in the
         security definition and proofs of Section~\ref{sec:security}. This
         keyword can be ignored when implementing the protocol.
 \end{itemize}
+\todo{fail not used anymore? do we need it?}
 
 \subsection{Variables}
 
@@ -103,8 +103,7 @@ party's local state consists of the following variables:
         transactions against.
   \item $\mT_{all} \in {(\tyBytes \times \mT)}^{*}$: Set of all transactions,
         indexed by their transaction id, ever received via $\mathtt{reqTx}$
-        (independent of their validity).\todo{needed? prune by removing from
-        $\hatmT$?}
+        (independent of their validity).\todo{needed? prune using $\hatmT$?}
   \item $\hatmT \in {(\tyBytes \times \mT)}^{*}$: Set of transactions, indexed by
         their transaction id, that extend from the last confirmed snapshot
         $\barmU$ to form $\hatmL$. These are also the transactions that would go
