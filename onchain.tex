@@ -146,7 +146,7 @@ of the CEM is advanced:
   concatenation, of the serialised representation of a list of $\underline{U}$,
   which are sorted by their associated $\txOutRef$\footnote{Sorting is required
     to ensure a canonical representation which can also be reproduced from the
-    UTxO set later in the fanout.}: \todo{define sortByOutRef?}\todo{define concat}
+    UTxO set later in the fanout.}: \todo{define sortByOutRef?}\todo{off-chain use of this is different (on a UTxO set)}
   \[
     \combine(\underline{U}) = \hash(\concat \sortByOutRef(\underline{U}))
   \]
@@ -182,7 +182,7 @@ party to abort the creation of a head. It is comprised of
 \end{itemize}
 Note that \mtxAbort{} represents a final transition of the CEM and hence there
 is no state machine output. The input spending from $\nuHead$ does provide the
-number of reimbursed outputs $m$ as redeemer and checks the state of the CEM is
+number of reimbursed outputs $m$ as redeemer \todo{m is implicit, not required as redeemer} and checks the state of the CEM is
 advanced to the final $\stFinal$ as follows:
 
 \[
