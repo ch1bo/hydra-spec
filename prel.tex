@@ -57,7 +57,6 @@ application of a function $f$ to an argument $x$ is written as $f(x)$. \\
 
 \subsection{Public key cryptography and multi-signature scheme}\label{sec:multisig}
 
-\todo{be specific!?}
 \noindent A multisignature scheme is a set of algorithms where
 \begin{itemize}
   \item $\msSetup$ generates public parameters $\msParams$, such that
@@ -90,7 +89,7 @@ readability.
 The Hydra Head protocol is specified to work on the so-called Extended UTxO (EUTxO) ledgers
 like Cardano.
 
-The basis for EUTxO is is Bitcoin's UTxO ledger
+The basis for EUTxO is Bitcoin's UTxO ledger
 model~\cite{formal-model-of-bitcoin-transactions,Zahnentferner18-UTxO}.
 Intuitively, it arranges transactions in a directed acyclic graph, such as the
 one in Figure~\ref{fig:utxo-graph}, where boxes represent transactions with
@@ -109,24 +108,31 @@ extension to support scripting (EUTxO) suitable for this Hydra Head protocol
 specification. For a more detailed introduction to the EUTxO ledger model,
 see~\cite{eutxo},~\cite{eutxo-2}~and~\cite{utxo-ma}.
 
+\subsubsection{Values}
+
 \begin{definition}[Values]
   Values are sets that keep track how many units of which tokens of which
   currency are available. Given a finitely supported function $\mapsto$, that
-  maps keys to monoids, a value is the set of such mappings over a minting
-  policy identifiers $\mathsf{pid}$, over a mapping of token names
-  $\mathsf{tok}$ to quantities $q$:
-
+  maps keys to monoids, a value is the set of such mappings over currencies
+  (minting policy identifiers), over a mapping of token names $\mathsf{tok}$ to
+  quantities $q$:
   \[
-    \val \in \tyValue = (\mathsf{pid} : \tyBytes \mapsto (\mathsf{tok} : \tyBytes \mapsto q : \tyInteger))
+    \val \in \tyValue = (c : \tyBytes \mapsto (t : \tyBytes \mapsto q : \tyInteger))
   \]
-
-  Addition of values is defined as $+$, $\varnothing$ is the empty value,
-  and \(\{t_1, \ldots, t_n\} :: c\) is used as a shorthand for
-  \(\{c \mapsto \{t_1 \mapsto 1, \ldots, t_n \mapsto 1\}\}\).
+  \noindent where addition of values is defined as $+$ and $\varnothing$ is the empty value.
 \end{definition}
 
+\todo{define shorthands}
+% \noindent We define shorthands:
+% \begin{itemize}
+%   \item \(\{t_1, \ldots, t_n\} :: c\) for a list of positive single quantity tokens
+%         \(\{c \mapsto \{t_1 \mapsto 1, \ldots, t_n \mapsto 1\}\}\) (to mint).
+%   \item \({\{t_1, \ldots, t_n\}}^{-1} :: c\) for a list of negative single quantity tokens
+%         \(\{c \mapsto \{t_1 \mapsto 1, \ldots, t_n \mapsto 1\}\}\) (to burn).
+% \end{itemize}
+
 For example, the value $\{c_{1} \mapsto \{t_1 \mapsto 1, t_2 \mapsto 1\}\}$
-contains tokens $t_1$ and $t_2$ of currency $c$ and addition merges currencies
+contains tokens $t_1$ and $t_2$ of currency $\mathsf{pid}$ and addition merges currencies
 and token names naturally:
 \begin{align*}
   & \{c_{1} \mapsto \{t_1 \mapsto 1, t_2 \mapsto 1\}\} \\
@@ -138,8 +144,10 @@ While the above definition should be sufficient for the purpose of this
 specification, a full treatment via finitely supported functions can be found
 in~\cite{utxo-ma}.
 
+\subsubsection{Scripts}
+
 Validator scripts are called \emph{phase-2} scripts in the Cardano Ledger
-specification (see~\cite{alozon-spec} for a formal treatment of these). Scripts
+specification (see~\cite{ledger-alonzo-spec} for a formal treatment of these). Scripts
 are used for multiple purposes, but most often (and sufficient for this
 specification) as a \emph{spending} or \emph{minting} policy script.
 
@@ -147,10 +155,10 @@ specification) as a \emph{spending} or \emph{minting} policy script.
   A script $\mu \in \mathcal{M}$ governing whether a value can be minted (or
   burned), is a pure function with type
   \[
-    \mu \in \mathcal{M} = (\rho : \tyData) \to (\mathsf{ctx} : \tyContext) \to\tyBool,
+    \mu \in \mathcal{M} = (\rho : \tyData) \to (\txContext : \tyContext) \to\tyBool,
   \]
   where $\rho \in \tyData$ is the redeemer provided as part of the transaction
-  being validated and $\mathsf{ctx} \in \tyContext$ is the validation
+  being validated and $\txContext \in \tyContext$ is the validation
   context.
 \end{definition}
 
@@ -158,13 +166,20 @@ specification) as a \emph{spending} or \emph{minting} policy script.
   A validator script $\nu \in \mathcal{V}$ governing whether an output can be
   spent, is a pure function with type
   \[
-    \nu \in \mathcal{V} = (\delta : \tyData) \to (\rho : \tyData) \to (\mathsf{ctx} : \tyContext) \to\tyBool,
+    \nu \in \mathcal{V} = (\delta : \tyData) \to (\rho : \tyData) \to (\txContext : \tyContext) \to\tyBool,
   \]
   where $\delta \in \tyData$ is the datum available at the output to be spent,
   $\rho \in \tyData$ is the redeemer data provided as part of the transaction
-  being validated, and $\mathsf{ctx} \in \tyContext$ is the validation
+  being validated, and $\txContext \in \tyContext$ is the validation
   context.
 \end{definition}
+
+\subsubsection{Transactions}
+
+We define EUTxO inputs, outputs and transactions as they are available to
+scripts and just enough to specify the behavior of the Hydra validator scripts.
+For example outputs addresses and datums are much more complicated in the full
+ledger model~\cite{eutxo-2, ledger-shelley-spec}.
 
 \begin{definition}[Outputs]
   An output $o \in \txOutputs$ stores some value $\val \in \tyValue$ at some address,
@@ -182,7 +197,8 @@ specification) as a \emph{spending} or \emph{minting} policy script.
     i \in \txInputs = (\txOutRef : \mathcal{R} \times \rho : \tyData)
   \]
   where $\mathcal{R} = (\tyBytes \times \mathbb{N})$ references an output of a
-  transaction by its id (that is, a hash of the transaction) and index.
+  transaction by its id (that is, a hash of the transaction body) and the output
+  index within that transaction.
 \end{definition}
 
 \todo{define transaction or context or both?}
@@ -206,8 +222,8 @@ its current state to yield a new ledger state (besides checking the transaction
 integrity, signatures and ledger rules). Each validator script referenced by
 an output is passed its arguments drawn from the output it locks and the
 transaction context it is executed in. The transaction is valid if and only if
-all scripts validate, i.e. $\mu(\rho, \gamma) = \true$ and
-$\nu(\delta, \rho, \gamma) = \true$.
+all scripts validate, i.e. $\mu(\rho, \txContext) = \true$ and
+$\nu(\delta, \rho, \txContext) = \true$.
 
 \subsection{State Machines}\label{sec:cem}
 

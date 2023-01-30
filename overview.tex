@@ -1,6 +1,6 @@
 \section{Protocol Overview}\label{sec:overview}
 
-\todo{maybe change terminology (mainchain -> L1, offchain -> L2)}
+\todo{maybe change terminology (use L1 and L2)}
 
 The Hydra Head protocol provides functionality to lock a set of UTxOs on a
 blockchain, referred to as the \emph{mainchain}, and evolve it inside a
@@ -44,11 +44,11 @@ locks (on the mainchain) the UTxOs that the party wants to commit to the head.
 
 The commit transactions are subsequently collected by the \mtxCCom{} transaction
 causing a transition from $\stInitial$ to $\stOpen$. Once the $\stOpen$ state is
-confirmed, the head members start running the off-chain \emph{head protocol},
-which evolves the initial UTxO set (the union over all UTxOs committed by all
-head members) independently of the mainchain. For the case where some head
-members fail to post a \mtxCom{} transaction, the head can be aborted by going
-directly from $\stInitial$ to $\stFinal$.
+confirmed, the head members start running the off-chain head protocol, which
+evolves the initial UTxO set (the union over all UTxOs committed by all head
+members) independently of the mainchain. For the case where some head members
+fail to post a \mtxCom{} transaction, the head can be aborted by going directly
+from $\stInitial$ to $\stFinal$.
 
 \subsection{The Coordinated Head protocol}
 
@@ -56,20 +56,21 @@ The actual Head protocol starts after the initialization phase with an initial
 set of UTxOs that is identical to the UTxOs locked onchain via the \mtxCom{}
 and \mtxCCom{} transactions.
 
-The protocol distributes and \emph{collects} individual transactions in full
+The protocol distributes and collects individual transactions in full
 concurrency off-chain, while each party maintains their view of the local UTxO
 state. That is, the current set of UTxOs evolved from the initial UTxO set by
 applying transactions as they are received from the other parties.
 
 To confirm transactions and allow for an onchain decommit of the resulting UTxO
-set without needing the whole transaction history, UTxO snapshots
-$\Uset_1,\Uset_2,\ldots$ are created. The first snapshot corresponds to the
-initial UTxO set and snapshots have a strict sequence.
+set without needing the whole transaction history. The initial snapshot $U_{0}$
+corresponds to the initial UTxO set, while snapshots thereafter
+$\Uset_1,\Uset_2,\ldots$ \todo{$\Uset_{1}$ overlaps with committed utxo $U_{1}$
+  of party $1$} are created with monotonically increasing snapshot numbers.
 
-For this, a \emph{snapshot leader} requests his view of a new confirmed state to
-be multisigned as a new snapshot. The leader does not need to send his local
-state, but only indicate, by hashes, the set of transactions to be included in
-order to obtain the to-be-snapshotted UTxO set.
+For this, a snapshot leader requests his view of a new confirmed state to be
+multisigned as a new snapshot. The leader does not need to send his local state,
+but only indicate, by hashes, the set of transactions to be included in order to
+obtain the to-be-snapshotted UTxO set.
 
 The other participants sign the snapshot as soon as they have (also) seen the
 transactions that are to be processed on top of its preceding snapshot: a
@@ -84,19 +85,19 @@ is now evidence that this state once existed during the head evolution.
 \subsection{Closing the head}
 
 The head protocol is designed to allow any head member at any point in time to
-produce, without interaction, a certificate for the current head UTxO set. This
-certificate is created from the latest confirmed snapshot, specifically from its
-snapshot number and the respective multisignature. Using this certificate, the
-head member may ``force close'' the head by advancing the mainchain state
-machine to the $\stClosed$ state.
+produce, without interaction, a certificate to close the head. This certificate
+is created from the latest confirmed snapshot, specifically from its snapshot
+number and the respective multisignature. Using this certificate, the head
+member may ``force close'' the head by advancing the mainchain state machine to
+the $\stClosed$ state.
 
-Once in $\stClosed$, the state machine grants parties a \emph{contestation
-  period}, during which each party may (one single time) contest the closure by
-providing the certificate for a newer head UTxO set. Contesting leads back to
-the state $\stClosed$. After the contestation period has elapsed, the state
-machine may proceed to the $\stFinal$ state. The state machine enforces that the
-outputs of the transaction leading to $\stFinal$ correspond exactly to the
-latest UTxO set seen during the contestation period.
+Once in $\stClosed$, the state machine grants parties a contestation period,
+during which each party may (one single time) contest the closure by providing
+the certificate of a newer snapshot. Contesting leads back to the state
+$\stClosed$. After the contestation period has elapsed, the state machine may
+proceed to the $\stFinal$ state. The state machine enforces that the outputs of
+the transaction leading to $\stFinal$ correspond exactly to the latest UTxO set
+seen during the contestation period.
 
 \subsection{Differences}
 
