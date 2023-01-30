@@ -1,6 +1,8 @@
+\clearpage
 \section{On-chain Protocol}\label{sec:on-chain}
 
-\todo{Problem: Always ensure abort is possible. E.g. by individual aborts!?}
+\todo{Open problem: ensure abort is always possible. e.g. by individual aborts or undoing commits}
+\todo{Open problem: ensure fanout is always possible, e.g. by limiting complexity of $U_0$}
 
 We describe the details of the \emph{on-chain} protocol controlling a
 Hydra head (see Fig.~\ref{fig:SM_states_basic}) using the CEM abstraction \&
@@ -29,20 +31,27 @@ state of the protocol and is shown in Figure~\ref{fig:SM_commit_tx}. The head
 instance is represented by the unique\footnote{As the EUTxO ledger preventing
   double-spending, the uniqueness of $\cid$ is guaranteed because $i_{seed}$ can
   only be spent once} currency identifier $\cid$ created by minting tokens using
-the parameterized $\muHead$ minting policy script:
+the \emph{limited} $\muHead$ minting policy script parameterized by $\txOutRef_{seed} \in \mathcal{R}$:
 \[
-  \cid = \hash(\muHead(i_{seed}))
+  \cid = \hash(\muHead(\txOutRef_{seed}))
 \]
-\noindent where $i_{seed} \in \txInputs$ is a transaction input and the
-$\muHead(i_{seed})$ minting policy validator checks:
+
+\noindent The $\muHead(\txOutRef_{seed})$ minting policy validator checks:
 \begin{menumerate}
   \item When minting at least one token of this policy
-  $\exists \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q > 0$\todo{value
-    notation}, $i_{seed}$ needs to be spent in this transaction
-  $i_{seed} \in \txInputs$.
+  $\exists \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q > 0$, \\
+  $\txOutRef_{seed}$ needs to be spent in this transaction $(\txOutRef_{seed}, \cdot) \in \txInputs$.
 \end{menumerate}
 
-\vspace{0.1cm}
+\noindent \textbf{Important:} Being a \emph{limited} minting policy, $\muHead$ only ensures
+uniqueness of $\cid$, while the contents of the $\datum_{\mathsf{head}}$ are not
+checked on-chain. All head members are expected to check whether the initial
+state has the right $\cid$, is consistent with parameters agreed during setup
+and whether the right amount of tokens have been minted and payed to $\nuHead$
+and $\nuInitial$ respectively. From there, these validators ensure that the
+output is consumed by either an \mtxAbort{}~\ref{sec:abort-tx} or a
+\mtxCom{}~\ref{sec:commit-tx} transaction. \\
+
 \noindent Two kinds of tokens are minted:
 \begin{itemize}
   \item A single \emph{State Thread (ST)} token marking the output carrying the state
@@ -60,7 +69,8 @@ $\muHead(i_{seed})$ minting policy validator checks:
 
 \begin{itemize}
   \item has at least input $i_{seed}$,
-  \item mints one $\st$ and one $\pt$ for each of the $\nop$ participants with
+  \item mints one $\st$,
+  \item mints one $\pt$ for each of the $\nop$ participants with
         policy $\cid :: \{\st, \pt_{1}, \ldots, \pt_{\nop}\}$,
   \item has one state-machine output locked by $\nuHead$ with datum
         $\datum_{\mathsf{head}}$,
@@ -84,15 +94,6 @@ where
   \item $\nop$ is the number of head participants, and
   \item $\cPer$ is the length of the contestation period.
 \end{mitemize}
-
-\noindent \textbf{Important:} While the $\muHead$ minting policy ensures
-uniqueness of $\cid$, the contents of the $\datum_{\mathsf{head}}$ are not
-checked on-chain. All head members are expected to check whether the initial
-state has the right $\cid$, is consistent with parameters agreed during setup
-and whether the right amount of tokens have been minted and payed to $\nuHead$
-and $\nuInitial$ respectively. From there, these validators ensure that the
-output is consumed by either an \mtxAbort{}~\ref{sec:abort-tx} or a
-\mtxCom{}~\ref{sec:commit-tx} transaction.
 
 \input{fig_SM_commit_tx}
 
@@ -147,8 +148,9 @@ of the CEM is advanced:
   which are sorted by their associated $\txOutRef$\footnote{Sorting is required
     to ensure a canonical representation which can also be reproduced from the
     UTxO set later in the fanout.}: \todo{define sortByOutRef?}\todo{off-chain use of this is different (on a UTxO set)}
+    \todo{need to rewrite this using projections $\downarrow1$ syntax}
   \[
-    \combine(\underline{U}) = \hash(\concat \sortByOutRef(\underline{U}))
+    \combine(\underline{U}) = \hash(\mathsf{concat}^{\downarrow2}(\sortByOutRef^{\downarrow1}(\underline{U})))
   \]
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{commit_i})$
