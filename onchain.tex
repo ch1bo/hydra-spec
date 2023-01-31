@@ -69,9 +69,8 @@ output is consumed by either an \mtxAbort{}~\ref{sec:abort-tx} or a
 
 \begin{itemize}
   \item has at least input $i_{seed}$,
-  \item mints one $\st$,
-  \item mints one $\pt$ for each of the $\nop$ participants with
-        policy $\cid :: \{\st, \pt_{1}, \ldots, \pt_{\nop}\}$,
+  \item mints the state thread token $\st$, and one $\pt$ for each of the $\nop$
+        participants with policy $\cid$,
   \item has one state-machine output locked by $\nuHead$ with datum
         $\datum_{\mathsf{head}}$,
   \item has $\nop$ outputs, where each output is locked by $\nuInitial$ and the
@@ -103,24 +102,22 @@ A \mtxCom{} transaction may be submitted by each participant
 $\forall i \in \{1 \dots \nop\}$ and is depicted on the right hand side of
 Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 \begin{itemize}
-  \item One input $i_{initial} = (\txOutRef_{initial}, \redeemer_{initial})$
-        spending $o_{initial} = (\val_{initial}, \nuInitial, \datum_{initial})$
+  \item One input $i_{\mathsf{initial}} = (\txOutRef_{\mathsf{initial}}, \redeemer_{\mathsf{initial}})$
+        spending $o_{\mathsf{initial}} = (\val_{\mathsf{initial}}, \nuInitial, \datum_{\mathsf{initial}})$
   \item Zero or one\todo{allow more? need individual abort} input with reference
-        $\txOutRef_{commit}$ spending output
-        $o_{committed} = (\val_{committed}, \cdot , \cdot)$
-  \item One output $o_{commit} = (\val_{commit}, \nuCommit, \delta_{commit})$
+        $\txOutRef_{\mathsf{committed}}$ spending output
+        $o_{\mathsf{committed}} = (\val_{\mathsf{committed}}, \cdot , \cdot)$
+  \item One output $o_{\mathsf{commit}} = (\val_{\mathsf{commit}}, \nuCommit, \delta_{\mathsf{commit}})$
 \end{itemize}
 
-\noindent The $\nuInitial$ validator ensures that:
+\noindent The $\nuInitial$ validator with $\datum_{\mathsf{initial}} = \cid$ and $\redeemer_{\mathsf{initial}} = \txOutRef_{\mathsf{committed}}$ ensures that:
 \begin{menumerate}
-  \item The initial datum provides the currency id $\cid = \datum_{initial}$
-  \item The initial redeemer references the committed output $\redeemer_{initial} = \txOutRef_{committed}$
-  \item The committed value is in the output $\val_{com} = \val_{initial} \cup \val_{committed}$
-  \item The currencty id and committed output are recorded in the output datum
-  $\delta_{commit} = (\cid, U_{i})$ where
-  $U_{i} = (\txOutRef_{committed},\bytes(o_{committed}))$
-  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val_{commit} \Rightarrow \keyHash_{i} \in \txKeys$
-  \item No minting or burning  $\txMint = \varnothing$
+  \item The committed value is in the output $\val_{\mathsf{commit}} = \val_{\mathsf{initial}} \cup \val_{\mathsf{committed}}$
+  \item The currency id and committed output are recorded in the output datum
+  $\delta_{\mathsf{commit}} = (\cid, U_{i})$ where
+  $U_{i} = (\txOutRef_{\mathsf{committed}},\bytes(o_{\mathsf{committed}}))$
+  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val_{\mathsf{commit}} \Rightarrow \keyHash_{i} \in \txKeys$
+  \item No minting or burning  $\txMint = \varnothing$\todo{restrict only $\cid \notin \txMint$?}
 \end{menumerate}
 
 \noindent The $\nuCommit$ validator ensures the output is collected by either a \mtxCCom{}~\ref{sec:collect-tx} or \mtxAbort{}~\ref{sec:abort-tx} transaction of the on-chain state machine, selected by the appropriate redeemer.
@@ -156,15 +153,15 @@ of the CEM is advanced:
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{commit_i})$
   \item All tokens present in output\footnote{This is sufficient as a Head participant would check off-chain whether a Head is initialized correctly with the right number of tokens.}
   $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$
-  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val_{commit} \Rightarrow \keyHash_{i} \in \txKeys$
+  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val_{\mathsf{commit}} \Rightarrow \keyHash_{i} \in \txKeys$
   \item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
 
 \noindent Each spent $\nuCommit$ validator ensures that:
 \begin{menumerate}
   \item The state token is present in the output value
-  $\{\st \mapsto 1\} \in \val'$, where $(\cid,\cdot) = \delta_{commit}$ is given
-  by the datum of the commit output $o_{commit}$.
+  $\{\st \mapsto 1\} \in \val'$, where $(\cid,\cdot) = \delta_{\mathsf{commit}}$ is given
+  by the datum of the commit output $o_{\mathsf{commit}}$.
 \end{menumerate}
 
 \subsection{Abort Transaction}\label{sec:abort-tx}
@@ -212,14 +209,14 @@ advanced to the final $\stFinal$ as follows:
 \begin{menumerate}
   \item The ST is getting burned $\{\st \mapsto -1\} \subseteq \txMint$, where
   $\cid$ is given by the datum of the spent initial output
-  $\cid = \delta_{initial}$.
+  $\cid = \delta_{\mathsf{initial}}$.
 \end{menumerate}
 
 \noindent Each $\nuCommit$ validators checks:
 \begin{menumerate}
   \item The ST is getting burned $\{\st \mapsto -1\} \subseteq \txMint$, where
   $\cid$ is given by the datum of the spent commit output
-  $(\cid,\cdot) = \delta_{commit}$.
+  $(\cid,\cdot) = \delta_{\mathsf{commit}}$.
 \end{menumerate}
 
 \subsection{Close Transaction}\label{sec:close-tx}
