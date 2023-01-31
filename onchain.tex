@@ -138,13 +138,17 @@ of the CEM is advanced:
 \noindent Furthermore, $\nuHead$ checks these constraints:
 \begin{menumerate}
   \item Collect commits in $\eta = (0, U^{\#})$, where
-  $U^{\#} = \combine([U_{1}, \dots, U_{\nop}])$. That is, given a list of commits $\underline{U}$, where each element is a pair of an $\txOutRef$ and the serialised representation of what was committed $U_{i} \in (\mathcal{R} \times \tyBytes)$, $\combine$ sorts this list by the $\txOutRef$, concatenates all the bytes and hashes the result.\footnote{Sorting is required
-    to ensure a canonical representation which can also be reproduced from the
-    UTxO set later in the fanout.}: \todo{define sortOn?}\todo{off-chain use of this is different (on a UTxO set)}
-    \todo{need to rewrite this using projections $\downarrow1$ syntax}
+  $U^{\#} = \combine([U_{1}, \dots, U_{\nop}])$:
   \[
     \combine(\underline{U}) = \hash(\mathsf{concat}({\sortOn(1, \underline{U})}^{\downarrow2}))
   \]
+  That is, given a list of commits $\underline{U}$, where each element is a pair
+  of an $\txOutRef$ and the serialised representation of what was committed
+  $U_{i} \in (\mathcal{R} \times \tyBytes)$, $\combine$ sorts this list by the
+  $\txOutRef$, concatenates all the bytes and hashes the
+  result.\footnote{Sorting is required to ensure a canonical representation
+    which can also be reproduced from the UTxO set later in the fanout.}:
+
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \valCommit{i})$
   \item All tokens present in output\footnote{This is sufficient as a Head participant would check off-chain whether a Head is initialized correctly with the right number of tokens.}
