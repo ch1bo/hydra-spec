@@ -273,12 +273,21 @@
 \newcommand{\stAbort}{\mathsf{abort}}
 
 
-% == Validators ==
+% == Validators,values,datums,redeemers ==
 
 \newcommand{\muHead}{\mu_\mathsf{head}}
 \newcommand{\nuHead}{\nu_\mathsf{head}}
-\newcommand{\nuInitial}{\nu_\mathsf{initial}}
-\newcommand{\nuCommit}{\nu_\mathsf{commit}}
+
+\newcommand{\nuInitial}{\nu_{\mathsf{initial}}}
+\newcommand{\valInitial}[1]{\val_{\mathsf{initial}_{#1}}}
+\newcommand{\datumInitial}[1]{\datum_{\mathsf{initial}_{#1}}}
+\newcommand{\redeemerInitial}[1]{\redeemer_{\mathsf{initial}_{#1}}}
+
+\newcommand{\nuCommit}{\nu_{\mathsf{commit}}}
+\newcommand{\valCommit}[1]{\val_{\mathsf{commit}_{#1}}}
+\newcommand{\datumCommit}[1]{\datum_{\mathsf{commit}_{#1}}}
+\newcommand{\redeemerCommit}[1]{\redeemer_{\mathsf{commit}_{#1}}}
+
 \newcommand{\nuSnap}{\nu_\mathsf{SN}}
 \newcommand{\nuNewname}{\nu_\mathsf{newestSN}}
 \newcommand{\nuHang}{\nu_\mathsf{HT}}
@@ -404,8 +413,8 @@
 
 \newcommand{\hash}{\mathsf{hash}}
 \newcommand{\bytes}{\mathsf{bytes}}
-\newcommand{\concat}{\bigoplus}
-\newcommand{\sortByOutRef}{\mathsf{sortByOutRef}}
+\newcommand{\concat}{\mathsf{concat}}
+\newcommand{\sortOn}{\mathsf{sortOn}}
 \newcommand{\combine}{\mathsf{combine}}
 
 \newcommand{\Txo}{\mathsf{txObj}}

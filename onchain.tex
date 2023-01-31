@@ -102,21 +102,21 @@ A \mtxCom{} transaction may be submitted by each participant
 $\forall i \in \{1 \dots \nop\}$ and is depicted on the right hand side of
 Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 \begin{itemize}
-  \item One input $i_{\mathsf{initial}} = (\txOutRef_{\mathsf{initial}}, \redeemer_{\mathsf{initial}})$
-        spending $o_{\mathsf{initial}} = (\val_{\mathsf{initial}}, \nuInitial, \datum_{\mathsf{initial}})$
+  \item One input $i_{\mathsf{initial}} = (\txOutRef_{\mathsf{initial}}, \redeemerInitial)$
+        spending $o_{\mathsf{initial}} = (\valInitial, \nuInitial, \datumInitial)$
   \item Zero or one\todo{allow more? need individual abort} input with reference
         $\txOutRef_{\mathsf{committed}}$ spending output
         $o_{\mathsf{committed}} = (\val_{\mathsf{committed}}, \cdot , \cdot)$
-  \item One output $o_{\mathsf{commit}} = (\val_{\mathsf{commit}}, \nuCommit, \delta_{\mathsf{commit}})$
+  \item One output $o_{\mathsf{commit}} = (\valCommit, \nuCommit, \datumCommit)$
 \end{itemize}
 
-\noindent The $\nuInitial$ validator with $\datum_{\mathsf{initial}} = \cid$ and $\redeemer_{\mathsf{initial}} = \txOutRef_{\mathsf{committed}}$ ensures that:
+\noindent The $\nuInitial$ validator with $\datumInitial = \cid$ and $\redeemerInitial = \txOutRef_{\mathsf{committed}}$ ensures that:
 \begin{menumerate}
-  \item The committed value is in the output $\val_{\mathsf{commit}} = \val_{\mathsf{initial}} \cup \val_{\mathsf{committed}}$
+  \item The committed value is in the output $\valCommit = \valInitial \cup \val_{\mathsf{committed}}$
   \item The currency id and committed output are recorded in the output datum
-  $\delta_{\mathsf{commit}} = (\cid, U_{i})$ where
+  $\datumCommit = (\cid, U_{i})$ where\todo{rename $U_{i}$ to $C_{i}$}
   $U_{i} = (\txOutRef_{\mathsf{committed}},\bytes(o_{\mathsf{committed}}))$
-  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val_{\mathsf{commit}} \Rightarrow \keyHash_{i} \in \txKeys$
+  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit \Rightarrow \keyHash_{i} \in \txKeys$
   \item No minting or burning  $\txMint = \varnothing$\todo{restrict only $\cid \notin \txMint$?}
 \end{menumerate}
 
@@ -124,12 +124,10 @@ Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 
 \subsection{CollectCom Transaction}\label{sec:collect-tx}
 
-\input{fig_SM_initial_open}
-
 \noindent The \mtxCCom{} transaction collects all the committed UTxOs to the same head. It has
 \begin{itemize}
   \item one input spending from $\nuHead$ holding the $\st$, and
-  \item $\forall i \in \{1 \dots \nop\}$ inputs spending \mtxCom{} outputs $(\val_{commit_i}, \nuCommit, (\cid, U_{i}))$ with $\pt_{i} \in \val_{commit_{i}}$.
+  \item $\forall i \in \{1 \dots \nop\}$ inputs spending \mtxCom{} outputs $(\valCommit{i}, \nuCommit, \datumCommit{i})$ with $\pt_{i} \in \valCommit{i}$ and $\datumCommit{i} = (\cid, U_{i})$.
 \end{itemize}
 The input spending from and paying to the $\nuHead$ validator, checks the state
 of the CEM is advanced:
@@ -140,33 +138,33 @@ of the CEM is advanced:
 \noindent Furthermore, $\nuHead$ checks these constraints:
 \begin{menumerate}
   \item Collect commits in $\eta = (0, U^{\#})$, where
-  $U^{\#} = \combine([U_{1}, \dots, U_{\nop}])$. That is, the hash, of the
-  concatenation, of the serialised representation of a list of $\underline{U}$,
-  which are sorted by their associated $\txOutRef$\footnote{Sorting is required
+  $U^{\#} = \combine([U_{1}, \dots, U_{\nop}])$. That is, given a list of commits $\underline{U}$, where each element is a pair of an $\txOutRef$ and the serialised representation of what was committed $U_{i} \in (\mathcal{R} \times \tyBytes)$, $\combine$ sorts this list by the $\txOutRef$, concatenates all the bytes and hashes the result.\footnote{Sorting is required
     to ensure a canonical representation which can also be reproduced from the
-    UTxO set later in the fanout.}: \todo{define sortByOutRef?}\todo{off-chain use of this is different (on a UTxO set)}
+    UTxO set later in the fanout.}: \todo{define sortOn?}\todo{off-chain use of this is different (on a UTxO set)}
     \todo{need to rewrite this using projections $\downarrow1$ syntax}
   \[
-    \combine(\underline{U}) = \hash(\mathsf{concat}^{\downarrow2}(\sortByOutRef^{\downarrow1}(\underline{U})))
+    \combine(\underline{U}) = \hash(\mathsf{concat}({\sortOn(1, \underline{U})}^{\downarrow2}))
   \]
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
-  $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \val_{commit_i})$
+  $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \valCommit{i})$
   \item All tokens present in output\footnote{This is sufficient as a Head participant would check off-chain whether a Head is initialized correctly with the right number of tokens.}
   $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$
-  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val_{\mathsf{commit}} \Rightarrow \keyHash_{i} \in \txKeys$
+  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit \Rightarrow \keyHash_{i} \in \txKeys$
   \item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
 
 \noindent Each spent $\nuCommit$ validator ensures that:
 \begin{menumerate}
   \item The state token is present in the output value
-  $\{\st \mapsto 1\} \in \val'$, where $(\cid,\cdot) = \delta_{\mathsf{commit}}$ is given
+  $\{\st \mapsto 1\} \in \val'$, where $(\cid,\cdot) = \datumCommit{}$ is given
   by the datum of the commit output $o_{\mathsf{commit}}$.
 \end{menumerate}
 
+\input{fig_SM_initial_open}
+
 \subsection{Abort Transaction}\label{sec:abort-tx}
 
-\input{fig_SM_initial_final.tex}
+\input{fig_SM_initial_final}
 
 The \mtxAbort{} transaction (see Figure~\ref{fig:SM_initial_final}) allows a
 party to abort the creation of a head. It is comprised of
@@ -174,8 +172,8 @@ party to abort the creation of a head. It is comprised of
   \item one input spending from $\nuHead$ holding the $\st$, and
   \item $\forall i \in \{1 \dots \nop\}$ inputs either
     \begin{itemize}
-      \item spending from an initial output $(\val_{initial_i}, \nuInitial, \cid)$ with $\pt_{i} \in \val_{initial_i}$, or
-      \item spending from a commit output $(\val_{commit_i}, \nuCommit, \datum_{commit_i})$ with $\pt_{i} \in \val_{commit_{i}}$,
+      \item spending from an initial output $(\valInitial{i}, \nuInitial, \cid)$ with $\pt_{i} \in \valInitial{i}$, or
+      \item spending from a commit output $(\valCommit{i}, \nuCommit, \datumCommit{i})$ with $\pt_{i} \in \valCommit{i}$,
     \end{itemize}
   \item $m$ outputs to redistribute already committed UTxOs.
 \end{itemize}
@@ -216,7 +214,7 @@ advanced to the final $\stFinal$ as follows:
 \begin{menumerate}
   \item The ST is getting burned $\{\st \mapsto -1\} \subseteq \txMint$, where
   $\cid$ is given by the datum of the spent commit output
-  $(\cid,\cdot) = \delta_{\mathsf{commit}}$.
+  $(\cid,\cdot) = \datumCommit{}$.
 \end{menumerate}
 
 \subsection{Close Transaction}\label{sec:close-tx}
