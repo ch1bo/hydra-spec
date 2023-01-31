@@ -88,8 +88,6 @@ where
   \item $\cid$ is the unique currency id of this instance,
   \item $\hydraKeysAgg$ is the aggregated off-chain multi-signature key established during the
   setup phase,
-  $(k_1,\ldots,k_\nop)$ exchanged during the setup phase and identifying the
-  head members on-chain,
   \item $\nop$ is the number of head participants, and
   \item $\cPer$ is the length of the contestation period.
 \end{mitemize}
@@ -102,21 +100,21 @@ A \mtxCom{} transaction may be submitted by each participant
 $\forall i \in \{1 \dots \nop\}$ and is depicted on the right hand side of
 Figure~\ref{fig:SM_commit_tx}. It has the following structure:
 \begin{itemize}
-  \item One input $i_{\mathsf{initial}} = (\txOutRef_{\mathsf{initial}}, \redeemerInitial)$
-        spending $o_{\mathsf{initial}} = (\valInitial, \nuInitial, \datumInitial)$
+  \item One input $i_{\mathsf{initial}} = (\txOutRef_{\mathsf{initial}}, \redeemerInitial{})$
+        spending $o_{\mathsf{initial}} = (\valInitial{}, \nuInitial, \datumInitial{})$
   \item Zero or one\todo{allow more? need individual abort} input with reference
         $\txOutRef_{\mathsf{committed}}$ spending output
         $o_{\mathsf{committed}} = (\val_{\mathsf{committed}}, \cdot , \cdot)$
-  \item One output $o_{\mathsf{commit}} = (\valCommit, \nuCommit, \datumCommit)$
+  \item One output $o_{\mathsf{commit}} = (\valCommit{}, \nuCommit, \datumCommit{})$
 \end{itemize}
 
-\noindent The $\nuInitial$ validator with $\datumInitial = \cid$ and $\redeemerInitial = \txOutRef_{\mathsf{committed}}$ ensures that:
+\noindent The $\nuInitial$ validator with $\datumInitial{} = \cid$ and $\redeemerInitial{} = \txOutRef_{\mathsf{committed}}$ ensures that:
 \begin{menumerate}
-  \item The committed value is in the output $\valCommit = \valInitial \cup \val_{\mathsf{committed}}$
+  \item The committed value is in the output $\valCommit{} = \valInitial{} \cup \val_{\mathsf{committed}}$
   \item The currency id and committed output are recorded in the output datum
-  $\datumCommit = (\cid, U_{i})$ where\todo{rename $U_{i}$ to $C_{i}$}
+  $\datumCommit{} = (\cid, U_{i})$ where\todo{rename $U_{i}$ to $C_{i}$}
   $U_{i} = (\txOutRef_{\mathsf{committed}},\bytes(o_{\mathsf{committed}}))$
-  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit \Rightarrow \keyHash_{i} \in \txKeys$
+  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit{} \Rightarrow \keyHash_{i} \in \txKeys$
   \item No minting or burning  $\txMint = \varnothing$\todo{restrict only $\cid \notin \txMint$?}
 \end{menumerate}
 
