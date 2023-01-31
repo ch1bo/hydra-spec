@@ -29,7 +29,8 @@ processes three kinds of events:
 \todo{add a state diagram?}
 
 The behavior is fully specified in Figure~\ref{fig:head_coordinated}, while the
-following paragraphs introduce notation and explain variables.
+following paragraphs introduce notation, explain variables and walk-through the
+protocol flow.
 
 \subsection{Assumptions}
 
@@ -66,7 +67,7 @@ off-chain protocol logic relies on these assumptions:
 \end{itemize}
 
 \subsection{Notation}
-\todo{missing:, apply tx, projection, map access}
+\todo{missing:, apply tx, map access}
 \begin{itemize}
   \item $\KwOn~event$ specifies how the protocol reacts on a given $event$.
         Further information may be available from the constituents of $event$
@@ -223,8 +224,61 @@ than the observed (on-chain) snapshot number $s_{c}$, an updated $\eta$-state
 and certificate $\xi$ is constructed posted in a \mtxContest{} transaction (see
 Section~\ref{sec:contest-tx}).
 
+\subsubsection{Rollbacks}
+
+The overall life-cycle of the Head protocol is driven by on-chain events (see
+introduction of Section~\ref{sec:offchain}) which stem from observing
+transactions on the mainchain. Most blockchains, however, do only provide
+\emph{eventual} consistency. The consensus algorithm ensures a consistent view
+of the history of blocks and transactions between all parties, but this
+so-called \emph{finality} is only achieved after some time and the local view of
+the blockchain history may change until that point.
+
+On Cardano with it's Ouroboros consensus algorithm, this is means that any local
+view of the mainchain may not be the longest chain and a node may switch to a
+longer chain, onto another fork. This other version of the history may not
+include what was previously observed and hence, any tracking state needs to be
+updated to this ``new reality''. Practically this means that an observer of the
+blockchain sees a \emph{rollback} followed by rollforwards.
+
+For the Head protocol, this means that chain events like $\mathtt{closeTx}$ may
+be observed a second time. Hence, it is crucial, that the local state of the
+Hydra protocol is kept in sync and also rolled back accordingly to be able to
+observe and react to these events the right way, e.g.\ correctly contesting this
+$\mathtt{closeTx}$ if need be.
+
+The rollback handling can be specified fully orthogonally on top of the nominal
+protocol behavior, if the chain provides strictly monotonically increasing
+points $p$ on each chain event via a new or wrapped $\mathtt{rollforward}$
+event and $\mathtt{rollback}$ event with the point to which a rollback happened:\\
+
+\dparagraph{$\mathtt{rollforward}$.}\quad On every chain event that is paired or
+wrapped in a rollforward event $(\mathtt{rollback},p)$ with point $p$, protocol
+participants store their head state indexed by this point in a history
+$\Omega$ of states
+$\Delta \gets (\hats, \bars, \barsigma, \hatmU, \barmU, \hatSigma, \hatmL, \mT_{all}, \hatmT)$ and $\Omega' = (p, \Delta) \cup \Omega$. \\
+
+\dparagraph{$\mathtt{rollback}$.}\quad On a rollback
+$(\mathtt{rollback},p_{rb})$ to point $p_{rb}$, the corresponding head state
+$\Delta$ need to be retrieved from $\Omega$, with the maximal point
+$p \leq p_{rb}$, and all entries in $\Omega$ with $p > p_{rb}$ get removed. \\
+
+This will essentially reset the local head state to the right point and allow
+the protocol to progress through the life-cycle normally. Most stages of the
+life-cycle are unproblematic if they are rolled back, as long as the protocol
+logic behaves as in the nominal case.
+
+A rollback ``past open'' is a special situation though. When a Head is open and
+snapshots have been signed, but then a $\mtxCollect$ and one or more
+$\mtxCommit$ transactions were rolled back, a bad actor could choose to commit a
+different UTxO and open the Head with a different initial UTxO set, while the
+already signed snapshots would still be (cryptographically) valid. To mitigate
+this, all signatures on snapshots need to incorporate the inital UTxO set by
+including $\eta_{0}$.
+
 \input{fig_offchain_prot}
-\todo{$\combine$ on UTxO slightly different than on commits}
+
+\todo{In figure: $\combine$ on UTxO slightly different than on commits}
 
 %%% Local Variables:
 %%% mode: latex
