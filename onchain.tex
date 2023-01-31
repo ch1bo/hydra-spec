@@ -153,7 +153,7 @@ of the CEM is advanced:
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \valCommit{i})$
   \item All tokens present in output\footnote{This is sufficient as a Head participant would check off-chain whether a Head is initialized correctly with the right number of tokens.}
   $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$
-  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit \Rightarrow \keyHash_{i} \in \txKeys$
+  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit \Rightarrow \keyHash_{i} \in \txKeys$\todo{allow anyone to do this?}
   \item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
 

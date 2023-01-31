@@ -149,8 +149,10 @@ empty $\mT = \barmT =\hatmT =\emptyset$, and $\bars = \hats = 0$.
 Transactions are announced and captured in so-called snapshots. Parties generate
 snapshots in a strictly sequential round-robin manner. The party responsible for
 issuing the $\ith i$ snapshot is the \emph{leader} of the $\ith i$ snapshot.
-While the frequency of snapshots in the general Head protocol~\cite{hydrahead20}
-was configurable, the Coordinated Head protocol does specify a snapshot to be
+Leader selection is round-robin per the $\hydraKeys$ from the protocol
+setup.\todo{Actually: $\hydraKeys$ (not aggregated) in the init tx} While the
+frequency of snapshots in the general Head protocol~\cite{hydrahead20} was
+configurable, the Coordinated Head protocol does specify a snapshot to be
 created after each transaction.\\
 
 \dparagraph{$\hpNew$.}\quad At any time, by sending request $(\hpNew,\tx)$, a
