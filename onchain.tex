@@ -136,7 +136,7 @@ Figure~\ref{fig:SM-init-commit}. It has the following structure:
 The input spending from and paying to the $\nuHead$ validator, checks the state
 of the CEM is advanced:
 \[
-   (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer) \xrightarrow{\mathsf{collectCom}} (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta)
+   (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer) \xrightarrow{\stCollect} (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta)
 \]
 
 \noindent Furthermore, $\nuHead$ checks these constraints:
@@ -194,7 +194,7 @@ number of reimbursed outputs $m$ as redeemer \todo{m is implicit, not required a
 advanced to the final $\stFinal$ as follows:
 
 \[
-   (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer) \xrightarrow[m]{\mathsf{abort}} \stFinal.
+   (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer) \xrightarrow[m]{\stAbort} \stFinal.
 \]
 
 \noindent The $\nuHead$ validator ensures that:
@@ -242,7 +242,7 @@ In order to close a head, a head member may post the \mtxClose{} transaction
 spending from the $\nuHead$ and paying to the $\nuHead$ validator, which checks
 the state of the CEM is advanced:
 \[
-  (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta) \xrightarrow[\xi]{\mathsf{close}} (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta',\contesters,\Tfinal)
+  (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta) \xrightarrow[\xi]{\stClose} (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta',\contesters,\Tfinal)
 \]
 
 \noindent The $\nuHead$ validator performs these checks:
@@ -282,7 +282,7 @@ by a party to prove the currently $\stClosed$ state is not the latest one. This
 transaction has a single input spending from the $\nuHead$ and paying to the
 $\nuHead$ validator, which checks the state of the CEM is advanced:
 \[
-  (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[\xi]{\mathsf{contest}} (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta',\contesters',\Tfinal')
+  (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[\xi]{\stContest} (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta',\contesters',\Tfinal')
 \]
 
 \noindent The $\nuHead$ validator performs these checks:
@@ -325,7 +325,7 @@ is no state machine output. The input spending from $\nuHead$ does provide the
 number of fanned-out outputs $m$ as redeemer and checks the state of the CEM is
 advanced to the final $\stFinal$ as follows:
 \[
-  (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[m]{\mathsf{fanout}} \stFinal,
+  (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[m]{\stFanout} \stFinal,
 \]
 
 \noindent The $\nuHead$ validator performs these checks:
