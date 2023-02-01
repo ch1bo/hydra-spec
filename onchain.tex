@@ -277,9 +277,7 @@ the state of the CEM is advanced:
 
 \subsection{Contest Transaction}\label{sec:contest-tx}
 
-\input{fig_SM_closed_closed}
-
-The \mtxContest{} transaction (see Figure~\ref{fig:SM_closed_closed}) is posted
+The \mtxContest{} transaction (see Figure~\ref{fig:SM-contest}) is posted
 by a party to prove the currently $\stClosed$ state is not the latest one. This
 transaction has a single input spending from the $\nuHead$ and paying to the
 $\nuHead$ validator, which checks the state of the CEM is advanced:
@@ -305,6 +303,13 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
   \item Value in the head is preserved $\val' = \val$
   \item No minting or burning $\txMint = \varnothing$
 \end{menumerate}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{figures/SM-contest.pdf}
+  \caption{\mtxClose{}/\mtxContest{} transaction (left); \mtxContest{}
+    transaction (right)}\label{fig:SM-contest}
+\end{figure}
 
 \subsection{Fan-Out Transaction}
 
