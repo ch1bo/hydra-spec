@@ -1,4 +1,3 @@
-\clearpage
 \section{On-chain Protocol}\label{sec:on-chain}
 
 \todo{Open problem: ensure abort is always possible. e.g. by individual aborts or undoing commits}
@@ -36,6 +35,7 @@ the \emph{limited} $\muHead$ minting policy script parameterized by $\txOutRef_{
   \cid = \hash(\muHead(\txOutRef_{\mathsf{seed}}))
 \]
 
+
 \noindent The $\muHead(\txOutRef_{\mathsf{seed}})$ minting policy validator checks:
 \begin{menumerate}
   \item When minting at least one token of this policy
@@ -65,16 +65,6 @@ output is consumed by either an \mtxAbort{} in Section~\ref{sec:abort-tx} or a
         $\pt_{i} = \{\cid \mapsto \keyHash_{i}\}$.
 \end{itemize}
 
-\vspace{0.5cm}
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/SM-init-commit.pdf}
-  \caption{Seed UTxO and \mtxInit{} transaction (left) with \mtxCom{}
-    transaction of party 1 (right) committing one output
-    (center).}\label{fig:SM-init-commit}
-\end{figure}
-
 \noindent Consequently, the \mtxInit{} transaction
 
 \begin{itemize}
@@ -88,6 +78,15 @@ output is consumed by either an \mtxAbort{} in Section~\ref{sec:abort-tx} or a
         $\cid$ as datum.
 \end{itemize}
 
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{figures/SM-init-commit.pdf}
+  \caption{Seed UTxO and \mtxInit{} transaction (left) with \mtxCom{}
+    transaction of party 1 (right) committing one output
+    (center).}\label{fig:SM-init-commit}
+\end{figure}
+
+\begin{samepage}
 \noindent The initial state of the protocol is captured in the state-machine output datum
 \[
   \datum_{\mathsf{head}} = (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer)
@@ -101,6 +100,7 @@ where
   \item $\nop$ is the number of head participants, and
   \item $\cPer$ is the length of the contestation period.
 \end{mitemize}
+\end{samepage}
 
 \subsection{Commit Transaction}\label{sec:commit-tx}
 
@@ -130,17 +130,19 @@ Figure~\ref{fig:SM-init-commit}. It has the following structure:
 
 \subsection{CollectCom Transaction}\label{sec:collect-tx}
 
-\noindent The \mtxCCom{} transaction collects all the committed UTxOs to the same head. It has
+\noindent The \mtxCCom{} transaction (Figure~\ref{fig:SM-collect}) collects all the committed UTxOs to the same head. It has
 \begin{itemize}
   \item one input spending from $\nuHead$ holding the $\st$, and
   \item $\forall i \in \{1 \dots \nop\}$ inputs spending \mtxCom{} outputs $(\valCommit{i}, \nuCommit, \datumCommit{i})$ with $\pt_{i} \in \valCommit{i}$ and $\datumCommit{i} = (\cid, U_{i})$.
 \end{itemize}
-The input spending from and paying to the $\nuHead$ validator, checks the state
+
+\noindent The input spending from and paying to the $\nuHead$ validator, checks the state
 of the CEM is advanced:
 \[
    (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer) \xrightarrow{\stCollect} (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta)
 \]
 
+\begin{samepage}
 \noindent Furthermore, $\nuHead$ checks these constraints:
 \begin{menumerate}
   \item Collect commits in $\eta = (0, U^{\#})$, where
@@ -163,15 +165,15 @@ of the CEM is advanced:
   \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit{} \Rightarrow \keyHash_{i} \in \txKeys$\todo{allow anyone to do this?}
   \item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
+\end{samepage}
 
-\noindent Each spent $\nuCommit$ validator ensures that:
+\noindent Each spent $\nuCommit$ validator with $\datumCommit{i} = (\cid,\cdot)$ and $\redeemerCommit{i} = \mathsf{Collect}$ ensures that:
 \begin{menumerate}
-  \item The state token is present in the output value
-  $\{\st \mapsto 1\} \in \val'$, where $(\cid,\cdot) = \datumCommit{}$ is given
-  by the datum of the commit output $o_{\mathsf{commit}}$.
+  \item The state token of currency $\cid$ is present in the output value
+  $\{\st \mapsto 1\} \in \val'$.
 \end{menumerate}
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   \includegraphics[width=0.8\textwidth]{figures/SM-collect.pdf}
   \caption{\mtxInit{} transaction (left) with \mtxCCom{} transaction (right) and
@@ -180,6 +182,7 @@ of the CEM is advanced:
 
 \subsection{Abort Transaction}\label{sec:abort-tx}
 
+\begin{samepage}
 The \mtxAbort{} transaction (see Figure~\ref{fig:SM-abort}) allows a
 party to abort the creation of a head and consists of
 \begin{itemize}
@@ -191,7 +194,9 @@ party to abort the creation of a head and consists of
     \end{itemize}
   \item $m$ outputs to redistribute already committed UTxOs.
 \end{itemize}
-Note that \mtxAbort{} represents a final transition of the CEM and hence there
+\end{samepage}
+
+\noindent Note that \mtxAbort{} represents a final transition of the CEM and hence there
 is no state machine output. The input spending from $\nuHead$ does provide the
 number of reimbursed outputs $m$ as redeemer \todo{m is implicit, not required as redeemer} and checks the state of the CEM is
 advanced to the final $\stFinal$ as follows:
@@ -200,6 +205,7 @@ advanced to the final $\stFinal$ as follows:
    (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer) \xrightarrow[m]{\stAbort} \stFinal.
 \]
 
+\begin{samepage}
 \noindent The $\nuHead$ validator ensures that:
 \begin{menumerate}
   \item All UTxOs committed into the head are reimbursed exactly as they were
@@ -216,22 +222,19 @@ advanced to the final $\stFinal$ as follows:
   \item All tokens are burnt
   $|\{\cid \mapsto \cdot \mapsto -1\} \in \txMint| = \nop + 1$
 \end{menumerate}
+\end{samepage}
 
-\noindent Each $\nuInitial$ validator checks:\todo{datums/redeemers here?}
+\noindent Each spent $\nuInitial$ validator with $\datumInitial{i} = \cid$ and $\redeemerInitial{i} = \mathsf{Abort}$ ensures that:
 \begin{menumerate}
-  \item The ST is getting burned $\{\st \mapsto -1\} \subseteq \txMint$, where
-  $\cid$ is given by the datum of the spent initial output
-  $\cid = \delta_{\mathsf{initial}}$.
+  \item The state token of currency $\cid$ is getting burned $\{\st \mapsto -1\} \subseteq \txMint$.
 \end{menumerate}
 
-\noindent Each $\nuCommit$ validators checks:
+\noindent Each spent $\nuCommit$ validator with $\datumCommit{i} = (\cid,\cdot)$ and $\redeemerCommit{i} = \mathsf{Abort}$ ensures that:
 \begin{menumerate}
-  \item The ST is getting burned $\{\st \mapsto -1\} \subseteq \txMint$, where
-  $\cid$ is given by the datum of the spent commit output
-  $(\cid,\cdot) = \datumCommit{}$.
+  \item The state token of currency $\cid$ is getting burned $\{\st \mapsto -1\} \subseteq \txMint$.
 \end{menumerate}
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   \includegraphics[width=0.8\textwidth]{figures/SM-abort.pdf}
   \caption{\mtxInit{} transaction (left) with \mtxAbort{} transaction (right)
@@ -248,6 +251,7 @@ the state of the CEM is advanced:
   (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta) \xrightarrow[\xi]{\stClose} (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta',\contesters,\Tfinal)
 \]
 
+\begin{samepage}
 \noindent The $\nuHead$ validator performs these checks:
 \begin{enumerate}
   \item Recorded the initial snapshot state\footnote{Needed to make off-chain signatures replay resistant, see~\ref{sec:rollbacks} for details.} $\eta_0 = \eta$
@@ -269,9 +273,10 @@ the state of the CEM is advanced:
   \item Value in the head is preserved $\val' = \val$
   \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val' \Rightarrow \keyHash_{i} \in \txKeys$
   \item No minting or burning $\txMint = \varnothing$
-\end{enumerate}https://www.overleaf.com/project/6389ba5edbcf7a51fda1328f
+\end{enumerate}
+\end{samepage}
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   \includegraphics[width=0.6\textwidth]{figures/SM-close.pdf}
   \caption{\mtxCCom{} transaction (left) with \mtxClose{} transaction
@@ -288,6 +293,7 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
   (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[\xi]{\stContest} (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta',\contesters',\Tfinal')
 \]
 
+\begin{samepage}
 \noindent The $\nuHead$ validator performs these checks:
 \begin{menumerate}
   \item Contest snapshot is newer $s' > s$, where $(s, \cdot) = \eta$ is the current and $(s', \cdot) = \eta'$ is the contest snapshot number
@@ -307,8 +313,9 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
   \item Value in the head is preserved $\val' = \val$
   \item No minting or burning $\txMint = \varnothing$
 \end{menumerate}
+\end{samepage}
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   \includegraphics[width=0.6\textwidth]{figures/SM-contest.pdf}
   \caption{\mtxClose{}/\mtxContest{} transaction (left); \mtxContest{}
@@ -317,6 +324,7 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
 
 \subsection{Fan-Out Transaction}
 
+\begin{samepage}
 Once the contestation phase is over, a head may be finalized by posting a
 \mtxFanout{} transaction (see Figure~\ref{fig:SM-fanout}), which
 distributes UTxOs from the head according to the latest state. It consists of
@@ -331,6 +339,7 @@ advanced to the final $\stFinal$ as follows:
 \[
   (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[m]{\stFanout} \stFinal,
 \]
+\end{samepage}
 
 \noindent The $\nuHead$ validator performs these checks:
 \begin{enumerate}
@@ -346,9 +355,9 @@ advanced to the final $\stFinal$ as follows:
         $|\{\cid \mapsto \cdot \mapsto -1\} \in \txMint| = n + 1$
 \end{enumerate}
 
-\begin{figure}
+\begin{figure}[h]
   \centering
-  \includegraphics[width=0.8\textwidth]{figures/SM-fanout.pdf}
+  \includegraphics[width=0.6\textwidth]{figures/SM-fanout.pdf}
   \caption{\mtxClose{}/\mtxContest{} transaction (left);
     \mtxFanout{} transaction (right)}\label{fig:SM-fanout}
 \end{figure}
