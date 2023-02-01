@@ -65,6 +65,16 @@ output is consumed by either an \mtxAbort{}~\ref{sec:abort-tx} or a
         $\pt_{i} = \{\cid \mapsto \keyHash_{i}\}$.
 \end{itemize}
 
+\vspace{0.5cm}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/SM-init-commit.pdf}
+  \caption{Seed UTxO and \mtxInit{} transaction (left) with \mtxCom{}
+    transaction of party 1 (right) committing one output
+    (center).}\label{fig:SM-init-commit}
+\end{figure}
+
 \noindent Consequently, the \mtxInit{} transaction
 
 \begin{itemize}
@@ -91,14 +101,6 @@ where
   \item $\nop$ is the number of head participants, and
   \item $\cPer$ is the length of the contestation period.
 \end{mitemize}
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/SM-init-commit.pdf}
-  \caption{Seed UTxO and \mtxInit{} transaction (left) with \mtxCom{}
-    transaction of party 1 (right) committing one output
-    (center).}\label{fig:SM-init-commit}
-\end{figure}
 
 \subsection{Commit Transaction}\label{sec:commit-tx}
 
@@ -247,7 +249,7 @@ the state of the CEM is advanced:
 
 \noindent The $\nuHead$ validator performs these checks:
 \begin{enumerate}
-  \item Recorded the initial snapshot state $\eta_0 = \eta$
+  \item Recorded the initial snapshot state\footnote{Needed to make off-chain signatures replay resistant, see~\ref{sec:rollbacks} for details.} $\eta_0 = \eta$
   \item New snapshot state $(s', \cdot) = \eta'$ is the initial $\eta_{0}$
         or correctly signed via $\xi$ \\
         \[
@@ -256,13 +258,13 @@ the state of the CEM is advanced:
                   \eta' = \eta_{0} & \mathrm{otherwise}
                  \end{array}\right.
         \]
-  \item Initialize the set of contesters\footnote{This allows the closing party
+  \item Initialize the set of contesters\footnote{Allows the closing party
         to also contest and is required for use cases where pre-signed, valid in
-        the future, close transactions are used to delegate head closing}
+        the future, close transactions are used to delegate head closing.}
         $\contesters = \emptyset$
   \item Correct contestation deadline $\Tfinal = \txRmax + T$
   \item Bounded confirmation window\footnote{Ensures head $\Tfinal$ is at most
-        $2*T$ in the future} $\txRmax - \txRmin \leq T$
+        $2*T$ in the future.} $\txRmax - \txRmin \leq T$
   \item Value in the head is preserved $\val' = \val$
   \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val' \Rightarrow \keyHash_{i} \in \txKeys$
   \item No minting or burning $\txMint = \varnothing$
