@@ -27,7 +27,7 @@ protocol defines one minting policy script and three validator scripts:
 \subsection{Init transaction}\label{sec:init-tx}
 
 The \mtxInit{} transaction creates a head instance and establishes the initial
-state of the protocol and is shown in Figure~\ref{fig:SM_commit_tx}. The head
+state of the protocol and is shown in Figure~\ref{fig:SM-init-commit}. The head
 instance is represented by the unique\footnote{As the EUTxO ledger preventing
   double-spending, the uniqueness of $\cid$ is guaranteed because $i_{\mathsf{seed}}$ can
   only be spent once} currency identifier $\cid$ created by minting tokens using
@@ -92,19 +92,19 @@ where
   \item $\cPer$ is the length of the contestation period.
 \end{mitemize}
 
-\begin{figure}[h]
+\begin{figure}[h]\label{fig:SM-init-commit}
   \centering
-  \includegraphics[width=\textwidth]{figures/SM-init-commit.pdf}
+  \includegraphics[width=0.8\textwidth]{figures/SM-init-commit.pdf}
   \caption{Seed UTxO and \mtxInit{} transaction (left) with \mtxCom{}
     transaction of party 1 (right) committing one output
-    (center).}\label{fig:SM_commit_tx}
+    (center).}
 \end{figure}
 
 \subsection{Commit Transaction}\label{sec:commit-tx}
 
 A \mtxCom{} transaction may be submitted by each participant
 $\forall i \in \{1 \dots \nop\}$ and is depicted on the right hand side of
-Figure~\ref{fig:SM_commit_tx}. It has the following structure:
+Figure~\ref{fig:SM-init-commit}. It has the following structure:
 \begin{itemize}
   \item One input $i_{\mathsf{initial}} = (\txOutRef_{\mathsf{initial}}, \redeemerInitial{})$
         spending $o_{\mathsf{initial}} = (\valInitial{}, \nuInitial, \datumInitial{})$
@@ -168,7 +168,12 @@ of the CEM is advanced:
   by the datum of the commit output $o_{\mathsf{commit}}$.
 \end{menumerate}
 
-\input{fig_SM_initial_open}
+\begin{figure}[h]\label{fig:SM-collect}
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/SM-collect.pdf}
+  \caption{\mtxInit{} transaction (left) with \mtxCCom{} transaction (right) and
+    \mtxCom{} transactions (center).}
+\end{figure}
 
 \subsection{Abort Transaction}\label{sec:abort-tx}
 
