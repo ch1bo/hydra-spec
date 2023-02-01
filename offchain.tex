@@ -271,7 +271,7 @@ snapshots have been signed, but then a $\mtxCollect$ and one or more
 $\mtxCommit$ transactions were rolled back, a bad actor could choose to commit a
 different UTxO and open the Head with a different initial UTxO set, while the
 already signed snapshots would still be (cryptographically) valid. To mitigate
-this, all signatures on snapshots need to incorporate the inital UTxO set by
+this, all signatures on snapshots need to incorporate the initial UTxO set by
 including $\eta_{0}$.
 
 \input{fig_offchain_prot}
