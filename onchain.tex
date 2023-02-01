@@ -92,12 +92,12 @@ where
   \item $\cPer$ is the length of the contestation period.
 \end{mitemize}
 
-\begin{figure}[h]\label{fig:SM-init-commit}
+\begin{figure}
   \centering
-  \includegraphics[width=0.8\textwidth]{figures/SM-init-commit.pdf}
+  \includegraphics[width=0.9\textwidth]{figures/SM-init-commit.pdf}
   \caption{Seed UTxO and \mtxInit{} transaction (left) with \mtxCom{}
     transaction of party 1 (right) committing one output
-    (center).}
+    (center).}\label{fig:SM-init-commit}
 \end{figure}
 
 \subsection{Commit Transaction}\label{sec:commit-tx}
@@ -168,19 +168,17 @@ of the CEM is advanced:
   by the datum of the commit output $o_{\mathsf{commit}}$.
 \end{menumerate}
 
-\begin{figure}[h]\label{fig:SM-collect}
+\begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{figures/SM-collect.pdf}
   \caption{\mtxInit{} transaction (left) with \mtxCCom{} transaction (right) and
-    \mtxCom{} transactions (center).}
+    \mtxCom{} transactions (center).}\label{fig:SM-collect}
 \end{figure}
 
 \subsection{Abort Transaction}\label{sec:abort-tx}
 
-\input{fig_SM_initial_final}
-
-The \mtxAbort{} transaction (see Figure~\ref{fig:SM_initial_final}) allows a
-party to abort the creation of a head. It is comprised of
+The \mtxAbort{} transaction (see Figure~\ref{fig:SM-abort}) allows a
+party to abort the creation of a head and consists of
 \begin{itemize}
   \item one input spending from $\nuHead$ holding the $\st$, and
   \item $\forall i \in \{1 \dots \nop\}$ inputs either
@@ -229,6 +227,13 @@ advanced to the final $\stFinal$ as follows:
   $\cid$ is given by the datum of the spent commit output
   $(\cid,\cdot) = \datumCommit{}$.
 \end{menumerate}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/SM-abort.pdf}
+  \caption{\mtxInit{} transaction (left) with \mtxAbort{} transaction (right)
+    and \mtxCom{} transactions (center).}\label{fig:SM-abort}
+\end{figure}
 
 \subsection{Close Transaction}\label{sec:close-tx}
 
