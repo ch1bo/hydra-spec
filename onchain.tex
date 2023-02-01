@@ -29,18 +29,18 @@ protocol defines one minting policy script and three validator scripts:
 The \mtxInit{} transaction creates a head instance and establishes the initial
 state of the protocol and is shown in Figure~\ref{fig:SM_commit_tx}. The head
 instance is represented by the unique\footnote{As the EUTxO ledger preventing
-  double-spending, the uniqueness of $\cid$ is guaranteed because $i_{seed}$ can
+  double-spending, the uniqueness of $\cid$ is guaranteed because $i_{\mathsf{seed}}$ can
   only be spent once} currency identifier $\cid$ created by minting tokens using
-the \emph{limited} $\muHead$ minting policy script parameterized by $\txOutRef_{seed} \in \mathcal{R}$:
+the \emph{limited} $\muHead$ minting policy script parameterized by $\txOutRef_{\mathsf{seed}} \in \mathcal{R}$:
 \[
-  \cid = \hash(\muHead(\txOutRef_{seed}))
+  \cid = \hash(\muHead(\txOutRef_{\mathsf{seed}}))
 \]
 
-\noindent The $\muHead(\txOutRef_{seed})$ minting policy validator checks:
+\noindent The $\muHead(\txOutRef_{\mathsf{seed}})$ minting policy validator checks:
 \begin{menumerate}
   \item When minting at least one token of this policy
   $\exists \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q > 0$, \\
-  $\txOutRef_{seed}$ needs to be spent in this transaction $(\txOutRef_{seed}, \cdot) \in \txInputs$.
+  $\txOutRef_{\mathsf{seed}}$ needs to be spent in this transaction $(\txOutRef_{\mathsf{seed}}, \cdot) \in \txInputs$.
 \end{menumerate}
 
 \noindent \textbf{Important:} Being a \emph{limited} minting policy, $\muHead$ only ensures
@@ -68,7 +68,7 @@ output is consumed by either an \mtxAbort{}~\ref{sec:abort-tx} or a
 \noindent Consequently, the \mtxInit{} transaction
 
 \begin{itemize}
-  \item has at least input $i_{seed}$,
+  \item has at least input $i_{\mathsf{seed}}$,
   \item mints the state thread token $\st$, and one $\pt$ for each of the $\nop$
         participants with policy $\cid$,
   \item has one state-machine output locked by $\nuHead$ with datum
@@ -92,7 +92,13 @@ where
   \item $\cPer$ is the length of the contestation period.
 \end{mitemize}
 
-\input{fig_SM_commit_tx}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{figures/SM-init-commit.pdf}
+  \caption{Seed UTxO and \mtxInit{} transaction (left) with \mtxCom{}
+    transaction of party 1 (right) committing one output
+    (center).}\label{fig:SM_commit_tx}
+\end{figure}
 
 \subsection{Commit Transaction}\label{sec:commit-tx}
 
