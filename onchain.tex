@@ -27,9 +27,7 @@ protocol defines one minting policy script and three validator scripts:
 
 The \mtxInit{} transaction creates a head instance and establishes the initial
 state of the protocol and is shown in Figure~\ref{fig:SM-init-commit}. The head
-instance is represented by the unique\footnote{As the EUTxO ledger preventing
-  double-spending, the uniqueness of $\cid$ is guaranteed because $i_{\mathsf{seed}}$ can
-  only be spent once} currency identifier $\cid$ created by minting tokens using
+instance is represented by the unique\footnote{The uniqueness of $\cid$ is guaranteed because the EUTxO ledger ensures that $\txOutRef_{\mathsf{seed}}$ cannot be spent twice in the same chain} currency identifier $\cid$ created by minting tokens using
 the \emph{limited} $\muHead$ minting policy script parameterized by $\txOutRef_{\mathsf{seed}} \in \mathcal{R}$:
 \[
   \cid = \hash(\muHead(\txOutRef_{\mathsf{seed}}))
@@ -54,13 +52,13 @@ output is consumed by either an \mtxAbort{} in Section~\ref{sec:abort-tx} or a
 
 \noindent Two kinds of tokens are minted:
 \begin{itemize}
-  \item A single \emph{State Thread (ST)} token marking the output carrying the state
-        of the protocol on-chain, whose name is the well known string
+  \item A single \emph{State Thread (ST)} token marks the output, which carries the state
+        of the protocol on-chain. The token name is the well known string
         \texttt{HydraHeadV1}, i.e.
         $\st = \{\cid \mapsto \texttt{HydraHeadV1}\}$.\todo{value notation}
   \item One \emph{Participation Token (PT)} per participant
-        $i \in \{1 \dots \nop \}$, where the token name is the participant's
-        verification key hash $\keyHash_{i} = hash(\msVK_{i})$ using the
+        $i \in \{1 \dots \nop \}$ to be used for authenticating further transactions and to ensure every participant can commit. The token name is the participant's
+        verification key hash $\keyHash_{i} = \hash(\msVK_{i})$ using the
         verification key as received during protocol setup, i.e.
         $\pt_{i} = \{\cid \mapsto \keyHash_{i}\}$.
 \end{itemize}
@@ -160,7 +158,7 @@ of the CEM is advanced:
 
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \valCommit{i})$
-  \item All tokens present in output\footnote{This is sufficient as a Head participant would check off-chain whether a Head is initialized correctly with the right number of tokens.}
+  \item Every participant had the chance to commit, by checking all tokens are present in output\footnote{This is sufficient as a Head participant would check off-chain whether a Head is initialized correctly with the right number of tokens.}
   $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$
   \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit{} \Rightarrow \keyHash_{i} \in \txKeys$\todo{allow anyone to do this?}
   \item No minting or burning  $\txMint = \varnothing$
