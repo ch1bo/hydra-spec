@@ -1,7 +1,7 @@
 
 \section{Protocol Setup}\label{sec:setup}
 In order to create a head-protocol instance, an initiator invites a set of
-participants (himself being one of them) to join by announcing to them the
+participants (the initiator being one of them) to join by announcing to them the
 protocol parameters.
 
 \begin{itemize}
@@ -15,7 +15,7 @@ protocol parameters.
           \item $\msCombVK$ is concatenation of verification keys into an ordered list
           \item $\msComb$ is concatenation of signatures into an ordered list
           \item $\msVfy$ verifies the "aggregate" signature by verifying each individual EdDSA signature under the corresponding Ed25519 verification key
-        \end{itemize}
+        \end{itemize}\todo{Move this and previous bullet point into the preliminary section}
         
   \item Each party $\party_i$ generates a hydra key pair and sends their hydra verification key to all other parties.
 

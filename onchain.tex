@@ -49,8 +49,8 @@ checked on-chain. All head members are expected to check whether the initial
 state has the right $\cid$, is consistent with parameters agreed during setup
 and whether the right amount of tokens have been minted and payed to $\nuHead$
 and $\nuInitial$ respectively. From there, these validators ensure that the
-output is consumed by either an \mtxAbort{}~\ref{sec:abort-tx} or a
-\mtxCom{}~\ref{sec:commit-tx} transaction. \\
+output is consumed by either an \mtxAbort{} in Section~\ref{sec:abort-tx} or a
+\mtxCom{} in Section~\ref{sec:commit-tx} transaction. \\
 
 \noindent Two kinds of tokens are minted:
 \begin{itemize}
@@ -123,10 +123,10 @@ Figure~\ref{fig:SM-init-commit}. It has the following structure:
   $\datumCommit{} = (\cid, U_{i})$ where\todo{rename $U_{i}$ to $C_{i}$}
   $U_{i} = (\txOutRef_{\mathsf{committed}},\bytes(o_{\mathsf{committed}}))$
   \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit{} \Rightarrow \keyHash_{i} \in \txKeys$
-  \item No minting or burning  $\txMint = \varnothing$\todo{restrict only $\cid \notin \txMint$?}
+  \item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
 
-\noindent The $\nuCommit$ validator ensures the output is collected by either a \mtxCCom{}~\ref{sec:collect-tx} or \mtxAbort{}~\ref{sec:abort-tx} transaction of the on-chain state machine, selected by the appropriate redeemer.
+\noindent The $\nuCommit$ validator ensures the output is collected by either a \mtxCCom{} in Section~\ref{sec:collect-tx} or \mtxAbort{} in Section~\ref{sec:abort-tx} transaction of the on-chain state machine, selected by the appropriate redeemer.
 
 \subsection{CollectCom Transaction}\label{sec:collect-tx}
 
@@ -148,18 +148,19 @@ of the CEM is advanced:
   \[
     \combine(\underline{U}) = \hash(\mathsf{concat}({\sortOn(1, \underline{U})}^{\downarrow2}))
   \]
+  \todo{Limit size of what we can collect (likely by bytes)}\todo{also mention in off-chain protocol}
   That is, given a list of commits $\underline{U}$, where each element is a pair
   of an $\txOutRef$ and the serialised representation of what was committed
   $U_{i} \in (\mathcal{R} \times \tyBytes)$, $\combine$ sorts this list by the
   $\txOutRef$, concatenates all the bytes and hashes the
-  result.\footnote{Sorting is required to ensure a canonical representation
-    which can also be reproduced from the UTxO set later in the fanout.}:
+  result\footnote{Sorting is required to ensure a canonical representation
+    which can also be reproduced from the UTxO set later in the fanout.}.
 
   \item All committed value captured and no additional funds ``enter'' or ``leave''\\
   $\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \valCommit{i})$
   \item All tokens present in output\footnote{This is sufficient as a Head participant would check off-chain whether a Head is initialized correctly with the right number of tokens.}
   $|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$
-  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit \Rightarrow \keyHash_{i} \in \txKeys$\todo{allow anyone to do this?}
+  \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit{} \Rightarrow \keyHash_{i} \in \txKeys$\todo{allow anyone to do this?}
   \item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
 
@@ -268,7 +269,7 @@ the state of the CEM is advanced:
   \item Value in the head is preserved $\val' = \val$
   \item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val' \Rightarrow \keyHash_{i} \in \txKeys$
   \item No minting or burning $\txMint = \varnothing$
-\end{enumerate}
+\end{enumerate}https://www.overleaf.com/project/6389ba5edbcf7a51fda1328f
 
 \begin{figure}
   \centering
@@ -292,7 +293,8 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
   \item Contest snapshot is newer $s' > s$, where $(s, \cdot) = \eta$ is the current and $(s', \cdot) = \eta'$ is the contest snapshot number
   \item $\xi$ is a valid multi-signature of the new snapshot state
   $\msVfy(\hydraKeysAgg,(\cid || \eta_{0} || \eta'),\xi) = \true$
-  \item The single signer $\{\keyHash\} = \txKeys$ has not already contested $\keyHash \not\in \contesters$ and is added to the set of contesters $\contesters' = \contesters \cup \keyHash$
+  \item The single signer $\{\keyHash\} = \txKeys$ has not already contested $\keyHash \not\in \contesters$ 
+  \item The single signer $\{\keyHash\} = \txKeys$ is added to the set of contesters $\contesters' = \contesters \cup \keyHash$
   \item Transaction is posted before deadline $\txRmax \leq \Tfinal$
   \item Contestation deadline is updated correctly
      \[

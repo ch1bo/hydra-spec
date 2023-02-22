@@ -26,7 +26,7 @@ processes three kinds of events:
       \item $\hpClose$: to request closure of an open head
     \end{itemize}
 \end{enumerate}
-\todo{add a state diagram?}
+\todo{define states and e.g. that $\hpNew$ not possible when closed? state diagram?}
 
 The behavior is fully specified in Figure~\ref{fig:head_coordinated}, while the
 following paragraphs introduce notation, explain variables and walk-through the
@@ -73,7 +73,7 @@ off-chain protocol logic relies on these assumptions:
         Further information may be available from the constituents of $event$
         and origin of the event.
   \item $\Req~p$ means that boolean expression $p \in \tyBool$ must be satisfied
-        for the further execution of a routine, while discontinued on $\neg p$.
+        for the further execution of a routine, while discontinued on $\neg p$. \todo{A conservative actor could interpret this as a reason to close the head} 
   \item $\KwWait~p$ is a \todo{blocking in GDoc?} non-blocking wait for boolean
         predicate $p \in \tyBool$ to be satisfied. On $\neg p$, the execution of
         the routine is stopped, queued, and reactivated at latest when $p$ is
@@ -113,6 +113,7 @@ party's local state consists of the following variables:
 \end{itemize}
 
 \subsection{Protocol flow}
+\todo{check consistency with figure again}
 
 \subsubsection{Initializing the head}
 
@@ -232,7 +233,7 @@ of the history of blocks and transactions between all parties, but this
 so-called \emph{finality} is only achieved after some time and the local view of
 the blockchain history may change until that point.
 
-On Cardano with it's Ouroboros consensus algorithm, this is means that any local
+On Cardano with it's Ouroboros consensus algorithm, this means that any local
 view of the mainchain may not be the longest chain and a node may switch to a
 longer chain, onto another fork. This other version of the history may not
 include what was previously observed and hence, any tracking state needs to be
@@ -245,7 +246,7 @@ Hydra protocol is kept in sync and also rolled back accordingly to be able to
 observe and react to these events the right way, e.g.\ correctly contesting this
 $\mathtt{closeTx}$ if need be.
 
-The rollback handling can be specified fully orthogonally on top of the nominal
+The rollback handling can be specified fully orthogonal on top of the nominal
 protocol behavior, if the chain provides strictly monotonically increasing
 points $p$ on each chain event via a new or wrapped $\mathtt{rollforward}$
 event and $\mathtt{rollback}$ event with the point to which a rollback happened:\\
@@ -272,7 +273,7 @@ $\mtxCommit$ transactions were rolled back, a bad actor could choose to commit a
 different UTxO and open the Head with a different initial UTxO set, while the
 already signed snapshots would still be (cryptographically) valid. To mitigate
 this, all signatures on snapshots need to incorporate the initial UTxO set by
-including $\eta_{0}$.
+including $\eta_{0}$.\todo{Write about contestation deadline vs. rollbacks}
 
 \input{fig_offchain_prot}
 

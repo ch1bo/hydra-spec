@@ -43,7 +43,7 @@
           \vspace{12pt}
 
           \On{$(\gcChainCollectCom, \eta_{0})$ from chain}{ %
-            \Req{} $\forall j \in [1..n]: U_j \neq \undefined$ \; %
+            % Implictly means that all commits will defined as we cannot miss a commit (by assumption)
             $\Uinit \gets \bigcup_{j=1}^{n} U_j$ \; %
             $\hatmU, \barmU, \hatmL \gets \Uinit$ \; %
             $\hats,\bars \gets 0$ \; %
@@ -65,7 +65,6 @@
 
           %%% NEW TX
           \On{$(\hpNew,\tx)$ from client}{%
-            \Req{} $\validTx(\tx) \land \hatmL \applytx \tx \neq \bot$\;
             \Multi{} $(\hpRT,\tx)$%
           }
 
@@ -73,26 +72,26 @@
 
           %%% REQ TX
           \On{$(\hpRT,\tx)$ from $\party_j$}{%
-            \Req{} $\validTx(\tx) \land \hatmL \applytx \tx \neq \bot$ \;
-
-            $\tx^{\#} \gets \hash(\tx)$ %
-
-            $\mT \gets \mT \cup (\tx^{\#}, \tx)$ % all seen txs
-
-            $\hatmT \gets \hatmT \cup (\tx^{\#}, \tx)$ % candidates for next snapshot
-
-            $\hatmL \gets \hatmL\applytx\tx$ %
-
-            % issue snapshot if we are leader
-            \If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
-              \Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
+            \textcolor{red}{\Req $\validTx(\tx)$} \;%
+            $\tx^{\#} \gets \hash(\tx)$ \;%
+            \textcolor{red}{$\mT \gets \mT \cup (\tx^{\#}, \tx)$} % all seen txs
+    
+            \Wait{$\hatmL \applytx \tx \neq \bot$}{
+              $\hatmT \gets \hatmT \cup (\tx^{\#}, \tx)$ % candidates for next snapshot
+    
+              $\hatmL \gets \hatmL\applytx\tx$ %
+    
+              % issue snapshot if we are leader
+              \If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
+                \Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
+              }
             }
           }
 
           \vspace{12pt} %
 
           %%% REQ SN
-          %TODO: avoid hash resolution complexity? it's handwavy at best right now
+          %TODO: avoid hash resolution complexity?
           \On{$(\hpRS,s,\mT^{\#}_{req})$ from $\party_j$}{ %
 
             \Req{} $s = \hats + 1 \land \hpLdr(s) = j$ \; %
@@ -117,8 +116,8 @@
 
                 $\forall \tx \in \mT_{res}: \Out~(\hpSeen,\tx)$ \; %
 
-                % TODO: pruning is handwavy
-                $\hatmT :\subseteq_{\mbox{max}} \mT$ s.t. $\hatmU\applytx\hatmT\not=\bot$ \; %
+                \textcolor{red}{$\hatmT \gets \max_{|T|} \{ T \subseteq \mT\ |\ % 
+                  \hatmU\applytx T \not = \bot \} $} \; %
                 $\hatmL \gets \hatmU\applytx\hatmT$
               }
             }
@@ -133,12 +132,13 @@
           %%% ACK SN
           \On{$(\hpAS,s,\msSig_j)$ from $\party_j$}{ %
 
-            \Req{} $s \in \{\hats,\hats+1\} ~ \land ~ (j,\msSig_j) \notin \hatSigma$
+            \textcolor{red}\Req{} $s \in \{\hats,\hats+1\}$
             \; %
 
             \Wait{$\hats=s$
             }{ %
             
+            \textcolor{red}\Req{} $(j,\msSig_j) \notin \hatSigma$ \; %
 
             $\hatSigma \gets \hatSigma \cup (j,\msSig_j)$ \; %
 
