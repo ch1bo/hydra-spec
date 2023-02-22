@@ -91,14 +91,14 @@
           %TODO: avoid hash resolution complexity?
           \On{$(\hpRS,s,\mT^{\#}_{req})$ from $\party_j$}{ %
 
-            \Req{} $s = \hats + 1 \land \hpLdr(s) = j$ \; %
+            \Req{} $s = \hats + 1 ~ \land ~ \hpLdr(s) = j$ \; %
 
 
             % Wait for snapshot no snapshot in flight anymore and all txs resolvable
-            \Wait{$\bars = \hats \land \forall h \in \mT^{\#}_{req} : (h, \cdot) \in \mT$}{ %
+            \Wait{$\bars = \hats ~ \land ~ \forall h \in \mT^{\#}_{req} : (h, \cdot) \in \mT$}{ %
 
               % resolve requested transactions
-              $\mT_{res} \gets [ \mT[h] ~ | ~ \forall h \in \mT^{\#}_{req}]$
+              $\mT_{res} \gets \{ \mT[h] ~ | ~ \forall h \in \mT^{\#}_{req}\}$
 
               \Wait{$\barmU \applytx \mT_{res} \not= \bot$}{ %
                 $\hats \gets \bars + 1$ \; %
