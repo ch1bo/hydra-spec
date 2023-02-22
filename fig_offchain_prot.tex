@@ -22,7 +22,6 @@
            \Req{} $\hydraKeysAgg=\hydraKeysAgg^{setup}$\; %
            \Req{} $\cardanoKeys^{\#}= [ \hash(k)~|~\forall k \in \cardanoKeys^{setup}]$\; %
            \Req{} $\cPer=\cPer^{setup}$\; %
-           % TODO: cid check good enough?
            \Req{} $\cid = \hash(\muHead(i_{seed}))$ \; %
           }
         \end{walgo}
@@ -88,7 +87,6 @@
           \vspace{12pt} %
 
           %%% REQ SN
-          %TODO: avoid hash resolution complexity?
           \On{$(\hpRS,s,\mT^{\#}_{req})$ from $\party_j$}{ %
 
             \Req{} $s = \hats + 1 ~ \land ~ \hpLdr(s) = j$ \; %
@@ -136,7 +134,7 @@
             \Wait{$\hats=s$
             }{ %
             
-            \textcolor{red}\Req{} $(j,\msSig_j) \notin \hatSigma$ \; %
+            \textcolor{red}\Req{} $(j, \cdot) \notin \hatSigma$ \; %
 
             $\hatSigma \gets \hatSigma \cup (j,\msSig_j)$ \; %
 
@@ -144,7 +142,7 @@
               $\msCSig \gets \msComb(\hydraKeys, \hatSigma)$ \; %
 
               $\eta' \gets (\hats, \combine(\hatmU))$ \; %
-              \Req{} $\msVfy(\msCVK, (\cid || \eta_{0} || \eta'), \msCSig)$ \;
+              \Req{} $\msVfy(\hydraKeysAgg, (\cid || \eta_{0} || \eta'), \msCSig)$ \;
               $\barmU \gets \hatmU$ \; %
               $\bars \gets \hats$ \; %
               $\barsigma \gets \msCSig$ \; %
