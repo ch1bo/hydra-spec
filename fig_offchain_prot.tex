@@ -72,11 +72,8 @@
 
           %%% REQ TX
           \On{$(\hpRT,\tx)$ from $\party_j$}{%
-            \textcolor{red}{\Req $\validTx(\tx)$} \;%
-            $\tx^{\#} \gets \hash(\tx)$ \;%
-            \textcolor{red}{$\mT \gets \mT \cup (\tx^{\#}, \tx)$} % all seen txs
-    
             \Wait{$\hatmL \applytx \tx \neq \bot$}{
+              $\tx^{\#} \gets \hash(\tx)$ \;%
               $\hatmT \gets \hatmT \cup (\tx^{\#}, \tx)$ % candidates for next snapshot
     
               $\hatmL \gets \hatmL\applytx\tx$ %
@@ -116,9 +113,10 @@
 
                 $\forall \tx \in \mT_{res}: \Out~(\hpSeen,\tx)$ \; %
 
-                \textcolor{red}{$\hatmT \gets \max_{|T|} \{ T \subseteq \mT\ |\ % 
-                  \hatmU\applytx T \not = \bot \} $} \; %
-                $\hatmL \gets \hatmU\applytx\hatmT$
+                \textcolor{blue}{
+                  $\hatmT \gets \{ tx ~ | ~ \forall tx \in \hatmT, ~ \hatmU \applytx tx \not = \bot \}$ \; %
+                  $\hatmL \gets \hatmU\applytx\hatmT$
+                }
               }
             }
            }
