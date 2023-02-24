@@ -28,14 +28,12 @@ protocol defines one minting policy script and three validator scripts:
 The \mtxInit{} transaction creates a head instance and establishes the initial
 state of the protocol and is shown in Figure~\ref{fig:SM-init-commit}. The head
 instance is represented by the unique\footnote{The uniqueness of $\cid$ is
-  guaranteed because the EUTxO ledger ensures that $\txOutRef_{\mathsf{seed}}$
+  guaranteed because the EUTxO ledger ensures that $\seed$
   cannot be spent twice in the same chain} currency identifier $\cid$ created by
-minting tokens using the $\muHead$ minting policy script
-
-which is parameterized
-by $\txOutRef_{\mathsf{seed}} \in \mathcal{R}$:
+minting tokens using the $\muHead$ minting policy script which is parameterized
+by $\seed \in \mathcal{R}$:
 \[
-  \cid = \hash(\muHead(\txOutRef_{\mathsf{seed}}))
+  \cid = \hash(\muHead(\seed))
 \]
 
 \noindent Two kinds of tokens are minted:
@@ -59,7 +57,7 @@ by $\txOutRef_{\mathsf{seed}} \in \mathcal{R}$:
 
 \begin{samepage}
 \begin{itemize}
-  \item has at least input $\txOutRef_{\mathsf{seed}}$,
+  \item has at least input $\seed$,
   \item mints the state thread token $\st$, and one $\pt$ for each of the $\nop$
         participants with policy $\cid$,
   \item has $\nop$ initial outputs
@@ -69,13 +67,13 @@ by $\txOutRef_{\mathsf{seed}} \in \mathcal{R}$:
         $o_{\mathsf{head}} = (\valHead, \nuHead, \datumHead)$. The initial state
         of the protocol is captured by the state-machine output datum
         \[
-          \datumHead = (\stInitial,\cid,\txOutRef_{\mathsf{seed}},\hydraKeysAgg,\nop,\cPer)
+          \datumHead = (\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer)
         \]
         where
         \begin{mitemize}
           \item $\stInitial$ is a state identifier,
           \item $\cid$ is the unique currency id of this instance,
-          \item $\txOutRef_{\mathsf{seed}}$ is the seed input parameter of $\muHead$,
+          \item $\seed$ is the seed input parameter of $\muHead$,
           \item $\hydraKeysAgg$ is the aggregated off-chain multi-signature key established during the
           setup phase,
           \item $\nop$ is the number of head participants, and
@@ -84,20 +82,20 @@ by $\txOutRef_{\mathsf{seed}} \in \mathcal{R}$:
 \end{itemize}
 \end{samepage}
 
-\noindent The $\muHead(\txOutRef_{\mathsf{seed}})$ minting policy is the only
+\noindent The $\muHead(\seed)$ minting policy is the only
 script that verifies init transactions by checking:
 \begin{itemize}
   \item When minting at least one token of this policy
   $\exists \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q > 0$,
   \begin{enumerate}
     \item The seed output is spent in this transaction
-          $(\txOutRef_{\mathsf{seed}}, \cdot) \in \txInputs$
+          $(\seed, \cdot) \in \txInputs$
     \item Right number of tokens are minted
           $|\{\cid \mapsto \cdot \mapsto 1\} \in \txMint| = \nop + 1$
     \item ST is sent to the head validator $\st \in \valHead$
     \item PTs are distributed correctly $\nuInitial$
           $\forall i \in [1 \dots n] : \pt_{i} \in \valInitial{i}$
-    \item The parameterized $\txOutRef_{\mathsf{seed}}$ and own currency id
+    \item The parameterized $\seed$ and own currency id
           correspond with the values in $\datum_{\mathsf{head}}$.\todo{optional?}
     \end{enumerate}
   \item otherwise, when burning, nothing is checked\footnote{The head validator
@@ -109,8 +107,8 @@ uniqueness of $\cid$, that the right amount of tokens have been minted and sent
 to $\nuHead$ and $\nuInitial$ respectively, while these validators in turn
 ensure continuity of the contract. However, it is \textbf{crucial} that all head
 members check that any head output contains a token of policy $\cid$ which
-satisfies $\cid = \hash(\muHead(\txOutRef_{\mathsf{seed}}))$. The
-$\txOutRef_{\mathsf{seed}}$ from a head datum can be used to determine this.
+satisfies $\cid = \hash(\muHead(\seed))$. The
+$\seed$ from a head datum can be used to determine this.
 Also, head members likely want to check
 whether the initial state is consistent with parameters agreed during setup. \\
 
@@ -159,7 +157,7 @@ Figure~\ref{fig:SM-init-commit}. It has the following structure:
 \noindent The input spending from and paying to the $\nuHead$ validator, checks the state
 of the CEM is advanced:
 \[
-   (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer) \xrightarrow{\stCollect} (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta)
+   (\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer) \xrightarrow{\stCollect} (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta)
 \]
 
 \begin{samepage}
@@ -222,7 +220,7 @@ number of reimbursed outputs $m$ as redeemer \todo{m is implicit, not required a
 advanced to the final $\stFinal$ as follows:
 
 \[
-   (\stInitial,\cid,\hydraKeysAgg,\nop,\cPer) \xrightarrow[m]{\stAbort} \stFinal.
+   (\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer) \xrightarrow[m]{\stAbort} \stFinal.
 \]
 
 \begin{samepage}
