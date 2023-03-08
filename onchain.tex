@@ -356,7 +356,7 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
 
 \begin{samepage}
 	Once the contestation phase is over, a head may be finalized by posting a
-	\mtxFanout{} transaction (see Figure~\ref{fig:SM-fanout}), which
+	\mtxFanout{} transaction (see Figure~\ref{fig:fanoutTx}), which
 	distributes UTxOs from the head according to the latest state. It consists of
 	\begin{itemize}
 		\item one input spending from $\nuHead$ holding the $\st$, and
@@ -387,9 +387,9 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.6\textwidth]{figures/SM-fanout.pdf}
-	\caption{\mtxClose{}/\mtxContest{} transaction (left);
-		\mtxFanout{} transaction (right)}\label{fig:SM-fanout}
+	\includegraphics[width=0.8\textwidth]{figures/fanoutTx.pdf}
+	\caption{\mtxFanout{} transaction spending the $\stClosed$ head output and
+		distributing funds with outputs $o_{1} \dots o_{n}$.}\label{fig:fanoutTx}
 \end{figure}
 
 \FloatBarrier{}
