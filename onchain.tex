@@ -160,7 +160,7 @@ Figure~\ref{fig:commitTx}. It has the following structure:
 
 \subsection{CollectCom Transaction}\label{sec:collect-tx}
 
-\noindent The \mtxCCom{} transaction (Figure~\ref{fig:SM-collect}) collects all the committed UTxOs to the same head. It has
+\noindent The \mtxCCom{} transaction (Figure~\ref{fig:collectComTx}) collects all the committed UTxOs to the same head. It has
 \begin{itemize}
 	\item one input spending from $\nuHead$ holding the $\st$, and
 	\item $\forall i \in \{1 \dots \nop\}$ inputs spending \mtxCom{} outputs $(\valCommit{i}, \nuCommit, \datumCommit{i})$ with $\pt_{i} \in \valCommit{i}$ and $\datumCommit{i} = (\cid, U_{i})$.
@@ -205,9 +205,10 @@ of the CEM is advanced:
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.8\textwidth]{figures/SM-collect.pdf}
-	\caption{\mtxInit{} transaction (left) with \mtxCCom{} transaction (right) and
-		\mtxCom{} transactions (center).}\label{fig:SM-collect}
+	\includegraphics[width=0.8\textwidth]{figures/collectComTx.pdf}
+	\caption{\mtxCCom{} transaction spending the head output in $\stInitial$
+		state and collecting from multiple commit outputs into a single
+		$\stOpen$ head output.}\label{fig:collectComTx}
 \end{figure}
 
 \subsection{Abort Transaction}\label{sec:abort-tx}
