@@ -1,208 +1,207 @@
 \begin{figure*}[t!]
 
-  \def\sfact{0.8}
-  \centering
-  \begin{algobox}{Coordinated Hydra Head}
-    \medskip
-    \begin{tabular}{c}
-      %%% Initializing the head
-      \begin{tabular}{cc}
-        \adjustbox{valign=t,scale=\sfact}{
-         \begin{walgo}{0.6}
-          %%% INIT
-           \On{$(\hpInit,\hydraKeys,\hydraSigningKey,\cardanoKeys,\cPer)$ from client}{ %
-             $\hydraKeysAgg^{setup} \gets \msCombVK(\hydraKeys)$ \; %
-             $\cardanoKeys^{setup} \gets \cardanoKeys$ \; %
-             $\cPer^{setup} \gets \cPer$ \; %
-            $\PostTx{}~(\mtxInit, \nop, \hydraKeysAgg,\cardanoKeys,\cPer)$ \; %
-          }
-          \vspace{12pt}
+	\def\sfact{0.8}
+	\centering
+	\begin{algobox}{Coordinated Hydra Head}
+		\medskip
+		\begin{tabular}{c}
+			%%% Initializing the head
+			\begin{tabular}{cc}
+				\adjustbox{valign=t,scale=\sfact}{
+					\begin{walgo}{0.6}
+						%%% INIT
+						\On{$(\hpInit,\hydraKeys,\hydraSigningKey,\cardanoKeys,\cPer)$ from client}{ %
+							$\hydraKeysAgg^{setup} \gets \msCombVK(\hydraKeys)$ \; %
+							$\cardanoKeys^{setup} \gets \cardanoKeys$ \; %
+							$\cPer^{setup} \gets \cPer$ \; %
+							$\PostTx{}~(\mtxInit, \nop, \hydraKeysAgg,\cardanoKeys,\cPer)$ \; %
+						}
+						\vspace{12pt}
 
-          \On{$(\gcChainInitial, \cid, \nop, \hydraKeysAgg, \cardanoKeys^{\#}, \cPer)$ from chain}{ %
-           \Req{} $\hydraKeysAgg=\hydraKeysAgg^{setup}$\; %
-           \Req{} $\cardanoKeys^{\#}= [ \hash(k)~|~\forall k \in \cardanoKeys^{setup}]$\; %
-           \Req{} $\cPer=\cPer^{setup}$\; %
-           \Req{} $\cid = \hash(\muHead(i_{seed}))$ \; %
-          }
-        \end{walgo}
-        }
-        &
+						\On{$(\gcChainInitial, \cid, \nop, \hydraKeysAgg, \cardanoKeys^{\#}, \cPer)$ from chain}{ %
+						\Req{} $\hydraKeysAgg=\hydraKeysAgg^{setup}$\; %
+						\Req{} $\cardanoKeys^{\#}= [ \hash(k)~|~\forall k \in \cardanoKeys^{setup}]$\; %
+						\Req{} $\cPer=\cPer^{setup}$\; %
+						\Req{} $\cid = \hash(\muHead(i_{seed}))$ \; %
+						}
+					\end{walgo}
+				}
+				 &
 
-        \adjustbox{valign=t,scale=\sfact}{
-        \begin{walgo}{0.6}
-          \On{$(\gcChainCommit, j, U)$ from chain}{ %
-            $U_j \gets U $
+				\adjustbox{valign=t,scale=\sfact}{
+					\begin{walgo}{0.6}
+						\On{$(\gcChainCommit, j, U)$ from chain}{ %
+							$U_j \gets U $
 
-            \If{$\forall k \in [1..n]: U_k \neq \undefined$}{ %
-              $\eta \gets (0, \combine([U_1 \dots U_n]))$ \; %
-              $\PostTx{}~(\mtxCCom, \eta)$ \; %
-            } %
-          }
+							\If{$\forall k \in [1..n]: U_k \neq \undefined$}{ %
+								$\eta \gets (0, \combine([U_1 \dots U_n]))$ \; %
+								$\PostTx{}~(\mtxCCom, \eta)$ \; %
+							} %
+						}
 
-          \vspace{12pt}
+						\vspace{12pt}
 
-          \On{$(\gcChainCollectCom, \eta_{0})$ from chain}{ %
-            % Implictly means that all commits will defined as we cannot miss a commit (by assumption)
-            $\Uinit \gets \bigcup_{j=1}^{n} U_j$ \; %
-            $\hatmU, \barmU, \hatmL \gets \Uinit$ \; %
-            $\hats,\bars \gets 0$ \; %
-            $\mT, \hatmT, \barmT \gets \emptyset$ \;
-          }
+						\On{$(\gcChainCollectCom, \eta_{0})$ from chain}{ %
+							% Implictly means that all commits will defined as we cannot miss a commit (by assumption)
+							$\Uinit \gets \bigcup_{j=1}^{n} U_j$ \; %
+							$\hatmU, \barmU, \hatmL \gets \Uinit$ \; %
+							$\hats,\bars \gets 0$ \; %
+							$\mT, \hatmT, \barmT \gets \emptyset$ \;
+						}
 
-        \end{walgo}
-      }
-      \end{tabular}
-      
-      \\
-      \multicolumn{1}{l}{\line(1,0){490}} %
-      \\
+					\end{walgo}
+				}
+			\end{tabular}
 
-      %%% Open head
-      \begin{tabular}{c@{}c}
-        \adjustbox{valign=t,scale=\sfact}{
-        \begin{walgo}{0.65}
+			\\
+			\multicolumn{1}{l}{\line(1,0){490}} %
+			\\
 
-          %%% NEW TX
-          \On{$(\hpNew,\tx)$ from client}{%
-            \Multi{} $(\hpRT,\tx)$%
-          }
+			%%% Open head
+			\begin{tabular}{c@{}c}
+				\adjustbox{valign=t,scale=\sfact}{
+					\begin{walgo}{0.65}
 
-          \vspace{12pt}
+						%%% NEW TX
+						\On{$(\hpNew,\tx)$ from client}{%
+							\Multi{} $(\hpRT,\tx)$%
+						}
 
-          %%% REQ TX
-          \On{$(\hpRT,\tx)$ from $\party_j$}{%
-            \Wait{$\hatmL \applytx \tx \neq \bot$}{
-              $\tx^{\#} \gets \hash(\tx)$ \;%
-              $\hatmT \gets \hatmT \cup (\tx^{\#}, \tx)$ % candidates for next snapshot
-    
-              $\hatmL \gets \hatmL\applytx\tx$ %
-    
-              % issue snapshot if we are leader
-              \If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
-                \Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
-              }
-            }
-          }
+						\vspace{12pt}
 
-          \vspace{12pt} %
+						%%% REQ TX
+						\On{$(\hpRT,\tx)$ from $\party_j$}{%
+							\Wait{$\hatmL \applytx \tx \neq \bot$}{
+								$\tx^{\#} \gets \hash(\tx)$ \;%
+								$\hatmT \gets \hatmT \cup (\tx^{\#}, \tx)$ % candidates for next snapshot
 
-          %%% REQ SN
-          \On{$(\hpRS,s,\mT^{\#}_{req})$ from $\party_j$}{ %
+								$\hatmL \gets \hatmL\applytx\tx$ %
 
-            \Req{} $s = \hats + 1 ~ \land ~ \hpLdr(s) = j$ \; %
+								% issue snapshot if we are leader
+								\If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
+									\Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
+								}
+							}
+						}
+
+						\vspace{12pt} %
+
+						%%% REQ SN
+						\On{$(\hpRS,s,\mT^{\#}_{req})$ from $\party_j$}{ %
+
+							\Req{} $s = \hats + 1 ~ \land ~ \hpLdr(s) = j$ \; %
 
 
-            % Wait for snapshot no snapshot in flight anymore and all txs resolvable
-            \Wait{$\bars = \hats ~ \land ~ \forall h \in \mT^{\#}_{req} : (h, \cdot) \in \mT$}{ %
-              \mf{no more $\mT$, and $\hatmT$ may never contain $h$}
-              
-              % resolve requested transactions
-              $\mT_{res} \gets \{ \mT[h] ~ | ~ h \in \mT^{\#}_{req}\}$
+							% Wait for snapshot no snapshot in flight anymore and all txs resolvable
+							\Wait{$\bars = \hats ~ \land ~ \forall h \in \mT^{\#}_{req} : (h, \cdot) \in \mT$}{ %
+								\mf{no more $\mT$, and $\hatmT$ may never contain $h$}
 
-              \Wait{$\barmU \applytx \mT_{res} \not= \bot$}{ %
-                $\hats \gets \bars + 1$ \; %
+								% resolve requested transactions
+								$\mT_{res} \gets \{ \mT[h] ~ | ~ h \in \mT^{\#}_{req}\}$
 
-                $\hatmU \gets \barmU \applytx \mT_{res}$ \; %
+								\Wait{$\barmU \applytx \mT_{res} \not= \bot$}{ %
+									$\hats \gets \bars + 1$ \; %
 
-                $\eta' \gets (\hats, \combine(\hatmU))$ \; %
-                \mf{include MT-hash of included txs in $\eta'$?}
-                $\msSig_i \gets \msSign(\hydraSigningKey, (\cid || \eta_{0} || \eta'))$ \; %
-                $\hatSigma \gets \emptyset$
+									$\hatmU \gets \barmU \applytx \mT_{res}$ \; %
 
-                $\Multi{}~(\hpAS,\hats,\msSig_i)$ \; %
+									$\eta' \gets (\hats, \combine(\hatmU))$ \; %
+									\mf{include MT-hash of included txs in $\eta'$?}
+									$\msSig_i \gets \msSign(\hydraSigningKey, (\cid || \eta_{0} || \eta'))$ \; %
+									$\hatSigma \gets \emptyset$
 
-                $\forall \tx \in \mT_{res}: \Out~(\hpSeen,\tx)$ \; %
+									$\Multi{}~(\hpAS,\hats,\msSig_i)$ \; %
 
-                \textcolor{blue}{
-                  $\hatmT \gets \{ tx \in \hatmT ~  | ~ \hatmU \applytx tx \not = \bot \}$ \ \mf{flat}\ \; %
-                  $\hatmL \gets \hatmU\applytx\hatmT$
-                }
-              }
-            }
-           }
-          
-        \end{walgo}
-        }
-        &
+									$\forall \tx \in \mT_{res}: \Out~(\hpSeen,\tx)$ \; %
 
-        \adjustbox{valign=t,scale=\sfact}{
-        \begin{walgo}{0.6}
-          %%% ACK SN
-          \On{$(\hpAS,s,\msSig_j)$ from $\party_j$}{ %
+									\textcolor{blue}{
+										$\hatmT \gets \{ tx \in \hatmT ~  | ~ \hatmU \applytx tx \not = \bot \}$ \ \mf{flat}\ \; %
+										$\hatmL \gets \hatmU\applytx\hatmT$
+									}
+								}
+							}
+						}
 
-            \Req{} $s \in \{\hats,\hats+1\}$
-            \; %
+					\end{walgo}
+				}
+				 &
 
-            \Wait{$\hats=s$
-            }{ %
-            
-            \Req{} $(j, \cdot) \notin \hatSigma$ \; %
+				\adjustbox{valign=t,scale=\sfact}{
+					\begin{walgo}{0.6}
+						%%% ACK SN
+						\On{$(\hpAS,s,\msSig_j)$ from $\party_j$}{ %
 
-            $\hatSigma \gets \hatSigma \cup (j,\msSig_j)$ \; %
+							\Req{} $s \in \{\hats,\hats+1\}$
+							\; %
 
-            \If{$\forall k \in [1..n]: (k,\cdot) \in \hatSigma$}{ %
-              $\msCSig \gets \msComb(\hydraKeys, \hatSigma)$ \; %
+							\Wait{$\hats=s$
+							}{ %
 
-              $\eta' \gets (\hats, \combine(\hatmU))$ \; %
-              \Req{} $\msVfy(\hydraKeysAgg, (\cid || \eta_{0} || \eta'), \msCSig)$ \;
-              $\barmU \gets \hatmU$ \; %
-              $\bars \gets \hats$ \; %
-              $\barsigma \gets \msCSig$ \; %
+								\Req{} $(j, \cdot) \notin \hatSigma$ \; %
 
-              $\forall \tx \in \mT_{res} : \Out (\hpConf,\tx)$ \; %
+								$\hatSigma \gets \hatSigma \cup (j,\msSig_j)$ \; %
 
-              % issue snapshot if we are leader
-              \If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
-                \mf{What if $\hatmT$ empty?}
-              
-                \Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
-              }
-            }
-          } }
-        \end{walgo}
+								\If{$\forall k \in [1..n]: (k,\cdot) \in \hatSigma$}{ %
+									$\msCSig \gets \msComb(\hydraKeys, \hatSigma)$ \; %
 
-          }
+									$\eta' \gets (\hats, \combine(\hatmU))$ \; %
+									\Req{} $\msVfy(\hydraKeysAgg, (\cid || \eta_{0} || \eta'), \msCSig)$ \;
+									$\barmU \gets \hatmU$ \; %
+									$\bars \gets \hats$ \; %
+									$\barsigma \gets \msCSig$ \; %
 
-      \end{tabular}
+									$\forall \tx \in \mT_{res} : \Out (\hpConf,\tx)$ \; %
 
-      \\
-      \multicolumn{1}{l}{\line(1,0){490}} %
-      \\
+									% issue snapshot if we are leader
+									\If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
+										\mf{What if $\hatmT$ empty?}
 
-      %%% Closing the head
-      \begin{tabular}{c c}
-        \adjustbox{valign=t,scale=\sfact}{
-        \begin{walgo}{0.6}
+										\Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
+									}
+								}
+							} }
+					\end{walgo}
 
-          % CLOSE from client
-          \On{$(\hpClose)$ from client}{ %
-            $\eta' \gets (\bars, \combine(\barmU))$ \; %
-            $\xi \gets \barsigma$ \; %
-            $\PostTx{}~(\mtxClose, \eta', \xi)$ \; %
-          }
+				}
+			\end{tabular}
 
-        \end{walgo}
-        }
-        & \adjustbox{valign=t,scale=\sfact}{
-          \begin{walgo}{0.6}
+			\\
+			\multicolumn{1}{l}{\line(1,0){490}} %
+			\\
 
-          \On{$(\gcChainClose, \eta) \lor (\gcChainContest, \eta)$ from chain}{ %
-            $(s_{c}, \cdot) \gets \eta$ \;
-            \If{$\bars > s_{c}$}{%
-              $\eta' \gets (\bars, \combine(\barmU))$ \; %
-              $\xi \gets \barsigma$ \; %
-              $\PostTx{}~(\mtxContest, \eta', \xi)$ \; %
-            } }
+			%%% Closing the head
+			\begin{tabular}{c c}
+				\adjustbox{valign=t,scale=\sfact}{
+					\begin{walgo}{0.6}
 
-          \end{walgo}
-          }
-      \end{tabular}
-    \end{tabular}
-    \bigskip
-  \end{algobox}
-  
-  \caption{Head-protocol machine for the \emph{coordinated head} from the
-    perspective of party $\party_i$.}\label{fig:off-chain-prot}
+						% CLOSE from client
+						\On{$(\hpClose)$ from client}{ %
+							$\eta' \gets (\bars, \combine(\barmU))$ \; %
+							$\xi \gets \barsigma$ \; %
+							$\PostTx{}~(\mtxClose, \eta', \xi)$ \; %
+						}
+
+					\end{walgo}
+				}
+				 & \adjustbox{valign=t,scale=\sfact}{
+					\begin{walgo}{0.6}
+
+						\On{$(\gcChainClose, \eta) \lor (\gcChainContest, \eta)$ from chain}{ %
+							$(s_{c}, \cdot) \gets \eta$ \;
+							\If{$\bars > s_{c}$}{%
+								$\eta' \gets (\bars, \combine(\barmU))$ \; %
+								$\xi \gets \barsigma$ \; %
+								$\PostTx{}~(\mtxContest, \eta', \xi)$ \; %
+							} }
+
+					\end{walgo}
+				}
+			\end{tabular}
+		\end{tabular}
+		\bigskip
+	\end{algobox}
+
+	\caption{Head-protocol machine for the \emph{coordinated head} from the
+		perspective of party $\party_i$.}\label{fig:off-chain-prot}
 
 
 \end{figure*}
