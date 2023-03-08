@@ -10,21 +10,21 @@ defining how the protocol behaves off-chain and notably the relationship between
 on- and off-chain semantics. The protocol is specified as a reactive system that
 processes three kinds of events:
 \begin{enumerate}
-  \item on-chain protocol transactions as introduced in
-        Section~\ref{sec:on-chain}, which are posted to the mainchain and can be
-        observed by all actors
-  \item off-chain network messages sent between protocol actors (parties):
-    \begin{itemize}
-      \item $\hpRT$: to request a transaction to be included in the next snapshot
-      \item $\hpRS$: to request a snapshot to be created \& signed by every head member
-      \item $\hpAS$: to acknowledge a snapshot by replying with their signatures
-    \end{itemize}
-  \item client commands as received from the environment
-    \begin{itemize}
-      \item $\hpInit$: to start initialization of a head
-      \item $\hpNew$: to submit a new transaction to an open head
-      \item $\hpClose$: to request closure of an open head
-    \end{itemize}
+	\item on-chain protocol transactions as introduced in
+	      Section~\ref{sec:on-chain}, which are posted to the mainchain and can be
+	      observed by all actors
+	\item off-chain network messages sent between protocol actors (parties):
+	      \begin{itemize}
+		      \item $\hpRT$: to request a transaction to be included in the next snapshot
+		      \item $\hpRS$: to request a snapshot to be created \& signed by every head member
+		      \item $\hpAS$: to acknowledge a snapshot by replying with their signatures
+	      \end{itemize}
+	\item client commands as received from the environment
+	      \begin{itemize}
+		      \item $\hpInit$: to start initialization of a head
+		      \item $\hpNew$: to submit a new transaction to an open head
+		      \item $\hpClose$: to request closure of an open head
+	      \end{itemize}
 \end{enumerate}
 \todo{define states and e.g. that $\hpNew$ not possible when closed? state diagram?}
 
@@ -38,54 +38,54 @@ On top of the statements of the protocol setup in Section~\ref{sec:setup}, the
 off-chain protocol logic relies on these assumptions:
 \todo{move some/merge with protocol setup?}
 \begin{itemize}
-  \item Every network message received from a specific party is checked for
-        authentication. An implementation of the specification needs to find a
-        suitable means of (channel) authentication. Unauthenticated messages are
-        dropped.
-  \item The head protocol gets correctly (and with completeness) notified about
-        observed transactions on-chain belonging to the respective head
-        instance.
-  \item The specification covers only a single instance of a Hydra head.
-        However, some implementations may choose to track multiple instances. As
-        multiple Hydra heads might exist on the same blockchain, it is vital
-        that they do not interfere and the specification will take special care
-        to ensure this.
-  \item All events are processed to completion, i.e.\ run-to-completion semantics
-        without preemption.
-  \item Events are deduplicated. That is, any two identical events must not lead
-        to multiple invocations of the handling semantics.
-  \item Given the specification, events may pile up forever and implementations
-        need to consider these situations (i.e.\ potential for DoS). Note that,
-        from a security standpoint, these situations are identical to a
-        non-collaborative peer.
-  \item The lifecycle of a Hydra head on-chain does not cross (hard fork)
-        protocol update boundaries. Note that these events are announced in
-        advance hence it should be possible for implementations to react in such
-        a way as to expedite closing of the head before such a protocol update.
-        This further assumes that the contestation period parameter is picked
-        accordingly.
+	\item Every network message received from a specific party is checked for
+	      authentication. An implementation of the specification needs to find a
+	      suitable means of (channel) authentication. Unauthenticated messages are
+	      dropped.
+	\item The head protocol gets correctly (and with completeness) notified about
+	      observed transactions on-chain belonging to the respective head
+	      instance.
+	\item The specification covers only a single instance of a Hydra head.
+	      However, some implementations may choose to track multiple instances. As
+	      multiple Hydra heads might exist on the same blockchain, it is vital
+	      that they do not interfere and the specification will take special care
+	      to ensure this.
+	\item All events are processed to completion, i.e.\ run-to-completion semantics
+	      without preemption.
+	\item Events are deduplicated. That is, any two identical events must not lead
+	      to multiple invocations of the handling semantics.
+	\item Given the specification, events may pile up forever and implementations
+	      need to consider these situations (i.e.\ potential for DoS). Note that,
+	      from a security standpoint, these situations are identical to a
+	      non-collaborative peer.
+	\item The lifecycle of a Hydra head on-chain does not cross (hard fork)
+	      protocol update boundaries. Note that these events are announced in
+	      advance hence it should be possible for implementations to react in such
+	      a way as to expedite closing of the head before such a protocol update.
+	      This further assumes that the contestation period parameter is picked
+	      accordingly.
 \end{itemize}
 
 \subsection{Notation}
 \todo{missing:, apply tx, map access}
 \begin{itemize}
-  \item $\KwOn~event$ specifies how the protocol reacts on a given $event$.
-        Further information may be available from the constituents of $event$
-        and origin of the event.
-  \item $\Req~p$ means that boolean expression $p \in \tyBool$ must be satisfied
-        for the further execution of a routine, while discontinued on $\neg p$. \todo{A conservative actor could interpret this as a reason to close the head} 
-  \item $\KwWait~p$ is a \todo{blocking in GDoc?} non-blocking wait for boolean
-        predicate $p \in \tyBool$ to be satisfied. On $\neg p$, the execution of
-        the routine is stopped, queued, and reactivated at latest when $p$ is
-        satisfied.
-  \item $\Multi{}~msg$ means that a message $msg$ is (channel-) authenticated
-        and sent to all participants of this head, including the sender.
-  \item $\PostTx{}~tx$ has a party create transaction $tx$, potentially from
-        some data, and submit it on-chain. See Section~\ref{sec:on-chain} for
-        individual transaction details.
-  \item $\Out{}~event$ signals an observation of $event$, which is used in the
-        security definition and proofs of Section~\ref{sec:security}. This
-        keyword can be ignored when implementing the protocol.
+	\item $\KwOn~event$ specifies how the protocol reacts on a given $event$.
+	      Further information may be available from the constituents of $event$
+	      and origin of the event.
+	\item $\Req~p$ means that boolean expression $p \in \tyBool$ must be satisfied
+	      for the further execution of a routine, while discontinued on $\neg p$. \todo{A conservative actor could interpret this as a reason to close the head}
+	\item $\KwWait~p$ is a \todo{blocking in GDoc?} non-blocking wait for boolean
+	      predicate $p \in \tyBool$ to be satisfied. On $\neg p$, the execution of
+	      the routine is stopped, queued, and reactivated at latest when $p$ is
+	      satisfied.
+	\item $\Multi{}~msg$ means that a message $msg$ is (channel-) authenticated
+	      and sent to all participants of this head, including the sender.
+	\item $\PostTx{}~tx$ has a party create transaction $tx$, potentially from
+	      some data, and submit it on-chain. See Section~\ref{sec:on-chain} for
+	      individual transaction details.
+	\item $\Out{}~event$ signals an observation of $event$, which is used in the
+	      security definition and proofs of Section~\ref{sec:security}. This
+	      keyword can be ignored when implementing the protocol.
 \end{itemize}
 \todo{fail not used anymore? do we need it?}
 
@@ -95,21 +95,21 @@ Besides parameters agreed in the protocol setup (see Section~\ref{sec:setup}), a
 party's local state consists of the following variables:
 
 \begin{itemize}
-  \item $\hats$: Sequence number of latest seen snapshot.
-  \item $\bars$: Sequence number of latest confirmed snapshot.
-  \item $\barsigma$: Signature associated with the latest confirmed snapshot.
-  \item $\hatmU$: UTxO set of the latest seen snapshot.
-  \item $\barmU$: UTxO set associated with the latest confirmed snapshot.
-  \item $\hatSigma \in {(\tyNatural \times \tyBytes)}^{*}$: Accumulator of signatures of the latest seen snapshot, indexed by parties.
-  \item $\hatmL$: Local ledger state used to validate new and requested
-        transactions against.
-  \item $\mT_{all} \in {(\tyBytes \times \mT)}^{*}$: Set of all transactions,
-        indexed by their transaction id, ever received via $\mathtt{reqTx}$
-        (independent of their validity).\todo{needed? prune using $\hatmT$?}
-  \item $\hatmT \in {(\tyBytes \times \mT)}^{*}$: Set of transactions, indexed by
-        their transaction id, that extend from the last confirmed snapshot
-        $\barmU$ to form $\hatmL$. These are also the transactions that would go
-        into the next snapshot (if this party is the next leader).
+	\item $\hats$: Sequence number of latest seen snapshot.
+	\item $\bars$: Sequence number of latest confirmed snapshot.
+	\item $\barsigma$: Signature associated with the latest confirmed snapshot.
+	\item $\hatmU$: UTxO set of the latest seen snapshot.
+	\item $\barmU$: UTxO set associated with the latest confirmed snapshot.
+	\item $\hatSigma \in {(\tyNatural \times \tyBytes)}^{*}$: Accumulator of signatures of the latest seen snapshot, indexed by parties.
+	\item $\hatmL$: Local ledger state used to validate new and requested
+	      transactions against.
+	\item $\mT_{all} \in {(\tyBytes \times \mT)}^{*}$: Set of all transactions,
+	      indexed by their transaction id, ever received via $\mathtt{reqTx}$
+	      (independent of their validity).\todo{needed? prune using $\hatmT$?}
+	\item $\hatmT \in {(\tyBytes \times \mT)}^{*}$: Set of transactions, indexed by
+	      their transaction id, that extend from the last confirmed snapshot
+	      $\barmU$ to form $\hatmL$. These are also the transactions that would go
+	      into the next snapshot (if this party is the next leader).
 \end{itemize}
 
 \subsection{Protocol flow}
@@ -158,7 +158,7 @@ created after each transaction.\\
 \dparagraph{$\hpNew$.}\quad At any time, by sending request $(\hpNew,\tx)$, a
 head party can (asynchronously) submit a new transaction $\tx$ to the head
 protocol. For this, the transaction must be well-formed ($\validTx$)\todo{remove
-  $\validTx$?} and applicable to the current local ledger state
+	$\validTx$?} and applicable to the current local ledger state
 $\hatmL \applytx \tx \neq \bot$. If the checks
 pass, a $(\hpRT,\tx)$ message is sent out to all parties.\\
 
@@ -196,7 +196,7 @@ potentially $\KwWait$ for the corresponding $\hpRS$ such that $\hats = s$. They
 store the received signature in the signature accumulator $\hatSigma$. If a
 signature from each party has been collected, $\party_i$ aggregates the
 multisignature $\msCSig$ and $\Req$ it to be valid. \todo{detect cheating (fail)
-  here?} If everything is fine, the snapshot can be considered confirmed by
+	here?} If everything is fine, the snapshot can be considered confirmed by
 updating $\bars=s$ and we also store the UTxO set in $\barmU$, as well as the
 signature in $\barsigma$ for later reference. Similar to the $\hpRT$, if
 $\party_i$ is the next snapshot leader and there are already transactions to
@@ -207,9 +207,9 @@ snapshot in $\hatmT$, a corresponding $\hpRS$ is distributed.
 \dparagraph{$\hpClose$.}\quad In order to close a head, a client issues the
 $\hpClose$ event which uses the latest confirmed snapshot $\barmU$ to create
 \begin{itemize}
-  \item the new $\eta$-state $\eta'$ from the last confirmed UTxO set and snapshot
-        number, and
-  \item the certifiate $\xi$ using the corresponding multi-signature.
+	\item the new $\eta$-state $\eta'$ from the last confirmed UTxO set and snapshot
+	      number, and
+	\item the certifiate $\xi$ using the corresponding multi-signature.
 \end{itemize}
 With $\eta'$ and $\xi$, the $\mtxClose$ transaction can be constructed and
 posted. See Section~\ref{sec:close-tx} for details about this transaction. \\
