@@ -2,7 +2,7 @@
 
   \def\sfact{0.8}
   \centering
-  \begin{algobox}{Coordinated Hydra Head}
+  \begin{algobox}{Coordinated Hydra Head}\label{fig:off-chain-prot}
     \medskip
     \begin{tabular}{c}
       %%% Initializing the head
@@ -94,9 +94,10 @@
 
             % Wait for snapshot no snapshot in flight anymore and all txs resolvable
             \Wait{$\bars = \hats ~ \land ~ \forall h \in \mT^{\#}_{req} : (h, \cdot) \in \mT$}{ %
-
+              \mf{no more $\mT$, and $\hatmT$ may never contain $h$}
+              
               % resolve requested transactions
-              $\mT_{res} \gets \{ \mT[h] ~ | ~ \forall h \in \mT^{\#}_{req}\}$
+              $\mT_{res} \gets \{ \mT[h] ~ | ~ h \in \mT^{\#}_{req}\}$
 
               \Wait{$\barmU \applytx \mT_{res} \not= \bot$}{ %
                 $\hats \gets \bars + 1$ \; %
@@ -104,6 +105,7 @@
                 $\hatmU \gets \barmU \applytx \mT_{res}$ \; %
 
                 $\eta' \gets (\hats, \combine(\hatmU))$ \; %
+                \mf{include MT-hash of included txs in $\eta'$?}
                 $\msSig_i \gets \msSign(\hydraSigningKey, (\cid || \eta_{0} || \eta'))$ \; %
                 $\hatSigma \gets \emptyset$
 
@@ -112,7 +114,7 @@
                 $\forall \tx \in \mT_{res}: \Out~(\hpSeen,\tx)$ \; %
 
                 \textcolor{blue}{
-                  $\hatmT \gets \{ tx ~ | ~ \forall tx \in \hatmT, ~ \hatmU \applytx tx \not = \bot \}$ \; %
+                  $\hatmT \gets \{ tx \in \hatmT ~  | ~ \hatmU \applytx tx \not = \bot \}$ \ \mf{flat}\ \; %
                   $\hatmL \gets \hatmU\applytx\hatmT$
                 }
               }
@@ -151,6 +153,8 @@
 
               % issue snapshot if we are leader
               \If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
+                \mf{What if $\hatmT$ empty?}
+              
                 \Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
               }
             }

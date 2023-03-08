@@ -27,9 +27,7 @@ protocol defines one minting policy script and three validator scripts:
 
 The \mtxInit{} transaction creates a head instance and establishes the initial
 state of the protocol and is shown in Figure~\ref{fig:SM-init-commit}. The head
-instance is represented by the unique\footnote{The uniqueness of $\cid$ is
-  guaranteed because the EUTxO ledger ensures that $\seed$
-  cannot be spent twice in the same chain} currency identifier $\cid$ created by
+instance is represented by the unique currency identifier $\cid$ created by
 minting tokens using the $\muHead$ minting policy script which is parameterized
 by $\seed \in \mathcal{R}$:
 \[
@@ -88,18 +86,18 @@ script that verifies init transactions by checking:
   \item When minting at least one token of this policy
   $\exists \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q > 0$,
   \begin{enumerate}
-    \item The seed output is spent in this transaction
+    \item The seed output is spent in this transaction. This guarantees uniqueness of the policy $\cid$ because the EUTxO ledger ensures that $\seed$ cannot be spent twice in the same chain. 
           $(\seed, \cdot) \in \txInputs$
     \item Right number of tokens are minted
-          $|\{\cid \mapsto \cdot \mapsto 1\} \in \txMint| = \nop + 1$
-    \item ST is sent to the head validator $\st \in \valHead$
-    \item PTs are distributed correctly $\nuInitial$
-          $\forall i \in [1 \dots n] : \pt_{i} \in \valInitial{i}$
+          $|\{\cid \mapsto \cdot \mapsto 1\} \in \txMint| = \nop + 1$\todo{what if we have an additional PT entry with q = 2? fix the spec}
+    \item State token is sent to the head validator $\st \in \valHead$
+    \item All initial outputs hold a participation token $\forall i \in [1 \dots n] : \pt_{i} \in \valInitial{i}$
+    \item Correct number of initial outputs $|(\cdot, \nuInitial, \cdot) \in \txOutputs| = n$\todo{remove this, not needed -> align statement above to GDoc}
     \item The parameterized $\seed$ and own currency id
-          correspond with the values in $\datum_{\mathsf{head}}$.\todo{optional?}
+          correspond with the values in $\datum_{\mathsf{head}}$.
     \end{enumerate}
   \item otherwise, when burning, nothing is checked\footnote{The head validator
-        $\nuHead$ is governing when tokens can be burnt.}.
+        $\nuHead$ is governing when tokens can be burnt.}.\todo{need to check all entries have negative quantity -> switch to redeemers}
 \end{itemize}
 
 \noindent \textbf{Important:} The $\muHead$ minting policy only ensures
@@ -110,7 +108,7 @@ members check that any head output contains a token of policy $\cid$ which
 satisfies $\cid = \hash(\muHead(\seed))$. The
 $\seed$ from a head datum can be used to determine this.
 Also, head members likely want to check
-whether the initial state is consistent with parameters agreed during setup. \\
+whether the right participants have gotten PTs and the initial state is consistent with parameters agreed during setup. See the initialTx behavior in Figure~\ref{fig:off-chain-prot} for details about these checks.\\
 
 \begin{figure}[h]
   \centering
@@ -128,7 +126,7 @@ Figure~\ref{fig:SM-init-commit}. It has the following structure:
 \begin{itemize}
   \item One input $i_{\mathsf{initial}} = (\txOutRef_{\mathsf{initial}}, \redeemerInitial{})$
         spending $o_{\mathsf{initial}} = (\valInitial{}, \nuInitial, \datumInitial{})$
-  \item Zero or one\todo{allow more? need individual abort} input with reference
+  \item Zero or one input with reference
         $\txOutRef_{\mathsf{committed}}$ spending output
         $o_{\mathsf{committed}} = (\val_{\mathsf{committed}}, \cdot , \cdot)$
   \item One output $o_{\mathsf{commit}} = (\valCommit{}, \nuCommit, \datumCommit{})$

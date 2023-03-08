@@ -218,7 +218,7 @@ ledger model~\cite{eutxo-2, ledger-shelley-spec}.
   $\txMint \in \tyValue$ is the minted (or burned) value,
   $(\txRmin, \txRmax) \in \mathcal{S}^{\leftrightarrow}$
   \todo{$\mathcal{S}^{\leftrightarrow}$ undefined, time \& periods instead?} are
-  the lower and upper validity bounds, and $\txKeys \in \mathcal{K}$ is the set
+  the lower and upper validity bounds where $\txRmin <= \txRmax$, and $\txKeys \in \mathcal{K}$ is the set
   of verification keys which signed the transaction.
 \end{definition}
 

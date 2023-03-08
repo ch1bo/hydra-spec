@@ -40,13 +40,13 @@ Adversaries:
     Consider any protocol execution in presence of a network adversary wherein
     the head does not get closed for a sufficiently long period of time, and consider
     an honest party $p_i$ who enters transaction $\tx$ by executing $(\hpNew,\tx)$
-    while $\validTx(\tx)$ and $\barmU_i\applytx\tx\not=\bot$.
+    while $\barmU_i\applytx\tx\not=\bot$.
 
     Then the following eventually holds:
     $\tx \in \bigcap_{i\in[n]} \Tbar_i\ \vee\ %
     \forall i: \Uinit \circ (\Tbar_i\cup\{\tx\}) = \bot$,
     i.e., every party will observe the transaction confirmed or every party
-    will observe the transaction in conflict with his confirmed transactions.\footnote{
+    will observe the transaction in conflict with their confirmed transactions.\footnote{
       In particular, \emph{liveness} expresses that the protocol makes progress
       under reasonable network conditions if no head parties get corrupted.
     }
