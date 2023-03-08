@@ -26,7 +26,7 @@ protocol defines one minting policy script and three validator scripts:
 \subsection{Init transaction}\label{sec:init-tx}
 
 The \mtxInit{} transaction creates a head instance and establishes the initial
-state of the protocol and is shown in Figure~\ref{fig:SM-init-commit}. The head
+state of the protocol and is shown in Figure~\ref{fig:initTx}. The head
 instance is represented by the unique currency identifier $\cid$ created by
 minting tokens using the $\muHead$ minting policy script which is parameterized
 by $\seed \in \mathcal{R}$:
@@ -129,7 +129,7 @@ Figure~\ref{fig:off-chain-prot} for details about these checks.\\
 
 A \mtxCom{} transaction may be submitted by each participant
 $\forall i \in \{1 \dots \nop\}$ and is depicted on the right hand side of
-Figure~\ref{fig:SM-init-commit}. It has the following structure:
+Figure~\ref{fig:commitTx}. It has the following structure:
 \begin{itemize}
 	\item One input $i_{\mathsf{initial}} = (\txOutRef_{\mathsf{initial}}, \redeemerInitial{})$
 	      spending $o_{\mathsf{initial}} = (\valInitial{}, \nuInitial, \datumInitial{})$
@@ -150,6 +150,13 @@ Figure~\ref{fig:SM-init-commit}. It has the following structure:
 \end{menumerate}
 
 \noindent The $\nuCommit$ validator ensures the output is collected by either a \mtxCCom{} in Section~\ref{sec:collect-tx} or \mtxAbort{} in Section~\ref{sec:abort-tx} transaction of the on-chain state machine, selected by the appropriate redeemer.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{figures/commitTx.pdf}
+	\caption{\mtxCom{} transaction spending an initial output and a single
+		committed output, and producing a commit output.}\label{fig:commitTx}
+\end{figure}
 
 \subsection{CollectCom Transaction}\label{sec:collect-tx}
 
