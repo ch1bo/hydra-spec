@@ -3,24 +3,32 @@
 \todo{Open problem: ensure abort is always possible. e.g. by individual aborts or undoing commits}
 \todo{Open problem: ensure fanout is always possible, e.g. by limiting complexity of $U_0$}
 
-We describe the details of the \emph{on-chain} protocol controlling a
-Hydra head (see Fig.~\ref{fig:SM_states_basic}) using the CEM abstraction \&
-notation (see Section~\ref{sec:cem}). In addition of standard CEM modeling, we
-also provide the formal conditions $\cemTxCon$ which a transition need to
-satisfy and also include them in the accompanying text.
+The following sections describe the the \emph{on-chain} protocol controlling the
+life-cycle of a Hydra head, which can be intuitively described as a state
+machine (see Figure~\ref{fig:SM_states_basic}). Each transition in this state
+machine is represented and caused by a corresponding Hydra protocol transaction
+on-chain: $\mtxInit{}$, $\mtxCom{}$, $\mtxAbort{}$, $\mtxCollect{}$,
+$\mtxClose{}$, $\mtxContest{}$, and $\mtxFanout{}$
 
-The following sections describe the structure of each of the transactions
-comprising the Head protocol: $\mtxInit{}$, $\mtxCom{}$, $\mtxAbort{}$,
-$\mtxCollect{}$, $\mtxClose{}$, $\mtxContest{}$, and $\mtxFanout{}$. Following
-the EUTxO model, this structure is enforced on-chain through \emph{validators}
-which are \emph{scripts instances} attached to each UTxO and run as part of the
-ledger's validation of the transaction (see Section~\ref{sec:eutxo}). The
-protocol defines one minting policy script and three validator scripts:
+State machines in the EUTxO ledger model are commonly described using the
+\emph{constraint emitting machine (CEM)} formalism~\cite{eutxo}, e.g.~the
+original paper describes the Hydra Head protocol using this
+notation~\cite{hydrahead20}. Although inspired by CEMs, this specification uses
+a more direct representation of individual transactions to simplify description
+of non-state-machine transactions and help translation to concrete
+implementations on Cardano. The structure of the state machine is enforced
+on-chain through \emph{scripts} which run as part of the ledger's validation of
+a transaction (see Section~\ref{sec:eutxo}). For each protocol transaction, the
+specification defines the structure of the transaction and enumerates the
+transaction constraints enforced by which script ($\cemTxCon$ in the CEM
+formalism). \\
+
+\noindent The protocol defines one minting policy script and three validator scripts:
 \begin{itemize}
 	\item $\muHead$ governs the minting of state and participation tokens,
 	\item $\nuInitial$ controls initialization and how UTxOs are committed to the head, while
 	\item $\nuCommit$ controls the collection of committed UTxOs into the head, and lastly
-	\item $\nuHead$ controls the main protocol state-machine logic.
+	\item $\nuHead$ controls the main protocol state machine logic.
 \end{itemize}
 
 \subsection{Init transaction}\label{sec:init-tx}
@@ -61,7 +69,7 @@ by $\seed \in \mathcal{R}$:
 		\item has $\nop$ initial outputs
 		      $o_{\mathsf{initial}_{i}} = (\valInitial{i}, \nuInitial, \datumInitial{})$,
 		      where $\datumInitial{} = \cid$,
-		\item has one state-machine output
+		\item has one state machine output
 		      $o_{\mathsf{head}} = (\valHead, \nuHead, \datumHead)$. The initial state
 		      of the protocol is captured by the datum
 		      \[
@@ -118,7 +126,7 @@ whether the right participants have gotten PTs and the initial state is
 consistent with parameters agreed during setup. See the initialTx behavior in
 Figure~\ref{fig:off-chain-prot} for details about these checks.\\
 
-\begin{figure}[h]
+\begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{figures/initTx.pdf}
 	\caption{\mtxInit{} transaction spending a seed UTxO, and producing the head

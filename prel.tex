@@ -230,63 +230,6 @@ transaction context it is executed in. The transaction is valid if and only if
 all scripts validate, i.e. $\mu(\rho, \txContext) = \true$ and
 $\nu(\delta, \rho, \txContext) = \true$.
 
-\subsection{State Machines}\label{sec:cem}
-
-A convenient abstraction for EUTxO smart contracts spanning a sequence of
-related transactions are state machines. This specification adopts and is
-written using \emph{constraint emitting machines (CEMs)} from~\cite{eutxo}.
-These are based on Mealy machines and consist of a set of states $\cemS$, a set
-of inputs $\cemI$, a predicate \(\cemFinal : \cemS\to\tyBool\) identifying final
-states, and a step relation \(\cemStepRel{s}{i}{s'}{\cemTxCon}\), which takes a
-state $s$ on an input $i$ to a successor state $s'$ under the condition that the
-constraints $\cemTxCon$ are satisfied.
-
-CEMs are implemented on an EUTxO ledger by representing a sequence of CEM states
-as a sequence of transactions. Each of these transactions has a
-\emph{state-machine input} $\cemIn$ and a \emph{state-machine output} $\cemOut$,
-where the latter is locked by a validator $\cemValidator$, implementing the step
-relation. The only exceptions are the initial and final state, which have got no
-state-machine input and output, respectively. More specifically, given two
-transactions $\tx$ and $\tx'$, they represent successive states under
-\(\cemStepRel{s}{i}{s'}{\cemTxCon}\) iff
-
-\begin{mitemize}
-	\item state-machine output $\cemOut = (\val, \cemValidator, \cemDatum)$
-	describes starting state $\cemDatum = s$ and is consumed by $tx'$ via
-	state-machine input $\cemIn' = (\txOutRef, \cemRedeemer)$, whose redeemer
-	provides the state-machine input $\cemRedeemer = (i, \tilde{\redeemer})$ and
-	\item either
-	\begin{mitemize}
-		\item $\cemFinal(s') = \true$ and $tx'$ has no state-machine output, or
-		\item $\tx'$ meets all constraints imposed by $\cemTxCon$ and has output
-		$\cemOut' = (\val', \cemValidator, \cemDatum')$ with the target state in
-		the datum $\cemDatum' = s'$.
-	\end{mitemize}
-\end{mitemize}
-
-Note that the state-machine validator $\cemValidator$ does check whether the
-transition is possible and hence needs to be able to inspect the resulting state
-$s'$ in $\cemDatum'$. In a Cardano transaction, that means that the actual output
-datum needs to be included in the transaction (not just it's hash) or fully inlined
-in the UTxO.
-
-A CEM transition is represented graphically by two connected transactions as
-shown in Figure~\ref{fig:state-transition}. The starting state of a transition
-$s$ is given by the datum of $\cemOut$ of transaction $tx$ and depicted by the
-left circle. Correspondingly, the end state $s'$ contained in the datum of
-$\cemOut'$ of transaction $tx'$ in the right circle. The transition name $i$ and
-additional data $\tilde \rho$ is shown above and below the transition arrow.
-Fields $\val$ and $\val'$ are the value fields of the state-machine outputs,
-while relevant fields of the transaction bodies are described by the rectangles
-below.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[scale=.2,width=\textwidth/2]{figures/state-transition_cropped.pdf}
-	\caption{Transactions representing successive states in a CEM
-		transition relation \(\cemStepRel{s}{i}{s'}{\cemTxCon}\).}\label{fig:state-transition}
-\end{figure}
-
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "main"
