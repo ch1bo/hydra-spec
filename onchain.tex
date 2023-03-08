@@ -214,7 +214,7 @@ of the CEM is advanced:
 \subsection{Abort Transaction}\label{sec:abort-tx}
 
 \begin{samepage}
-	The \mtxAbort{} transaction (see Figure~\ref{fig:SM-abort}) allows a
+	The \mtxAbort{} transaction (see Figure~\ref{fig:abortTx}) allows a
 	party to abort the creation of a head and consists of
 	\begin{itemize}
 		\item one input spending from $\nuHead$ holding the $\st$, and
@@ -267,9 +267,11 @@ advanced to the final $\stFinal$ as follows:
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.8\textwidth]{figures/SM-abort.pdf}
-	\caption{\mtxInit{} transaction (left) with \mtxAbort{} transaction (right)
-		and \mtxCom{} transactions (center).}\label{fig:SM-abort}
+	\includegraphics[width=0.8\textwidth]{figures/abortTx.pdf}
+	\caption{\mtxAbort{} transaction spending the $\stInitial$ state head
+		output and collecting all initial and commit outputs, which get reimbursed
+		by outputs $o_{1} \dots o_{n}$. Note that each $\pt$ may be in either, an
+		initial or commit output.}\label{fig:abortTx}
 \end{figure}
 
 \subsection{Close Transaction}\label{sec:close-tx}
