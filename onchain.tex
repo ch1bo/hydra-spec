@@ -272,7 +272,7 @@ the state of the CEM is advanced:
 \begin{enumerate}
   \item Recorded the initial snapshot state\footnote{Needed to make off-chain signatures replay resistant, see~\ref{sec:rollbacks} for details.} $\eta_0 = \eta$
   \item New snapshot state $(s', \cdot) = \eta'$ is the initial $\eta_{0}$
-        or correctly signed via $\xi$ \\
+        or correctly signed by all participants in multi-signature $\xi$ \\
         \[
           \left\{\begin{array}{ll}
                   \msVfy(\hydraKeysAgg,(\cid || \eta_{0} || \eta'),\xi) = \true & \mathrm{if} ~ s' > 0, \\
@@ -283,7 +283,7 @@ the state of the CEM is advanced:
         to also contest and is required for use cases where pre-signed, valid in
         the future, close transactions are used to delegate head closing.}
         $\contesters = \emptyset$
-  \item Correct contestation deadline $\Tfinal = \txRmax + T$
+  \item Correct contestation deadline $\Tfinal = \txRmax + T$ \todo{Add "parameters not change" constraint}
   \item Bounded confirmation window\footnote{Ensures head $\Tfinal$ is at most
         $2*T$ in the future.} $\txRmax - \txRmin \leq T$
   \item Value in the head is preserved $\val' = \val$

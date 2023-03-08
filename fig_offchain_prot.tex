@@ -130,13 +130,13 @@
           %%% ACK SN
           \On{$(\hpAS,s,\msSig_j)$ from $\party_j$}{ %
 
-            \textcolor{red}\Req{} $s \in \{\hats,\hats+1\}$
+            \Req{} $s \in \{\hats,\hats+1\}$
             \; %
 
             \Wait{$\hats=s$
             }{ %
             
-            \textcolor{red}\Req{} $(j, \cdot) \notin \hatSigma$ \; %
+            \Req{} $(j, \cdot) \notin \hatSigma$ \; %
 
             $\hatSigma \gets \hatSigma \cup (j,\msSig_j)$ \; %
 
