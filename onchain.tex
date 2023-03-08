@@ -63,7 +63,7 @@ by $\seed \in \mathcal{R}$:
 		      where $\datumInitial{} = \cid$,
 		\item has one state-machine output
 		      $o_{\mathsf{head}} = (\valHead, \nuHead, \datumHead)$. The initial state
-		      of the protocol is captured by the state-machine output datum
+		      of the protocol is captured by the datum
 		      \[
 			      \datumHead = (\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer)
 		      \]
@@ -89,15 +89,21 @@ script that verifies init transactions by checking:
 		      \item The seed output is spent in this transaction. This guarantees uniqueness of the policy $\cid$ because the EUTxO ledger ensures that $\seed$ cannot be spent twice in the same chain.
 		            $(\seed, \cdot) \in \txInputs$
 		      \item Right number of tokens are minted
-		            $|\{\cid \mapsto \cdot \mapsto 1\} \in \txMint| = \nop + 1$\todo{what if we have an additional PT entry with q = 2? fix the spec}
+		            $|\{\cid \mapsto \cdot \mapsto 1\} \in \txMint| = \nop + 1$
+		            % FIXME fix quantity
+		            \todo{what if we have an additional PT entry with q = 2? fix the spec}
 		      \item State token is sent to the head validator $\st \in \valHead$
 		      \item All initial outputs hold a participation token $\forall i \in [1 \dots n] : \pt_{i} \in \valInitial{i}$
-		      \item Correct number of initial outputs $|(\cdot, \nuInitial, \cdot) \in \txOutputs| = n$\todo{remove this, not needed -> align statement above to GDoc}
+		      \item Correct number of initial outputs $|(\cdot, \nuInitial, \cdot) \in \txOutputs| = n$
+		            % FIXME: align with GDoc
+		            \todo{remove this, not needed? ..align statement above to GDoc}
 		      \item The parameterized $\seed$ and own currency id
 		            correspond with the values in $\datum_{\mathsf{head}}$.
 	      \end{enumerate}
 	\item otherwise, when burning, nothing is checked\footnote{The head validator
-		      $\nuHead$ is governing when tokens can be burnt.}.\todo{need to check all entries have negative quantity -> switch to redeemers}
+		      $\nuHead$ is governing when tokens can be burnt.}.
+	      % FIXME: fix burning
+	      \todo{need to check all entries have negative quantity -> switch to redeemers}
 \end{itemize}
 
 \noindent \textbf{Important:} The $\muHead$ minting policy only ensures
