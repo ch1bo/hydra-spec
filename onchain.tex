@@ -277,7 +277,7 @@ advanced to the final $\stFinal$ as follows:
 \subsection{Close Transaction}\label{sec:close-tx}
 
 In order to close a head, a head member may post the \mtxClose{} transaction
-(see Figure~\ref{fig:SM-close}). This transaction has a single input
+(see Figure~\ref{fig:closeTx}). This transaction has a single input
 spending from the $\nuHead$ and paying to the $\nuHead$ validator, which checks
 the state of the CEM is advanced:
 \[
@@ -311,9 +311,8 @@ the state of the CEM is advanced:
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.6\textwidth]{figures/SM-close.pdf}
-	\caption{\mtxCCom{} transaction (left) with \mtxClose{} transaction
-		(right).}\label{fig:SM-close}
+	\includegraphics[width=0.8\textwidth]{figures/closeTx.pdf}
+	\caption{\mtxClose{} transaction spending the $\stOpen$ head output and producing a $\stClosed$ head output.}\label{fig:closeTx}
 \end{figure}
 
 \subsection{Contest Transaction}\label{sec:contest-tx}
