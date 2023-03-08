@@ -88,7 +88,7 @@
 					%%% REQ SN
 					\On{$(\hpRS,s,\mT_{res})$ from $\party_j$}{ %
 
-						\Req{} $s = \hats + 1 ~ \land ~ \hpLdr(s) = j$ \; %
+						\Req{$s = \hats + 1 ~ \land ~ \hpLdr(s) = j$} \; %
 
 						% Wait for snapshot no snapshot in flight anymore and all txs applicable
 						\Wait{$\bars = \hats ~ \land ~ \barmU \applytx \mT_{res} \not= \bot$}{ %
@@ -115,9 +115,8 @@
 							$\hatmL \gets \hatmU\applytx\hatmT$
 						}
 					}
-					}
-
 				\end{walgo}
+                }
 				 &
 
 				\adjustbox{valign=t,scale=\sfact}{
@@ -133,7 +132,7 @@
 
 								\Req{} $(j, \cdot) \notin \hatSigma$ \; %
 
-								$\hatSigma \gets \hatSigma \cup (j,\msSig_j)$ \; %
+								$\hatSigma \gets \hatSigma \cup (\party_j,\msSig_j)$ \; %
 
 								\If{$\forall k \in [1..n]: (k,\cdot) \in \hatSigma$}{ %
 									$\msCSig \gets \msComb(\hydraKeys, \hatSigma)$ \; %
@@ -193,8 +192,7 @@
 		\bigskip
 	\end{algobox}
 
-	\caption{Head-protocol machine for the \emph{coordinated head} from the
-		perspective of party $\party_i$.}\label{fig:off-chain-prot}
+	\caption{Head-protocol machine for the \emph{coordinated head} from the perspective of party $\party_i$.}\label{fig:off-chain-prot}
 
 
 \end{figure*}

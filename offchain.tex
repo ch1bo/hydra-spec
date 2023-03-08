@@ -45,11 +45,11 @@ off-chain protocol logic relies on these assumptions:
 	\item The head protocol gets correctly (and with completeness) notified about
 	      observed transactions on-chain belonging to the respective head
 	      instance.
-	\item The specification covers only a single instance of a Hydra head.
-	      However, some implementations may choose to track multiple instances. As
-	      multiple Hydra heads might exist on the same blockchain, it is vital
-	      that they do not interfere and the specification will take special care
-	      to ensure this.
+	% \item The specification covers only a single instance of a Hydra head.
+	%       However, some implementations may choose to track multiple instances. As
+	%       multiple Hydra heads might exist on the same blockchain, it is vital
+	%       that they do not interfere and the specification will take special care
+	%       to ensure this.
 	\item All events are processed to completion, i.e.\ run-to-completion semantics
 	      without preemption.
 	\item Events are deduplicated. That is, any two identical events must not lead
@@ -113,7 +113,7 @@ party's local state consists of the following variables:
 \end{itemize}
 
 \subsection{Protocol flow}
-\todo{check consistency with figure again}
+\todo{Make consistent with figure again}
 
 \subsubsection{Initializing the head}
 
