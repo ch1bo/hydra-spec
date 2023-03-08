@@ -27,11 +27,11 @@
 \newcommand{\ignore}[1]{}
 
 \newcommand{\TODO}[1]{
-  \if\relax\detokenize{#1}\relax
-    \textcolor{red}{TODO}
-  \else
-    \textcolor{red}{ {#1}}
-  \fi
+	\if\relax\detokenize{#1}\relax
+		\textcolor{red}{TODO}
+	\else
+		\textcolor{red}{ {#1}}
+	\fi
 }
 
 \newcommand{\fail}{\mbox{fail}}
@@ -40,15 +40,15 @@
 \definecolor{main}{HTML}{5989cf}    % setting main color to be used
 \definecolor{sub}{HTML}{cde4ff}     % setting sub color to be used
 \newtcolorbox{boxM}{
-    fontupper = \color{white},
-    rounded corners,
-    arc = 6pt,
-    colback = main!80, 
-    colframe = main, 
-    boxrule = 0pt, 
-    bottomrule = 4.5pt,
-    enhanced,
-    fuzzy shadow = {0pt}{-3pt}{-0.5pt}{0.5pt}{black!35}
+	fontupper = \color{white},
+	rounded corners,
+	arc = 6pt,
+	colback = main!80,
+	colframe = main,
+	boxrule = 0pt,
+	bottomrule = 4.5pt,
+	enhanced,
+	fuzzy shadow = {0pt}{-3pt}{-0.5pt}{0.5pt}{black!35}
 }
 
 % In figures, this makes algorithms work with option [H] despite
@@ -99,14 +99,14 @@
 % === Theorem Environments ===
 
 \newtheoremstyle{putaneffinperiod}% name of the style to be used
-  {\topsep}% measure of space to leave above the theorem. E.g.: 3pt
-  {\topsep}% measure of space to leave below the theorem. E.g.: 3pt
-  {\itshape}% name of font to use in the body of the theorem
-  {0pt}% measure of space to indent
-  {\bfseries}% name of head font
-  {.}% punctuation between head and body
-  {1em}% space after theorem head; " " = normal interword space
-  {\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}
+{\topsep}% measure of space to leave above the theorem. E.g.: 3pt
+{\topsep}% measure of space to leave below the theorem. E.g.: 3pt
+{\itshape}% name of font to use in the body of the theorem
+{0pt}% measure of space to indent
+{\bfseries}% name of head font
+{.}% punctuation between head and body
+{1em}% space after theorem head; " " = normal interword space
+{\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}
 \theoremstyle{putaneffinperiod}
 
 \newtheorem{theorem}{Theorem}
@@ -319,23 +319,23 @@
 \newcommand{\hpFO}{\mathtt{fanOut}}
 
 \ignore{
-\newcommand{\obj}{\Omega}
+	\newcommand{\obj}{\Omega}
 
-\newcommand{\certreq}{\ensuremath{\mathtt{sigReq}}}
-\newcommand{\certack}{\ensuremath{\mathtt{sigAck}}}
-\newcommand{\certconf}{\ensuremath{\mathtt{sigConf}}}
+	\newcommand{\certreq}{\ensuremath{\mathtt{sigReq}}}
+	\newcommand{\certack}{\ensuremath{\mathtt{sigAck}}}
+	\newcommand{\certconf}{\ensuremath{\mathtt{sigConf}}}
 
-\newcommand{\abortreq}{\ensuremath{\mathsf{abortReq}}}
+	\newcommand{\abortreq}{\ensuremath{\mathsf{abortReq}}}
 
-\newcommand{\init}{\mathbf{Init}}
-\newcommand{\gencert}{\mathbf{GenCert}}
+	\newcommand{\init}{\mathbf{Init}}
+	\newcommand{\gencert}{\mathbf{GenCert}}
 
-\newcommand{\txobj}{\mathsf{txo}}
-\newcommand{\genobj}{\mathsf{obj}}
-\newcommand{\genset}{\mathsf{ObjSet}}
-\newcommand{\gentxobj}{\mathsf{GenTxObj}}
-\newcommand{\stateobj}{\ensuremath{u}}
-\newcommand{\ack}{\mathsf{ack}}
+	\newcommand{\txobj}{\mathsf{txo}}
+	\newcommand{\genobj}{\mathsf{obj}}
+	\newcommand{\genset}{\mathsf{ObjSet}}
+	\newcommand{\gentxobj}{\mathsf{GenTxObj}}
+	\newcommand{\stateobj}{\ensuremath{u}}
+	\newcommand{\ack}{\mathsf{ack}}
 }
 
 % == Variables ==
@@ -550,40 +550,40 @@
 
 \newenvironment{algobox}[1]%
 {
-  \begin{tabularx}{\textwidth}{X c X}
-    \hline
-    \rowcolor{gray!20} 
-    & \textbf{#1} & \\
-    \hline
-  \end{tabularx}
-  
-  \vspace{-1.5em}
+	\begin{tabularx}{\textwidth}{X c X}
+		\hline
+		\rowcolor{gray!20}
+		 & \textbf{#1} & \\
+		\hline
+	\end{tabularx}
 
-  \begin{center}
-}
-{
-  \end{center}
+	\vspace{-1.5em}
 
-  \vspace{-1.5em}
+	\begin{center}
+		}
+		{
+	\end{center}
 
-  \begin{tabularx}{\textwidth}{X c X}
-    \hline
-  \end{tabularx}
+	\vspace{-1.5em}
 
-  \vspace{0.5em}
+	\begin{tabularx}{\textwidth}{X c X}
+		\hline
+	\end{tabularx}
+
+	\vspace{0.5em}
 }
 
 \newenvironment{walgo}[1]%
 {
-  \begin{minipage}{#1\linewidth}
-    \begingroup
-    \removelatexerror% Nullify \@latex@error
-    \begin{algorithm}[H]  
-}
-{
-    \end{algorithm}
-    \endgroup
-  \end{minipage}
+	\begin{minipage}{#1\linewidth}
+		\begingroup
+		\removelatexerror% Nullify \@latex@error
+		\begin{algorithm}[H]
+			}
+			{
+		\end{algorithm}
+		\endgroup
+	\end{minipage}
 }
 
 
@@ -723,28 +723,28 @@
 
 % == Narrow Itemize ==
 \newenvironment{sitemize}[1] %
-  {\itemize\setlength\itemsep{0em}} %
-  {\enditemize}
+{\itemize\setlength\itemsep{0em}} %
+{\enditemize}
 
 \newenvironment{senumerate} %
-  {\enumerate\setlength\itemsep{0em}} %
-  {\endenumerate}
+{\enumerate\setlength\itemsep{0em}} %
+{\endenumerate}
 
 \newenvironment{sdescription} %
-  {\description\setlength\itemsep{0em}} %
-  {\enddescription}
+{\description\setlength\itemsep{0em}} %
+{\enddescription}
 
 \newenvironment{mitemize} %
-  {\itemize\setlength\itemsep{0.25em}} %
-  {\enditemize}
+{\itemize\setlength\itemsep{0.25em}} %
+{\enditemize}
 
 \newenvironment{menumerate} %
-  {\enumerate\setlength\itemsep{0.25em}} %
-  {\endenumerate}
+{\enumerate\setlength\itemsep{0.25em}} %
+{\endenumerate}
 
 \newenvironment{mdescription} %
-  {\description\setlength\itemsep{0.25em}} %
-  {\enddescription}
+{\description\setlength\itemsep{0.25em}} %
+{\enddescription}
 
 %%% Local Variables:
 %%% mode: latex
