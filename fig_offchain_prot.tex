@@ -60,69 +60,64 @@
 			%%% Open head
 			\begin{tabular}{c@{}c}
 				\adjustbox{valign=t,scale=\sfact}{
-					\begin{walgo}{0.65}
+				\begin{walgo}{0.65}
 
-						%%% NEW TX
-						\On{$(\hpNew,\tx)$ from client}{%
-							\Multi{} $(\hpRT,\tx)$%
-						}
+					%%% NEW TX
+					\On{$(\hpNew,\tx)$ from client}{%
+						\Multi{} $(\hpRT,\tx)$%
+					}
 
-						\vspace{12pt}
+					\vspace{12pt}
 
-						%%% REQ TX
-						\On{$(\hpRT,\tx)$ from $\party_j$}{%
-							\Wait{$\hatmL \applytx \tx \neq \bot$}{
-								$\tx^{\#} \gets \hash(\tx)$ \;%
-								$\hatmT \gets \hatmT \cup (\tx^{\#}, \tx)$ % candidates for next snapshot
+					%%% REQ TX
+					\On{$(\hpRT,\tx)$ from $\party_j$}{%
+						\Wait{$\hatmL \applytx \tx \neq \bot$}{
+							$\hatmT \gets \hatmT \cup \tx$ % candidates for next snapshot
 
-								$\hatmL \gets \hatmL\applytx\tx$ %
+							$\hatmL \gets \hatmL\applytx\tx$ %
 
-								% issue snapshot if we are leader
-								\If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
-									\Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
-								}
+							% issue snapshot if we are leader
+							\If{$\hats = \bars \land \hpLdr(\bars + 1) = i \land \hatmT \neq \emptyset$}{%
+								\Multi{} $(\hpRS,\bars+1,\hatmT)$ \;%
 							}
 						}
+					}
 
-						\vspace{12pt} %
+					\vspace{12pt} %
 
-						%%% REQ SN
-						\On{$(\hpRS,s,\mT^{\#}_{req})$ from $\party_j$}{ %
+					%%% REQ SN
+					\On{$(\hpRS,s,\mT_{res})$ from $\party_j$}{ %
 
-							\Req{} $s = \hats + 1 ~ \land ~ \hpLdr(s) = j$ \; %
+						\Req{} $s = \hats + 1 ~ \land ~ \hpLdr(s) = j$ \; %
 
+						% Wait for snapshot no snapshot in flight anymore and all txs applicable
+						\Wait{$\bars = \hats ~ \land ~ \barmU \applytx \mT_{res} \not= \bot$}{ %
+							$\hats \gets \bars + 1$ \; %
 
-							% Wait for snapshot no snapshot in flight anymore and all txs resolvable
-							\Wait{$\bars = \hats ~ \land ~ \forall h \in \mT^{\#}_{req} : (h, \cdot) \in \mT$}{ %
-								\mf{no more $\mT$, and $\hatmT$ may never contain $h$}
+							$\hatmU \gets \barmU \applytx \mT_{res}$ \; %
 
-								% resolve requested transactions
-								$\mT_{res} \gets \{ \mT[h] ~ | ~ h \in \mT^{\#}_{req}\}$
+							$\eta' \gets (\hats, \combine(\hatmU))$ \; %
 
-								\Wait{$\barmU \applytx \mT_{res} \not= \bot$}{ %
-									$\hats \gets \bars + 1$ \; %
+							% NOTE: WE could make included transactions auditable by adding
+							% a merkle tree root to the (signed) snapshot data \eta'
+							$\msSig_i \gets \msSign(\hydraSigningKey, (\cid || \eta_{0} || \eta'))$ \; %
+							$\hatSigma \gets \emptyset$
 
-									$\hatmU \gets \barmU \applytx \mT_{res}$ \; %
+							$\Multi{}~(\hpAS,\hats,\msSig_i)$ \; %
 
-									$\eta' \gets (\hats, \combine(\hatmU))$ \; %
-									\mf{include MT-hash of included txs in $\eta'$?}
-									$\msSig_i \gets \msSign(\hydraSigningKey, (\cid || \eta_{0} || \eta'))$ \; %
-									$\hatSigma \gets \emptyset$
+							$\forall \tx \in \mT_{res}: \Out~(\hpSeen,\tx)$ \; %
 
-									$\Multi{}~(\hpAS,\hats,\msSig_i)$ \; %
-
-									$\forall \tx \in \mT_{res}: \Out~(\hpSeen,\tx)$ \; %
-
-									\textcolor{blue}{
-										$\hatmT \gets \{ tx \in \hatmT ~  | ~ \hatmU \applytx tx \not = \bot \}$ \ \mf{flat}\ \; %
-										$\hatmL \gets \hatmU\applytx\hatmT$
-									}
-								}
-							}
+							% TODO: We would not be keeping all applicable transactions. For
+							% this we would need to do a more recursive algorithm. Right now
+							% we throw out everything which is not applicable after a single
+							% pass. Also: Should we inform users if we drop a transaction?
+							$\hatmT \gets \{ tx \in \hatmT ~  | ~ \hatmU \applytx tx \not = \bot \}$ \; %
+							$\hatmL \gets \hatmU\applytx\hatmT$
 						}
+					}
+					}
 
-					\end{walgo}
-				}
+				\end{walgo}
 				 &
 
 				\adjustbox{valign=t,scale=\sfact}{
@@ -152,10 +147,8 @@
 									$\forall \tx \in \mT_{res} : \Out (\hpConf,\tx)$ \; %
 
 									% issue snapshot if we are leader
-									\If{$\hats = \bars \land \hpLdr(\bars + 1) = i$}{%
-										\mf{What if $\hatmT$ empty?}
-
-										\Multi{} $(\hpRS,\bars+1,\hatmT^{\downarrow1})$ \;%
+									\If{$\hats = \bars \land \hpLdr(\bars + 1) = i \land \hatmT \neq \emptyset$}{%
+										\Multi{} $(\hpRS,\bars+1,\hatmT)$ \;%
 									}
 								}
 							} }
