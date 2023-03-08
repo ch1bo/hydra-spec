@@ -37,7 +37,7 @@ The \mtxInit{} transaction creates a head instance and establishes the initial
 state of the protocol and is shown in Figure~\ref{fig:initTx}. The head
 instance is represented by the unique currency identifier $\cid$ created by
 minting tokens using the $\muHead$ minting policy script which is parameterized
-by $\seed \in \mathcal{R}$:
+by $\seed \in \tyOutRef$:
 \[
 	\cid = \hash(\muHead(\seed))
 \]
@@ -191,7 +191,7 @@ of the CEM is advanced:
 		\todo{Limit size of what we can collect (likely by bytes)}\todo{also mention in off-chain protocol}
 		That is, given a list of commits $\underline{U}$, where each element is a pair
 		of an $\txOutRef$ and the serialised representation of what was committed
-		$U_{i} \in (\mathcal{R} \times \tyBytes)$, $\combine$ sorts this list by the
+		$U_{i} \in (\tyOutRef \times \tyBytes)$, $\combine$ sorts this list by the
 		$\txOutRef$, concatenates all the bytes and hashes the
 		result\footnote{Sorting is required to ensure a canonical representation
 			which can also be reproduced from the UTxO set later in the fanout.}.
