@@ -195,18 +195,23 @@ ledger model~\cite{eutxo-2, ledger-shelley-spec}.
 	\]
 \end{definition}
 
+\begin{definition}[Output references]
+	An output reference $\txOutRef \in \tyOutRef$ points to an output of a
+	transaction, using a transaction id (that is, a hash of the transaction body)
+	and the output index within that transaction.
+	\[
+		\txOutRef \in \tyOutRef = (\tyBytes \times \mathbb{N})
+	\]
+\end{definition}
+
 \begin{definition}[Inputs]
-	An input $i \in \txInputs$ is an output reference $\txOutRef \in \tyOutRef$
-	and a corresponding redeemer $\rho \in \tyData$:
+	A transaction input $i \in \txInputs$ is an output reference
+	$\txOutRef \in \tyOutRef$ with a corresponding redeemer $\rho \in \tyData$:
 	\[
 		i \in \txInputs = (\txOutRef : \tyOutRef \times \rho : \tyData)
 	\]
-	where $\tyOutRef = (\tyBytes \times \mathbb{N})$ references an output of a
-	transaction by its id (that is, a hash of the transaction body) and the output
-	index within that transaction.
 \end{definition}
 
-\todo{define transaction or context or both?}
 \begin{definition}[Validation Context]
 	A validation context $\txContext \in \tyContext$ is a view on the transaction
 	to be validated:
