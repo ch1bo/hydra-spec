@@ -79,13 +79,13 @@ by $\seed \in \tyOutRef$:
 	      $o_{\mathsf{head}} = (\valHead, \nuHead, \datumHead)$. The initial state
 	      of the protocol is captured by the datum
 	      \[
-		      \datumHead = (\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer)
+		      \datumHead = (\stInitial,\cid',\seed',\hydraKeysAgg,\nop,\cPer)
 	      \]
 	      where
 	      \begin{mitemize}
 		      \item $\stInitial$ is a state identifier,
-		      \item $\cid$ is the unique currency id of this instance,
-		      \item $\seed$ is the seed input parameter of $\muHead$,
+		      \item $\cid'$ is the unique currency id of this instance,
+		      \item $\seed'$ is the seed input parameter of $\muHead$,
 		      \item $\hydraKeysAgg$ is the aggregated off-chain multi-signature key established during the
 		      setup phase,
 		      \item $\nop$ is the number of head participants, and
@@ -99,21 +99,16 @@ $\mathsf{Mint}$ or $\mathsf{Burn}$ redeemer:
 \begin{itemize}
 	\item When minting via the $\mathsf{Mint}$ redeemer,
 	      \begin{enumerate}
-		      \item All tokens in $\txMint$ need to be of positive quantity
-		            $\forall \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q > 0$.
 		      \item The seed output is spent in this transaction. This guarantees uniqueness of the policy $\cid$ because the EUTxO ledger ensures that $\seed$ cannot be spent twice in the same chain.
 		            $(\seed, \cdot) \in \txInputs$
-		      \item Right number of tokens are minted
-		            $|\{\cid \mapsto \cdot \mapsto 1\} \in \txMint| = \nop + 1$
-		            % FIXME fix quantity
-		            \todo{what if we have an additional PT entry with q = 2? fix the spec}
+		      \item \textcolor{blue}{Right number of unique tokens are minted
+			            $|\{\cid \mapsto \cdot \mapsto 1\} \in \txMint| = \nop + 1$}
+		            % TODO: different than in GDoc
 		      \item State token is sent to the head validator $\st \in \valHead$
-		      \item All initial outputs hold a participation token $\forall i \in [1 \dots n] : \pt_{i} \in \valInitial{i}$
-		      \item Correct number of initial outputs $|(\cdot, \nuInitial, \cdot) \in \txOutputs| = n$
-		            % FIXME: align with GDoc
-		            \todo{remove this, not needed? ..align statement above to GDoc}
-		      \item The parameterized $\seed$ and own currency id
-		            correspond with the values in $\datum_{\mathsf{head}}$.
+		      \item \textcolor{blue}{Correct number of initial outputs $|(\cdot, \nuInitial, \cdot) \in \txOutputs| = n$}
+		            % TODO: different than in GDoc
+		      \item All initial outputs hold a participation token $\forall i \in [1 \dots n] : \{\cid \mapsto \cdot \mapsto 1\} \in \valInitial{i}$
+		      \item The $\datum_{\mathsf{head}}$ contains own currency id $\cid = \cid'$ and the right seed reference $\seed = \seed'$.
 	      \end{enumerate}
 	\item When burning via the $\mathsf{Burn}$ redeemer,
 	      \begin{enumerate}
