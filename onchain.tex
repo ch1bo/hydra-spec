@@ -308,9 +308,9 @@ the state of the CEM is advanced:
 			      to also contest and is required for use cases where pre-signed, valid in
 			      the future, close transactions are used to delegate head closing.}
 		      $\contesters = \emptyset$
-		\item Correct contestation deadline $\Tfinal = \txRmax + T$ \todo{Add "parameters not change" constraint}
+		\item Correct contestation deadline $\Tfinal = \txValidityMax + T$ \todo{Add "parameters not change" constraint}
 		\item Bounded confirmation window\footnote{Ensures head $\Tfinal$ is at most
-			      $2*T$ in the future.} $\txRmax - \txRmin \leq T$
+			      $2*T$ in the future.} $\txValidityMax - \txValidityMin \leq T$
 		\item Value in the head is preserved $\val' = \val$
 		\item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val' \Rightarrow \keyHash_{i} \in \txKeys$
 		\item No minting or burning $\txMint = \varnothing$
@@ -341,7 +341,7 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
 		$\msVfy(\hydraKeysAgg,(\cid || \eta_{0} || \eta'),\xi) = \true$
 		\item The single signer $\{\keyHash\} = \txKeys$ has not already contested $\keyHash \not\in \contesters$
 		\item The single signer $\{\keyHash\} = \txKeys$ is added to the set of contesters $\contesters' = \contesters \cup \keyHash$
-		\item Transaction is posted before deadline $\txRmax \leq \Tfinal$
+		\item Transaction is posted before deadline $\txValidityMax \leq \Tfinal$
 		\item Contestation deadline is updated correctly
 		\[
 			\Tfinal' = \left\{\begin{array}{ll}
@@ -388,7 +388,7 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
 	      \[
 		      \hash(\bigoplus_{j=1}^{m} \bytes(\txOutputs[j])) = U^{\#}
 	      \]
-	\item Transaction is posted after contestation deadline $\txRmin > \Tfinal$
+	\item Transaction is posted after contestation deadline $\txValidityMin > \Tfinal$
 	\item All tokens are burnt
 	      $|\{\cid \mapsto \cdot \mapsto -1\} \in \txMint| = n + 1$
 \end{enumerate}
