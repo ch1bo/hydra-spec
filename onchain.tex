@@ -42,6 +42,13 @@ by $\seed \in \tyOutRef$:
 	\cid = \hash(\muHead(\seed))
 \]
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{figures/initTx.pdf}
+	\caption{\mtxInit{} transaction spending a seed UTxO, and producing the head
+		output in state $\stInitial$ and initial outputs for each participant.}\label{fig:initTx}
+\end{figure}
+
 \noindent Two kinds of tokens are minted:
 \begin{itemize}
 	\item A single \emph{State Thread (ST)} token marking the head output. This
@@ -61,39 +68,39 @@ by $\seed \in \tyOutRef$:
 
 \noindent Consequently, the \mtxInit{} transaction
 
-\begin{samepage}
-	\begin{itemize}
-		\item has at least input $\seed$,
-		\item mints the state thread token $\st$, and one $\pt$ for each of the $\nop$
-		      participants with policy $\cid$,
-		\item has $\nop$ initial outputs
-		      $o_{\mathsf{initial}_{i}} = (\valInitial{i}, \nuInitial, \datumInitial{})$,
-		      where $\datumInitial{} = \cid$,
-		\item has one state machine output
-		      $o_{\mathsf{head}} = (\valHead, \nuHead, \datumHead)$. The initial state
-		      of the protocol is captured by the datum
-		      \[
-			      \datumHead = (\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer)
-		      \]
-		      where
-		      \begin{mitemize}
-			      \item $\stInitial$ is a state identifier,
-			      \item $\cid$ is the unique currency id of this instance,
-			      \item $\seed$ is the seed input parameter of $\muHead$,
-			      \item $\hydraKeysAgg$ is the aggregated off-chain multi-signature key established during the
-			      setup phase,
-			      \item $\nop$ is the number of head participants, and
-			      \item $\cPer$ is the length of the contestation period.
-		      \end{mitemize}
-	\end{itemize}
-\end{samepage}
-
-\noindent The $\muHead(\seed)$ minting policy is the only
-script that verifies init transactions by checking:
 \begin{itemize}
-	\item When minting at least one token of this policy
-	      $\exists \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q > 0$,
+	\item has at least input $\seed$,
+	\item mints the state thread token $\st$, and one $\pt$ for each of the $\nop$
+	      participants with policy $\cid$,
+	\item has $\nop$ initial outputs
+	      $o_{\mathsf{initial}_{i}} = (\valInitial{i}, \nuInitial, \datumInitial{})$,
+	      where $\datumInitial{} = \cid$,
+	\item has one state machine output
+	      $o_{\mathsf{head}} = (\valHead, \nuHead, \datumHead)$. The initial state
+	      of the protocol is captured by the datum
+	      \[
+		      \datumHead = (\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer)
+	      \]
+	      where
+	      \begin{mitemize}
+		      \item $\stInitial$ is a state identifier,
+		      \item $\cid$ is the unique currency id of this instance,
+		      \item $\seed$ is the seed input parameter of $\muHead$,
+		      \item $\hydraKeysAgg$ is the aggregated off-chain multi-signature key established during the
+		      setup phase,
+		      \item $\nop$ is the number of head participants, and
+		      \item $\cPer$ is the length of the contestation period.
+	      \end{mitemize}
+\end{itemize}
+
+\noindent The $\muHead(\seed)$ minting policy is the only script that verifies
+init transactions by checking and can be redeemed with either a
+$\mathsf{Mint}$ or $\mathsf{Burn}$ redeemer:
+\begin{itemize}
+	\item When minting via the $\mathsf{Mint}$ redeemer,
 	      \begin{enumerate}
+		      \item All tokens in $\txMint$ need to be of positive quantity
+		            $\forall \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q > 0$.
 		      \item The seed output is spent in this transaction. This guarantees uniqueness of the policy $\cid$ because the EUTxO ledger ensures that $\seed$ cannot be spent twice in the same chain.
 		            $(\seed, \cdot) \in \txInputs$
 		      \item Right number of tokens are minted
@@ -108,10 +115,11 @@ script that verifies init transactions by checking:
 		      \item The parameterized $\seed$ and own currency id
 		            correspond with the values in $\datum_{\mathsf{head}}$.
 	      \end{enumerate}
-	\item otherwise, when burning, nothing is checked\footnote{The head validator
-		      $\nuHead$ is governing when tokens can be burnt.}.
-	      % FIXME: fix burning
-	      \todo{need to check all entries have negative quantity -> switch to redeemers}
+	\item When burning via the $\mathsf{Burn}$ redeemer,
+	      \begin{enumerate}
+		      \item All tokens in $\txMint$ need to be of negative quantity
+		            $\forall \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q < 0$.
+	      \end{enumerate}
 \end{itemize}
 
 \noindent \textbf{Important:} The $\muHead$ minting policy only ensures
@@ -125,13 +133,6 @@ Also, head members likely want to check
 whether the right participants have gotten PTs and the initial state is
 consistent with parameters agreed during setup. See the initialTx behavior in
 Figure~\ref{fig:off-chain-prot} for details about these checks.\\
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.8\textwidth]{figures/initTx.pdf}
-	\caption{\mtxInit{} transaction spending a seed UTxO, and producing the head
-		output in state $\stInitial$ and initial outputs for each participant.}\label{fig:initTx}
-\end{figure}
 
 \subsection{Commit Transaction}\label{sec:commit-tx}
 
