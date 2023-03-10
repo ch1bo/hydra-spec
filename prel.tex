@@ -119,7 +119,7 @@ see~\cite{eutxo},~\cite{eutxo-2}~and~\cite{utxo-ma}.
 	Values are sets that keep track of how many units of which tokens of which
 	currency are available. Given a finitely supported function $\mapsto$, that
 	maps keys to monoids, a value is the set of such mappings over currencies
-	(minting policy identifiers), over a mapping of token names $\mathsf{tok}$ to
+	(minting policy identifiers), over a mapping of token names $t$ to
 	quantities $q$:
 	\[
 		\val \in \tyValue = (c : \tyBytes \mapsto (t : \tyBytes \mapsto q : \tyInteger))
@@ -127,18 +127,9 @@ see~\cite{eutxo},~\cite{eutxo-2}~and~\cite{utxo-ma}.
 	\noindent where addition of values is defined as $+$ and $\varnothing$ is the empty value.
 \end{definition}
 
-\todo{define shorthands}
-% \noindent We define shorthands:
-% \begin{itemize}
-%   \item \(\{t_1, \ldots, t_n\} :: c\) for a list of positive single quantity tokens
-%         \(\{c \mapsto \{t_1 \mapsto 1, \ldots, t_n \mapsto 1\}\}\) (to mint).
-%   \item \({\{t_1, \ldots, t_n\}}^{-1} :: c\) for a list of negative single quantity tokens
-%         \(\{c \mapsto \{t_1 \mapsto 1, \ldots, t_n \mapsto 1\}\}\) (to burn).
-% \end{itemize}
-
 For example, the value $\{c_{1} \mapsto \{t_1 \mapsto 1, t_2 \mapsto 1\}\}$
-contains tokens $t_1$ and $t_2$ of currency $\mathsf{pid}$ and addition merges currencies
-and token names naturally:
+contains tokens $t_1$ and $t_2$ of currency $c_{1}$ and addition merges
+currencies and token names naturally:
 \begin{align*}
 	     & \{c_{1} \mapsto \{t_1 \mapsto 1, t_2 \mapsto 1\}\}                                                        \\
 	+ \  & \{c_{1} \mapsto \{t_{2} \mapsto 1, t_3 \mapsto 1\}, c_{2} \mapsto \{ t_{1} \mapsto 2\}\}                  \\
@@ -146,8 +137,19 @@ and token names naturally:
 \end{align*}
 
 While the above definition should be sufficient for the purpose of this
-specification, a full treatment via finitely supported functions can be found
-in~\cite{utxo-ma}.
+specification, a full definition for finitely supported functions and values as
+used here can be found in~\cite{utxo-ma}. To further improve readability, we
+define the following shorthands:
+\begin{itemize}
+	\item $\{t_1, \ldots, t_n\} :: c$ for a set positive single quantity assets
+	      $\{c \mapsto \{t_1 \mapsto 1, \ldots, t_n \mapsto 1\}\}$,
+	\item ${\{t_1, \ldots, t_n\}}^{-1} :: c$ for a set of negative single quantity assets
+	      $\{c \mapsto \{t_1 \mapsto -1, \ldots, t_n \mapsto -1\}\}$,
+
+	\item $\{c \mapsto t \mapsto q\}$ for the value entry $\{c \mapsto \{t \mapsto q\}\}$,
+	\item $\{c \mapsto \cdot \mapsto q \}$ for any asset with currency $c$ and
+	      quantity $q$ irrespective of token name.
+\end{itemize}
 
 \subsubsection{Scripts}
 
