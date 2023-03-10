@@ -223,10 +223,11 @@ ledger model~\cite{eutxo-2, ledger-shelley-spec}.
 	where $\txInputs \in \tyInputs$ is a \textbf{set} of inputs,
 	$\txOutputs \in \tyOutputs$ is a \textbf{list} of outputs,
 	$\txMint \in \tyValue$ is the minted (or burned) value,
-	$(\txValidityMin, \txValidityMax) \in \tyValidity$
-	\todo{$\tyValidity$ undefined, time \& periods instead?} are
-	the lower and upper validity bounds where $\txValidityMin <= \txValidityMax$, and $\txKeys \in \mathcal{K}$ is the set
-	of verification keys which signed the transaction.
+	$(\txValidityMin, \txValidityMax) \in \tyValidity$ \todo{$\tyValidity$
+		undefined, define time, periods and intervals} are the lower and upper
+	validity bounds where $\txValidityMin <= \txValidityMax$, and
+	$\txKeys \in \mathcal{K}$ is the set of verification keys which signed the
+	transaction.
 \end{definition}
 
 Informally, scripts are evaluated by the ledger when it applies a transaction to
