@@ -165,9 +165,13 @@
 \newcommand{\txID}{\mathit{txID}}
 \newcommand{\ID}{\mathsf{ID}}
 \newcommand{\txIdx}{\mathit{txIdx}}
-\newcommand{\txValidityMin}{s_{\mathsf{min}}}
-\newcommand{\txValidityMax}{s_{\mathsf{max}}}
-\newcommand{\tyValidity}{$\mathcal{S}^{\leftrightarrow}} % type of validity intervals
+\newcommand{\txValidityMin}{t_{\mathsf{min}}} % FIXME: update graphs to use t
+\newcommand{\txValidityMax}{t_{\mathsf{max}}}
+\newcommand{\tyValidity}{\mathcal{S}^{\leftrightarrow}} % type of validity intervals
+
+% other times and periods
+\newcommand{\cPer}{T}
+\newcommand{\Tfinal}{t_{\mathsf{final}}}
 
 \newcommand{\txIpend}{i_{\mathsf{pend}}}
 \newcommand{\txIpendSet}{I_{\mathsf{pend}}}
@@ -260,9 +264,6 @@
 \newcommand{\seed}{\txOutRef_{\mathsf{seed}}}
 \newcommand{\hMT}{h_{\mathsf{MT}}}
 \newcommand{\piMT}{\pi_{\mathsf{MT}}}
-\newcommand{\cPer}{T}
-\newcommand{\Tfinal}{T_{\mathsf{final}}}
-\newcommand{\Tsnapshot}{T_{\mathsf{newestSN}}}
 \newcommand{\contesters}{\mathcal{C}}
 
 
