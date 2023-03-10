@@ -235,6 +235,26 @@ transaction context it is executed in. The transaction is valid if and only if
 all scripts validate, i.e. $\mu(\rho, \txContext) = \true$ and
 $\nu(\delta, \rho, \txContext) = \true$.
 
+\subsubsection{State machines and graphical notation}
+
+State machines in the EUTxO ledger model are commonly described using the
+\emph{constraint emitting machine (CEM)} formalism~\cite{eutxo}, e.g.~the
+original paper describes the Hydra Head protocol using this
+notation~\cite{hydrahead20}. Although inspired by CEMs, this specification uses
+a more direct representation of individual transactions to simplify description
+of non-state-machine transactions and help translation to concrete
+implementations on Cardano. The structure of the state machine is enforced
+on-chain through \emph{scripts} which run as part of the ledger's validation of
+a transaction (see Section~\ref{sec:eutxo}). For each protocol transaction, the
+specification defines the structure of the transaction and enumerates the
+transaction constraints enforced by the scripts ($\cemTxCon$ in the CEM
+formalism).
+
+% TODO: Create example, maybe using the collectComTx, but with generic labels
+% and point out that state input/outputs do represent a transition in the
+% statemachine from s' to s' etc.
+\todo{Add an example graph with a legend}
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "main"

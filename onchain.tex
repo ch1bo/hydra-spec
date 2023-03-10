@@ -13,19 +13,6 @@ $\mtxClose{}$, $\mtxContest{}$, and $\mtxFanout{}$.
 % TODO: Could include a combined overview, slightly more detailed than Figure 1
 % of the transaction trace for the full life cycle maybe?
 
-State machines in the EUTxO ledger model are commonly described using the
-\emph{constraint emitting machine (CEM)} formalism~\cite{eutxo}, e.g.~the
-original paper describes the Hydra Head protocol using this
-notation~\cite{hydrahead20}. Although inspired by CEMs, this specification uses
-a more direct representation of individual transactions to simplify description
-of non-state-machine transactions and help translation to concrete
-implementations on Cardano. The structure of the state machine is enforced
-on-chain through \emph{scripts} which run as part of the ledger's validation of
-a transaction (see Section~\ref{sec:eutxo}). For each protocol transaction, the
-specification defines the structure of the transaction and enumerates the
-transaction constraints enforced by the scripts ($\cemTxCon$ in the CEM
-formalism). \\
-
 \noindent The protocol defines one minting policy script and three validator scripts:
 \begin{itemize}
 	\item $\muHead$ governs minting of state and participation tokens in
