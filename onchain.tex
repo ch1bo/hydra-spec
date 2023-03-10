@@ -8,7 +8,10 @@ life-cycle of a Hydra head, which can be intuitively described as a state
 machine (see Figure~\ref{fig:SM_states_basic}). Each transition in this state
 machine is represented and caused by a corresponding Hydra protocol transaction
 on-chain: $\mtxInit{}$, $\mtxCom{}$, $\mtxAbort{}$, $\mtxCollect{}$,
-$\mtxClose{}$, $\mtxContest{}$, and $\mtxFanout{}$
+$\mtxClose{}$, $\mtxContest{}$, and $\mtxFanout{}$.
+
+% TODO: Could include a combined overview, slightly more detailed than Figure 1
+% of the transaction trace for the full life cycle maybe?
 
 State machines in the EUTxO ledger model are commonly described using the
 \emph{constraint emitting machine (CEM)} formalism~\cite{eutxo}, e.g.~the
@@ -20,15 +23,22 @@ implementations on Cardano. The structure of the state machine is enforced
 on-chain through \emph{scripts} which run as part of the ledger's validation of
 a transaction (see Section~\ref{sec:eutxo}). For each protocol transaction, the
 specification defines the structure of the transaction and enumerates the
-transaction constraints enforced by which script ($\cemTxCon$ in the CEM
+transaction constraints enforced by the scripts ($\cemTxCon$ in the CEM
 formalism). \\
 
 \noindent The protocol defines one minting policy script and three validator scripts:
 \begin{itemize}
-	\item $\muHead$ governs the minting of state and participation tokens,
-	\item $\nuInitial$ controls initialization and how UTxOs are committed to the head, while
-	\item $\nuCommit$ controls the collection of committed UTxOs into the head, and lastly
-	\item $\nuHead$ controls the main protocol state machine logic.
+	\item $\muHead$ governs minting of state and participation tokens in
+	      $\mtxInit{}$ and burning of these tokens in $\mtxAbort{}$ and
+	      $\mtxFanout{}$.
+	\item $\nuInitial$ controls how UTxOs are committed to the head in
+	      $\mtxCommit{}$ or when the head initialiazation is aborted via
+	      $\mtxAbort{}$.
+	\item $\nuCommit$ controls the collection of committed UTxOs into the head in
+	      $\mtxCollect$ or that funds are reimbursed in an $\mtxAbort{}$.
+	\item $\nuHead$ represents the main protocol state machine logic and ensures
+	      contract continuity throughout $\mtxCollectCom{}$, $\mtxClose{}$,
+	      $\mtxContest{}$ and $\mtxFanout{}$.
 \end{itemize}
 
 \subsection{Init transaction}\label{sec:init-tx}
