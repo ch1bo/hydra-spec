@@ -169,47 +169,50 @@ by the appropriate redeemer.
 \noindent The \mtxCCom{} transaction (Figure~\ref{fig:collectComTx}) collects
 all the committed UTxOs to the same head. It has
 \begin{itemize}
-	\item one input spending from $\nuHead$ holding the $\st$, and
-	\item $\forall i \in \{1 \dots \nop\}$ inputs spending \mtxCom{} outputs
+	\item $\forall i \in \{1 \dots \nop\}$ inputs spending commit outputs
 	      $(\valCommit{i}, \nuCommit, \datumCommit{i})$ with $\pt_{i} \in \valCommit{i}$
-	      and $\datumCommit{i} = (\cid, C_{i})$.
+	      and $\datumCommit{i} = (\cid, C_{i})$,
+	\item one input spending from $\nuHead$ holding the $\st$ with $\datumHead$,
+	      and
+	\item one output paying to $o_{\mathsf{head}} = (\val', \nuHead, \datumHead')$.
 \end{itemize}
 
-\noindent The input spending from and paying to the $\nuHead$ validator, checks the state
-of the CEM is advanced:
-\[
-	(\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer) \xrightarrow{\stCollect} (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta)
-\]
+\noindent The state-machine validator $\nuHead$ with $\redeemerHead = \mathsf{collect}$ checks:
+\begin{menumerate}
+	\item The state is advanced from $\datumHead \sim \stInitial$ to $\datumHead' \sim \stOpen$, parameters $\cid,\hydraKeysAgg,\nop,\cPer$ stay unchanged and the new state is governed again by $\nuHead$:
+	\[
+		(\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer) \xrightarrow{\stCollect} (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta)
+	\]
+	\item Commits collected in $\eta = (0, U^{\#})$, where
+	$U^{\#} = \combine([C_{1}, \dots, C_{\nop}])$:
+	\[
+		\combine(\underline{C}) = \hash(\mathsf{concat}({\sortOn(1, \underline{C})}^{\downarrow2}))
+	\]
+	% TODO: mention in off-chain that it is limited what we can fan out, so size
+	% & complexity of U needs to be contained, especially off-chain.
+	That is, given a list of commits $\underline{C}$, where each element is a
+	pair of an output reference and the serialised representation of what was
+	committed $C_{i} \in (\tyOutRef \times \tyBytes)$, $\combine$ sorts this
+	list by the output references, concatenates all bytes and hashes the
+	result\footnote{Sorting is required to ensure a canonical representation
+		which can also be reproduced from the UTxO set later in the fanout.}.
 
-\begin{samepage}
-	\noindent Furthermore, $\nuHead$ checks these constraints:
-	\begin{menumerate}
-		\item Collect commits in $\eta = (0, U^{\#})$, where
-		$U^{\#} = \combine([C_{1}, \dots, C_{\nop}])$:
-		\[
-			\combine(\underline{U}) = \hash(\mathsf{concat}({\sortOn(1, \underline{U})}^{\downarrow2}))
-		\]
-		\todo{Limit size of what we can collect (likely by bytes)}\todo{also mention in off-chain protocol}
-		That is, given a list of commits $\underline{U}$, where each element is a pair
-		of an $\txOutRef$ and the serialised representation of what was committed
-		$C_{i} \in (\tyOutRef \times \tyBytes)$, $\combine$ sorts this list by the
-		$\txOutRef$, concatenates all the bytes and hashes the
-		result\footnote{Sorting is required to ensure a canonical representation
-			which can also be reproduced from the UTxO set later in the fanout.}.
+	\item All committed value captured and no additional funds ``enter'' or ``leave''\\
+	$\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \valCommit{i})$
+	\item Every participant had the chance to commit, by checking all tokens are
+	present in output\footnote{This is sufficient as a Head participant would
+		check off-chain whether a Head is initialized correctly with the right
+		number of tokens.}
+	% NOTE: Implemented slightly different as we would only count PTs and = n
+	$|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$
+	\item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit{i} \Rightarrow \keyHash_{i} \in \txKeys$\todo{cheaper to look in output?}
+	\item No minting or burning  $\txMint = \varnothing$
+\end{menumerate}
 
-		\item All committed value captured and no additional funds ``enter'' or ``leave''\\
-		$\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \valCommit{i})$
-		\item Every participant had the chance to commit, by checking all tokens are present in output\footnote{This is sufficient as a Head participant would check off-chain whether a Head is initialized correctly with the right number of tokens.}
-		$|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$
-		\item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit{} \Rightarrow \keyHash_{i} \in \txKeys$\todo{allow anyone to do this?}
-		\item No minting or burning  $\txMint = \varnothing$
-	\end{menumerate}
-\end{samepage}
-
-\noindent Each spent $\nuCommit$ validator with $\datumCommit{i} = (\cid,\cdot)$ and $\redeemerCommit{i} = \mathsf{Collect}$ ensures that:
+\noindent Each spent $\nuCommit$ validator with $\datumCommit{i} = (\cid,\cdot)$ and $\redeemerCommit{i} = \mathsf{collect}$ ensures that:
 \begin{menumerate}
 	\item The state token of currency $\cid$ is present in the output value
-	$\{\st \mapsto 1\} \in \val'$.
+	$\st \in \val'$.
 \end{menumerate}
 
 \begin{figure}[h]
