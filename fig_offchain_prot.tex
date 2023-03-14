@@ -10,19 +10,20 @@
 				\adjustbox{valign=t,scale=\sfact}{
 					\begin{walgo}{0.6}
 						%%% INIT
-						\On{$(\hpInit,\hydraKeys,\hydraSigningKey,\cardanoKeys,\cPer)$ from client}{ %
-							$\hydraKeysAgg^{setup} \gets \msCombVK(\hydraKeys)$ \; %
-							$\cardanoKeys^{setup} \gets \cardanoKeys$ \; %
-							$\cPer^{setup} \gets \cPer$ \; %
+						\On{$(\hpInit)$ from client}{ %
+							$n \gets |\hydraKeys^{setup}|$ \;
+							$\hydraKeysAgg \gets \msCombVK(\hydraKeys^{setup})$ \; %
+							$\cardanoKeys \gets \cardanoKeys^{setup}$\; %
+							$\cPer \gets \cPer^{setup}$ \; %
 							$\PostTx{}~(\mtxInit, \nop, \hydraKeysAgg,\cardanoKeys,\cPer)$ \; %
 						}
 						\vspace{12pt}
 
-						\On{$(\gcChainInitial, \cid, \nop, \hydraKeysAgg, \cardanoKeys^{\#}, \cPer)$ from chain}{ %
-						\Req{} $\hydraKeysAgg=\hydraKeysAgg^{setup}$\; %
+						\On{$(\gcChainInitial, \cid, \seed, \nop, \hydraKeysAgg, \cardanoKeys^{\#}, \cPer)$ from chain}{ %
+						\Req{} $\hydraKeysAgg=\msCombVK(\hydraKeys^{setup})$\; %
 						\Req{} $\cardanoKeys^{\#}= [ \hash(k)~|~\forall k \in \cardanoKeys^{setup}]$\; %
 						\Req{} $\cPer=\cPer^{setup}$\; %
-						\Req{} $\cid = \hash(\muHead(i_{seed}))$ \; %
+						\Req{} $\cid = \hash(\muHead(\seed))$ \; %
 						}
 					\end{walgo}
 				}
@@ -44,7 +45,7 @@
 						\On{$(\gcChainCollectCom, \eta_{0})$ from chain}{ %
 							% Implictly means that all commits will defined as we cannot miss a commit (by assumption)
 							$\Uinit \gets \bigcup_{j=1}^{n} U_j$ \; %
-                                % $\Out~(\hpSnap,(0,U_0))$ \; %
+							% $\Out~(\hpSnap,(0,U_0))$ \; %
 							$\hatmU, \barmU, \hatmL \gets \Uinit$ \; %
 							$\hats,\bars \gets 0$ \; %
 							$\mT, \hatmT, \barmT \gets \emptyset$ \;
@@ -61,33 +62,33 @@
 			%%% Open head
 			\begin{tabular}{c@{}c}
 				\adjustbox{valign=t,scale=\sfact}{
-				\begin{walgo}{0.65}
+					\begin{walgo}{0.65}
 
-					%%% NEW TX
-					\On{$(\hpNew,\tx)$ from client}{%
-						\Multi{} $(\hpRT,\tx)$%
-					}
+						%%% NEW TX
+						\On{$(\hpNew,\tx)$ from client}{%
+							\Multi{} $(\hpRT,\tx)$%
+						}
 
-					\vspace{12pt}
+						\vspace{12pt}
 
-					%%% REQ TX
-					\On{$(\hpRT,\tx)$ from $\party_j$}{%
-						\Wait{$\hatmL \applytx \tx \neq \bot$}{
-							$\hatmT \gets \hatmT \cup \{\tx\}$ % candidates for next snapshot
+						%%% REQ TX
+						\On{$(\hpRT,\tx)$ from $\party_j$}{%
+							\Wait{$\hatmL \applytx \tx \neq \bot$}{
+								$\hatmT \gets \hatmT \cup \{\tx\}$ % candidates for next snapshot
 
-							$\hatmL \gets \hatmL\applytx\tx$ %
+								$\hatmL \gets \hatmL\applytx\tx$ %
 
-							% issue snapshot if we are leader
-							\If{$\hats = \bars \land \hpLdr(\bars + 1) = i \land \hatmT \neq \emptyset$}{%
-								\Multi{} $(\hpRS,\bars+1,\hatmT)$ \;%
+								% issue snapshot if we are leader
+								\If{$\hats = \bars \land \hpLdr(\bars + 1) = i \land \hatmT \neq \emptyset$}{%
+									\Multi{} $(\hpRS,\bars+1,\hatmT)$ \;%
+								}
 							}
 						}
-					}
 
-					\vspace{12pt} %
+						\vspace{12pt} %
 
-					%%% REQ SN
-					\On{$(\hpRS,s,\mT_{res})$ from $\party_j$}{ %
+						%%% REQ SN
+						\On{$(\hpRS,s,\mT_{res})$ from $\party_j$}{ %
 
 						\Req{$s = \hats + 1 ~ \land ~ \hpLdr(s) = j$} \; %
 
@@ -112,17 +113,19 @@
 							% this we would need to do a more recursive algorithm. Right now
 							% we throw out everything which is not applicable after a single
 							% pass. Also: Should we inform users if we drop a transaction?
-                                $X\gets\hatmT$;\ $\hatmT\gets\emptyset$ \; %
-                                \ForA{$\tx\in X$}{
-                                    \If{$\hatmU\applytx(\hatmT\cup\{\tx\})\not=\bot$}{
-                                        $\hatmT\gets\hatmT\cup\{\tx\}$
-                                    }
-                                }
-						      $\hatmL \gets \hatmU\applytx\hatmT$
+							$X\gets\hatmT$;\ $\hatmT\gets\emptyset$ \; %
+							\ForA{$\tx\in X$}{
+								\If{$\hatmU\applytx(\hatmT\cup\{\tx\})\not=\bot$}{
+									$\hatmT\gets\hatmT\cup\{\tx\}$
+								}
+							}
+							$\hatmL \gets \hatmU\applytx\hatmT$
+							% TODO: This was here ^^^ before:
+							% $\hatmT \gets \{ tx \in \hatmT ~  | ~ \hatmU \applytx tx \not = \bot \}$ \; %
+							% $\hatmL \gets \hatmU\applytx\hatmT$
 						}
-					}
-				\end{walgo}
-                }
+					\end{walgo}
+				}
 				 &
 
 				\adjustbox{valign=t,scale=\sfact}{
@@ -148,7 +151,7 @@
 									$\bars \gets \hats$ \; %
 									$\barsigma \gets \msCSig$ \; %
 
-                                        %$\Out~(\hpSnap,(\bars,\barmU))$ \;  %
+									%$\Out~(\hpSnap,(\bars,\barmU))$ \;  %
 									$\forall \tx \in \mT_{res} : \Out (\hpConf,\tx)$ \; %
 
 									% issue snapshot if we are leader
