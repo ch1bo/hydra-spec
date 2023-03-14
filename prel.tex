@@ -47,6 +47,7 @@ application of a function $f$ to an argument $x$ is written as $f(x)$. \\
 	      hashing function and $x^{\#}$ indicates the hash of $x$
 	\item $\bytes : x \to \tyBytes$ denotes an invertible serialisation function
 	      mapping arbitrary data to bytes
+	\item $a || b = \concat(\bytes(a), \bytes(b))$ is an operator which concatenates the $\bytes(b)$ to the $\bytes(a)$
 	\item Lists of values $l \in \mathcal{A}^{*}$ are written as
 	      $l = [x_{1}, \ldots, x_{n}]$. Empty lists are denoted by $[]$, the $i$th
 	      element $x_{i}$ is also written $l[i]$ and the length of the list is
