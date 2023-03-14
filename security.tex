@@ -1,7 +1,7 @@
 \section{Security (WIP --- Iteration 1)}\label{sec:security}
 
 \todo{Add security experiment}
-Adversaries:
+\noindent Adversaries:
 
 \begin{mdescription}
 \item[Active Adversary.] An \emph{active adversary} $\adv$ has full control
@@ -16,14 +16,20 @@ Adversaries:
 \noindent Random variables:
 
 \begin{mitemize}
-  \item $\That_i$: the set of transactions $\tx$ for which party
-  $\party_i$, \emph{while uncorrupted}, output $(\hpSeen,\tx)$;
-  \item $\Tbar_i$: the set of transactions $\tx$ for which party
-  $\party_i$, \emph{while uncorrupted}, output $(\hpConf,\tx)$;
-  \item $\Hcont$: the set of (at the time) uncorrupted parties who
-  produced $\xi$ upon close/contest request and $\xi$ was applied to
+\item $\That_i$: the set of transactions $\tx$ for which party $\party_i$,
+  \emph{while uncorrupted}, output $(\hpSeen,\tx)$;
+
+\item $\Tbar_i$: the set of transactions $\tx$ for which party $\party_i$,
+  \emph{while uncorrupted}, output $(\hpConf,\tx)$;
+    
+\item $\Snapbar_i$: snapshots $(s,U)$ that party
+  $\party_i$ performs \emph{while uncorrupted}: output $(\hpSnap,(s,U))$;
+
+\item $\Hcont$: the set of (at the time) uncorrupted parties who produced
+  $\xi$ upon close/contest request and $\xi$ was applied to
   correct~$\eta$; and
-  \item $\honest$: the set of parties that remain uncorrupted.
+
+\item $\honest$: the set of parties that remain uncorrupted.
 \end{mitemize}
 
 
@@ -40,7 +46,7 @@ Adversaries:
     Consider any protocol execution in presence of a network adversary wherein
     the head does not get closed for a sufficiently long period of time, and consider
     an honest party $p_i$ who enters transaction $\tx$ by executing $(\hpNew,\tx)$
-    while $\barmU_i\applytx\tx\not=\bot$.
+    while $\argmax_s(\Snapbar_i)\applytx\tx\not=\bot$.
 
     Then the following eventually holds:
     $\tx \in \bigcap_{i\in[n]} \Tbar_i\ \vee\ %
@@ -62,6 +68,25 @@ Adversaries:
   $\bigcup_{p_i \in \Hcont} \Tbar_i \subseteq \Ttilde$, i.e., all
   transactions seen as confirmed by an honest party at the end of the
   protocol are considered.
+\end{itemize}
+
+Note that the original version of the coordinated head satisfied stronger versions of liveness that was not explicitly stated---but still important, for instance:
+
+\begin{itemize}
+  \item \propName{Optimistic Liveness (Head)}:
+    Consider any protocol execution in presence of a network adversary wherein
+    the head does not get closed for a sufficiently long period of time, and consider
+    an honest party $p_i$ who enters transaction $\tx$ by executing $(\hpNew,\tx)$
+    while $\barmU_i\applytx\tx\not=\bot$.
+
+    Then the following eventually holds:
+    $\tx \in \bigcap_{i\in[n]} \Tbar_i\ \vee\ %
+    \forall i: \Uinit \circ (\Tbar_i\cup\{\tx\}) = \bot$,
+    i.e., every party will observe the transaction confirmed or every party
+    will observe the transaction in conflict with their confirmed transactions.\footnote{
+      In particular, \emph{liveness} expresses that the protocol makes progress
+      under reasonable network conditions if no head parties get corrupted.
+    }
 \end{itemize}
 
 \subsection{Proofs}
@@ -196,7 +221,7 @@ We call this the \emph{liveness condition}.
   Consider all parties $p_i\in\Hcont$. Since the close/contest process
   finally accepts the latest multi-signed snapshot, it holds that
   $\Ufinal.s \geq \max_{p_i\in\Hcont}(\bars_i)$, and thus that
-  $\bigcup_{p_i\in\Hcont}\Tbar_i\subseteq\That$,
+  $\bigcup_{p_i\in\Hcont}\Tbar_i\subseteq\bigcap_{p_i\in\honest}\That_i$,
   and completeness follows.
 \end{proof}
 
