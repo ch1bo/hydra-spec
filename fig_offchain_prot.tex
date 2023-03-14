@@ -44,6 +44,7 @@
 						\On{$(\gcChainCollectCom, \eta_{0})$ from chain}{ %
 							% Implictly means that all commits will defined as we cannot miss a commit (by assumption)
 							$\Uinit \gets \bigcup_{j=1}^{n} U_j$ \; %
+                                $\Out~(\hpSnap,(0,U_0))$ \; %
 							$\hatmU, \barmU, \hatmL \gets \Uinit$ \; %
 							$\hats,\bars \gets 0$ \; %
 							$\mT, \hatmT, \barmT \gets \emptyset$ \;
@@ -72,7 +73,7 @@
 					%%% REQ TX
 					\On{$(\hpRT,\tx)$ from $\party_j$}{%
 						\Wait{$\hatmL \applytx \tx \neq \bot$}{
-							$\hatmT \gets \hatmT \cup \tx$ % candidates for next snapshot
+							$\hatmT \gets \hatmT \cup \{\tx\}$ % candidates for next snapshot
 
 							$\hatmL \gets \hatmL\applytx\tx$ %
 
@@ -132,7 +133,6 @@
 
 								\Req{} $(j, \cdot) \notin \hatSigma$ \; %
 
-								$\hatSigma \gets \hatSigma \cup (\party_j,\msSig_j)$ \; %
 
 								\If{$\forall k \in [1..n]: (k,\cdot) \in \hatSigma$}{ %
 									$\msCSig \gets \msComb(\hydraKeys, \hatSigma)$ \; %
@@ -143,6 +143,7 @@
 									$\bars \gets \hats$ \; %
 									$\barsigma \gets \msCSig$ \; %
 
+                                        $\Out~(\hpSnap,(\bars,\barmU))$ \;  %
 									$\forall \tx \in \mT_{res} : \Out (\hpConf,\tx)$ \; %
 
 									% issue snapshot if we are leader
