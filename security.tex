@@ -167,7 +167,7 @@ We call this the \emph{liveness condition}.
   \begin{itemize}
       \item $\tx\in\hatmT$, in which case $\tx \in \bigcap_{i\in[n]} \Tbar_i$ after everybody has completed this snapshot, or,
       \item $\tx\notin\hatmT$, in which case $\hatmL\applytx\tx=\bot$ ($\tx$ is still in the wait queue of $(\hpRT,\tx)$. After everybody has completed this snapshot, it thus holds that $\forall i: \Uinit\applytx\Tbar_i=\hatmL$, and thus, that
-      $\forall i: \Uinit\applytx(\Tbar_i\cup\{\tx\}$.
+      $\forall i: \Uinit\applytx(\Tbar_i\cup\{\tx\})=\bot$.
   \end{itemize}
   In both cases, the lemma follows.
 \end{proof}
@@ -183,7 +183,7 @@ We call this the \emph{liveness condition}.
   Let $T$ be the set of transactions such that $\Ufinal=U_0\applytx T$.
   Since $\Ufinal$ is multi-signed, it holds that $T\subseteq\That_i$
   ($T$ is \emph{seen}) by every honest party in the head.
-  Furtermore, since honest signatures are only issued for valid transaction,
+  Furthermore, since honest signatures are only issued for valid transaction,
   $\Ufinal\not=\bot$ (i.e., $\Ufinal$ is a valid state), and soundness
   follows.
 \end{proof}
