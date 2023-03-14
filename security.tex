@@ -107,7 +107,7 @@ Note that the original version of the coordinated head satisfies a stronger vers
   $\Uinit\applytx(\Tbar_i\cup\Tbar_j)\neq\bot$
 \end{proof}
 
-\paragraph{Liveness.}
+\paragraph{Oblivious Liveness.}
 For all lemmas towards oblivious liveness, we assume the presence of a network adversary, and that the head does not get closed for a sufficiently
 long period of time.
 We call this the \emph{liveness condition}.
@@ -127,7 +127,7 @@ We call this the \emph{liveness condition}.
   guard is thus satisfied for $p_i$.
 
    \item Passing the `wait' guard:
-  Since the snapshot leader sees $\hats=\bars$, also $p_i$ will eventually see $\hats_i=\bars_i$. 
+  Since the snapshot leader sees $\hats=\bars$, also $p_i$ will eventually see $\hats_i=\bars_i$. Furthermore, since all leaders are honest, it holds that $\hatmU\applytx\mT_{res}\not=\bot$ by construction.
   \end{itemize}
 
   This implies that every party will eventually sign and acknowledge the newly created snapshot.
@@ -139,7 +139,7 @@ We call this the \emph{liveness condition}.
 \end{proof}
 
 \begin{lemma}[Eternal snapshot confirmation]\label{lem:eternal}
-  Under the liveness condition, for any $k>0$, every party eventually confirms
+  Under the liveness condition, as long as new transactions are issued, for any $k>0$, every party eventually confirms
   a snapshot with sequence number $s=k$.
 \end{lemma}
 \begin{proof}
@@ -148,21 +148,27 @@ We call this the \emph{liveness condition}.
   Thus, for any $k$, a snapshot is eventually confirmed.
 \end{proof}
 
-\begin{lemma}[Liveness]
+\begin{lemma}[Oblivious Liveness]
   \label{lem:liveness}
-  The coordinated head protocol satisfies the \propName{Liveness} property.
+  The coordinated head protocol satisfies the \propName{Oblivious Liveness} property.
 \end{lemma}
 \begin{proof}
   Consider the first point in time where a transaction $\tx$ enters the system by some party $p_i$
-  issuing $(\hpNew,\tx)$ while $\barmU\applytx\tx\not=\bot$, and consider the next point in time
+  issuing $(\hpNew,\tx)$, and consider the next point in time
   $t$ when $p_i$ issues a snapshot.
 
   By Lemma~\ref{lem:eternal}, this snapshot will eventually be issued and confirmed by all parties.
   
   \medskip
   
-  Let $\hatmT$ be the transactions to be considered by $p_i$'s snaphot: $\hatmL=\barmU^{t}\applytx\hatmT$
-  where $\barmU^{t}$ is the snaphot prior to $p_i$'s.
+  Let $\hatmT$ be the transactions to be considered by $p_i$'s snaphot: $\hatmL=\barmU\applytx\hatmT$
+  where $\barmU$ is the snaphot prior to $p_i$'s. Since $p_i$ issues
+  $(\hpRT,\tx)$ after each snapshot, we have that, either,
+  \begin{itemize}
+      \item $\tx\in\hatmT$, in which case $\tx \in \bigcap_{i\in[n]} \Tbar_i$, or,
+      \item $\tx\notin\hatmT$, in which case $\hatmL\applytx\tx=\bot$ ($\tx$ is still in the wait queue of $(\hpRT,\tx)$. Since $\hatmL=\Uinit\applytx\cap
+  \end{itemize}
+  In both cases, the lemma follows.
 
   \medskip
   
