@@ -169,15 +169,16 @@ by the appropriate redeemer.
 \noindent The \mtxCCom{} transaction (Figure~\ref{fig:collectComTx}) collects
 all the committed UTxOs to the same head. It has
 \begin{itemize}
+	\item one input spending from $\nuHead$ holding the $\st$ with $\datumHead$,
 	\item $\forall i \in \{1 \dots \nop\}$ inputs spending commit outputs
 	      $(\valCommit{i}, \nuCommit, \datumCommit{i})$ with $\pt_{i} \in \valCommit{i}$
-	      and $\datumCommit{i} = (\cid, C_{i})$,
-	\item one input spending from $\nuHead$ holding the $\st$ with $\datumHead$,
-	      and
-	\item one output paying to $o_{\mathsf{head}} = (\val_{\mathsf{head}}', \nuHead, \datumHead')$.
+	      and $\datumCommit{i} = (\cid, C_{i})$, and
+	\item one output paying to $\nuHead$ with value $\val_{\mathsf{head}}'$ and
+	      datum $\datumHead'$.
 \end{itemize}
 
-\noindent The state-machine validator $\nuHead$ with $\redeemerHead = \mathsf{collect}$ checks:
+\noindent The state-machine validator $\nuHead$ is spent with
+$\redeemerHead = \mathsf{collect}$ and checks:
 \begin{menumerate}
 	\item \textcolor{red}{State is advanced from $\datumHead \sim \stInitial$ to $\datumHead' \sim \stOpen$, parameters $\cid,\hydraKeysAgg,\nop,\cPer$ stay unchanged and the new state is governed again by $\nuHead$:}
 	\[
@@ -232,36 +233,46 @@ all the committed UTxOs to the same head. It has
 	The \mtxAbort{} transaction (see Figure~\ref{fig:abortTx}) allows a
 	party to abort the creation of a head and consists of
 	\begin{itemize}
-		\item one input spending from $\nuHead$ holding the $\st$, and
+		\item one input spending from $\nuHead$ holding the $\st$ with $\datumHead$,
 		\item $\forall i \in \{1 \dots \nop\}$ inputs either
 		      \begin{itemize}
-			      \item spending from an initial output $(\valInitial{i}, \nuInitial, \cid)$ with $\pt_{i} \in \valInitial{i}$, or
-			      \item spending from a commit output $(\valCommit{i}, \nuCommit, \datumCommit{i})$ with $\pt_{i} \in \valCommit{i}$,
+			      \item spending from $\nuInitial$ with with $\pt_{i} \in \valInitial{i}$ and $\datumInitial{i} = \cid$, or
+			      \item spending from $\nuCommit$ with with $\pt_{i} \in \valCommit{i}$ and $\datumCommit{i} = (\cid, C_{i})$,
 		      \end{itemize}
-		\item $m$ outputs to redistribute already committed UTxOs.
+		\item outputs $o_{1} \dots o_{m}$ to redistribute already committed UTxOs.
 	\end{itemize}
 \end{samepage}
 
-\noindent Note that \mtxAbort{} represents a final transition of the CEM and hence there
-is no state machine output. The input spending from $\nuHead$ does provide the
-number of reimbursed outputs $m$ as redeemer \todo{m is implicit, not required as redeemer} and checks the state of the CEM is
-advanced to the final $\stFinal$ as follows:
+Note that \mtxAbort{} represents a final transition of the state
+machine and hence there is no state machine output.
 
-\[
-	(\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer) \xrightarrow[m]{\stAbort} \stFinal.
-\]
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{figures/abortTx.pdf}
+	\caption{\mtxAbort{} transaction spending the $\stInitial$ state head
+		output and collecting all initial and commit outputs, which get reimbursed
+		by outputs $o_{1} \dots o_{m}$. Note that each $\pt$ may be in either, an
+		initial or commit output.}\label{fig:abortTx}
+\end{figure}
 
 \begin{samepage}
-	\noindent The $\nuHead$ validator ensures that:
+	\noindent The state-machine validator $\nuHead$ is spent with
+	$\redeemerHead = (\mathsf{abort}, m)$, where $m$ is the number of to reimburse
+	outputs, and checks:
 	\begin{menumerate}
-		\item All UTxOs committed into the head are reimbursed exactly as they were
-		committed. By comparing hashes of serialised representations of the $m$
-		reimbursing outputs\footnote{Only the first $m$ outputs are used for
-			reimbursing, while more outputs may be present in the transaction, e.g for
-			change} and canonically combined committed UTxOs $C_{i}$ where $(\cdot, C_{i}) = \datum_{commit_{i}}$ from \mtxCom{}~\ref{sec:commit-tx}:
-		\todo{list/tuple comprehensions?}
+		\item State is advanced from $\datumHead \sim \stInitial$ to terminal state
+		$\stFinal$:
 		\[
-			\hash(\bigoplus_{j=1}^{m} \bytes(\txOutputs[j])) = \combine([C_{i} ~ | ~ \forall [1\dots\nop], C_{i} \neq \bot])
+			(\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer) \xrightarrow[m]{\stAbort} \stFinal.
+		\] % XXX: What does this actually mean?
+		\item All UTxOs committed into the head are reimbursed exactly as they were
+		committed. This is done by comparing hashes of serialised representations of
+		the $m$ reimbursing outputs $o_{1} \dots o_{m}$\footnote{Only the first $m$
+			outputs are used for reimbursing, while more outputs may be present in the
+			transaction, e.g for returning change.} with the canonically combined
+		committed UTxOs in $C_{i}$:
+		\[
+			\hash(\bigoplus_{j=1}^{m} \bytes(o_{j})) = \combine([C_{i} ~ | ~ \forall [1\dots\nop], C_{i} \neq \bot])
 		\]
 
 		\item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto -1\} \in \txMint \Rightarrow \keyHash_{i} \in \txKeys$
@@ -270,24 +281,15 @@ advanced to the final $\stFinal$ as follows:
 	\end{menumerate}
 \end{samepage}
 
-\noindent Each spent $\nuInitial$ validator with $\datumInitial{i} = \cid$ and $\redeemerInitial{i} = \mathsf{Abort}$ ensures that:
+\noindent Each spent $\nuInitial$ validator with $\datumInitial{i} = \cid$ and $\redeemerInitial{i} = \mathsf{abort}$ ensures that:
 \begin{menumerate}
 	\item The state token of currency $\cid$ is getting burned $\{\st \mapsto -1\} \subseteq \txMint$.
 \end{menumerate}
 
-\noindent Each spent $\nuCommit$ validator with $\datumCommit{i} = (\cid,\cdot)$ and $\redeemerCommit{i} = \mathsf{Abort}$ ensures that:
+\noindent Each spent $\nuCommit$ validator with $\datumCommit{i} = (\cid,\cdot)$ and $\redeemerCommit{i} = \mathsf{abort}$ ensures that:
 \begin{menumerate}
 	\item The state token of currency $\cid$ is getting burned $\{\st \mapsto -1\} \subseteq \txMint$.
 \end{menumerate}
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=0.8\textwidth]{figures/abortTx.pdf}
-	\caption{\mtxAbort{} transaction spending the $\stInitial$ state head
-		output and collecting all initial and commit outputs, which get reimbursed
-		by outputs $o_{1} \dots o_{n}$. Note that each $\pt$ may be in either, an
-		initial or commit output.}\label{fig:abortTx}
-\end{figure}
 
 \subsection{Close Transaction}\label{sec:close-tx}
 
