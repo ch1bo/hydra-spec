@@ -167,7 +167,7 @@ leader, a message to request snapshot signatures $\hpRS$ is sent. \\
 \dparagraph{$\hpRS$.}\quad Upon receiving request $(\hpRS,s,\mT_{res})$ from
 party $\party_j$, the receiver $\party_i$ checks that $s$ is the next snapshot
 number and that party $\party_j$ is responsible for leading its
-creation.\todo{define $\leader$} Party $\party_i$ then waits until the previous
+creation.\todo{define $\hpLdr$} Party $\party_i$ then waits until the previous
 snapshot is confirmed ($\bars = \hats$) and all requested transactions
 $\mT_{res}$ are applicable to $\barmU$. % XXX: this is pointless as we would
 % have all the transaction submitted and needs to be applicable

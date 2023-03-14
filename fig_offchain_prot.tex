@@ -90,39 +90,40 @@
 						%%% REQ SN
 						\On{$(\hpRS,s,\mT_{res})$ from $\party_j$}{ %
 
-						\Req{$s = \hats + 1 ~ \land ~ \hpLdr(s) = j$} \; %
+							\Req{$s = \hats + 1 ~ \land ~ \hpLdr(s) = j$} \; %
 
-						% Wait for snapshot no snapshot in flight anymore and all txs applicable
-						\Wait{$\bars = \hats ~ \land ~ \barmU \applytx \mT_{res} \not= \bot$}{ %
-							$\hats \gets \bars + 1$ \; %
+							% Wait for snapshot no snapshot in flight anymore and all txs applicable
+							\Wait{$\bars = \hats ~ \land ~ \barmU \applytx \mT_{res} \not= \bot$}{ %
+								$\hats \gets \bars + 1$ \; %
 
-							$\hatmU \gets \barmU \applytx \mT_{res}$ \; %
+								$\hatmU \gets \barmU \applytx \mT_{res}$ \; %
 
-							$\eta' \gets (\hats, \combine(\hatmU))$ \; %
+								$\eta' \gets (\hats, \combine(\hatmU))$ \; %
 
-							% NOTE: WE could make included transactions auditable by adding
-							% a merkle tree root to the (signed) snapshot data \eta'
-							$\msSig_i \gets \msSign(\hydraSigningKey, (\cid || \eta_{0} || \eta'))$ \; %
-							$\hatSigma \gets \emptyset$
+								% NOTE: WE could make included transactions auditable by adding
+								% a merkle tree root to the (signed) snapshot data \eta'
+								$\msSig_i \gets \msSign(\hydraSigningKey, (\cid || \eta_{0} || \eta'))$ \; %
+								$\hatSigma \gets \emptyset$
 
-							$\Multi{}~(\hpAS,\hats,\msSig_i)$ \; %
+								$\Multi{}~(\hpAS,\hats,\msSig_i)$ \; %
 
-							$\forall \tx \in \mT_{res}: \Out~(\hpSeen,\tx)$ \; %
+								$\forall \tx \in \mT_{res}: \Out~(\hpSeen,\tx)$ \; %
 
-							% TODO: We would not be keeping all applicable transactions. For
-							% this we would need to do a more recursive algorithm. Right now
-							% we throw out everything which is not applicable after a single
-							% pass. Also: Should we inform users if we drop a transaction?
-							$X\gets\hatmT$;\ $\hatmT\gets\emptyset$ \; %
-							\ForA{$\tx\in X$}{
-								\If{$\hatmU\applytx(\hatmT\cup\{\tx\})\not=\bot$}{
-									$\hatmT\gets\hatmT\cup\{\tx\}$
+								% TODO: We would not be keeping all applicable transactions. For
+								% this we would need to do a more recursive algorithm. Right now
+								% we throw out everything which is not applicable after a single
+								% pass. Also: Should we inform users if we drop a transaction?
+								$X\gets\hatmT$;\ $\hatmT\gets\emptyset$ \; %
+								\ForA{$\tx\in X$}{
+									\If{$\hatmU\applytx(\hatmT\cup\{\tx\})\not=\bot$}{
+										$\hatmT\gets\hatmT\cup\{\tx\}$
+									}
 								}
+								$\hatmL \gets \hatmU\applytx\hatmT$
+								% TODO: This was here ^^^ before:
+								% $\hatmT \gets \{ tx \in \hatmT ~  | ~ \hatmU \applytx tx \not = \bot \}$ \; %
+								% $\hatmL \gets \hatmU\applytx\hatmT$
 							}
-							$\hatmL \gets \hatmU\applytx\hatmT$
-							% TODO: This was here ^^^ before:
-							% $\hatmT \gets \{ tx \in \hatmT ~  | ~ \hatmU \applytx tx \not = \bot \}$ \; %
-							% $\hatmL \gets \hatmU\applytx\hatmT$
 						}
 					\end{walgo}
 				}
