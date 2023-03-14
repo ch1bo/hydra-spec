@@ -174,17 +174,20 @@ all the committed UTxOs to the same head. It has
 	      and $\datumCommit{i} = (\cid, C_{i})$,
 	\item one input spending from $\nuHead$ holding the $\st$ with $\datumHead$,
 	      and
-	\item one output paying to $o_{\mathsf{head}} = (\val', \nuHead, \datumHead')$.
+	\item one output paying to $o_{\mathsf{head}} = (\val_{\mathsf{head}}', \nuHead, \datumHead')$.
 \end{itemize}
 
 \noindent The state-machine validator $\nuHead$ with $\redeemerHead = \mathsf{collect}$ checks:
 \begin{menumerate}
-	\item The state is advanced from $\datumHead \sim \stInitial$ to $\datumHead' \sim \stOpen$, parameters $\cid,\hydraKeysAgg,\nop,\cPer$ stay unchanged and the new state is governed again by $\nuHead$:
+	\item \textcolor{red}{State is advanced from $\datumHead \sim \stInitial$ to $\datumHead' \sim \stOpen$, parameters $\cid,\hydraKeysAgg,\nop,\cPer$ stay unchanged and the new state is governed again by $\nuHead$:}
 	\[
 		(\stInitial,\cid,\seed,\hydraKeysAgg,\nop,\cPer) \xrightarrow{\stCollect} (\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta)
 	\]
-	\item Commits collected in $\eta = (0, U^{\#})$, where
-	$U^{\#} = \combine([C_{1}, \dots, C_{\nop}])$:
+	\item Commits collected in $\eta = (0, U^{\#})$ with snapshot number $0$,
+	where
+	\[
+		U^{\#} = \combine([C_{1}, \dots, C_{\nop}])
+	\]
 	\[
 		\combine(\underline{C}) = \hash(\mathsf{concat}({\sortOn(1, \underline{C})}^{\downarrow2}))
 	\]
@@ -198,21 +201,21 @@ all the committed UTxOs to the same head. It has
 		which can also be reproduced from the UTxO set later in the fanout.}.
 
 	\item All committed value captured and no additional funds ``enter'' or ``leave''\\
-	$\val' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \valCommit{i})$
+	$\val_{\mathsf{head}}' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \valCommit{i})$
 	\item Every participant had the chance to commit, by checking all tokens are
 	present in output\footnote{This is sufficient as a Head participant would
 		check off-chain whether a Head is initialized correctly with the right
 		number of tokens.}
 	% NOTE: Implemented slightly different as we would only count PTs and = n
-	$|\{\cid \rightarrow . \rightarrow 1\} \in \val'| = \nop + 1$
-	\item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit{i} \Rightarrow \keyHash_{i} \in \txKeys$\todo{cheaper to look in output?}
+	$|\{\cid \rightarrow . \rightarrow 1\} \in \val_{\mathsf{head}}'| = \nop + 1$
+	\item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valCommit{i} \Rightarrow \keyHash_{i} \in \txKeys$
 	\item No minting or burning  $\txMint = \varnothing$
 \end{menumerate}
 
 \noindent Each spent $\nuCommit$ validator with $\datumCommit{i} = (\cid,\cdot)$ and $\redeemerCommit{i} = \mathsf{collect}$ ensures that:
 \begin{menumerate}
 	\item The state token of currency $\cid$ is present in the output value
-	$\st \in \val'$.
+	$\st \in \val_{\mathsf{head}}'$.
 \end{menumerate}
 
 \begin{figure}[h]
@@ -315,8 +318,8 @@ the state of the CEM is advanced:
 		\item Correct contestation deadline $\Tfinal = \txValidityMax + T$ \todo{Add "parameters not change" constraint}
 		\item Bounded confirmation window\footnote{Ensures head $\Tfinal$ is at most
 			      $2*T$ in the future.} $\txValidityMax - \txValidityMin \leq T$
-		\item Value in the head is preserved $\val' = \val$
-		\item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val' \Rightarrow \keyHash_{i} \in \txKeys$
+		\item Value in the head is preserved $\val_{\mathsf{head}}' = \val$
+		\item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val_{\mathsf{head}}' \Rightarrow \keyHash_{i} \in \txKeys$
 		\item No minting or burning $\txMint = \varnothing$
 	\end{enumerate}
 \end{samepage}
@@ -353,8 +356,8 @@ $\nuHead$ validator, which checks the state of the CEM is advanced:
 				\Tfinal + T & \mathrm{otherwise}
 			\end{array}\right.
 		\]
-		\item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val' \Rightarrow \keyHash_{i} \in \txKeys$
-		\item Value in the head is preserved $\val' = \val$
+		\item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \val_{\mathsf{head}}' \Rightarrow \keyHash_{i} \in \txKeys$
+		\item Value in the head is preserved $\val_{\mathsf{head}}' = \val$
 		\item No minting or burning $\txMint = \varnothing$
 	\end{menumerate}
 \end{samepage}
