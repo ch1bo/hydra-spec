@@ -166,7 +166,8 @@ We call this the \emph{liveness condition}.
   $(\hpRT,\tx)$ after each snapshot, we have that, either,
   \begin{itemize}
       \item $\tx\in\hatmT$, in which case $\tx \in \bigcap_{i\in[n]} \Tbar_i$ after everybody has completed this snapshot, or,
-      \item $\tx\notin\hatmT$, in which case $\hatmL\applytx\tx=\bot$ ($\tx$ is still in the wait queue of $(\hpRT,\tx)$. After everybody has completed this snapshot, it thus holds that $\forall i: \Uinit\applytx\bigcap_{i\in[n]}{\Tbar_i}=\hatmL$, and .
+      \item $\tx\notin\hatmT$, in which case $\hatmL\applytx\tx=\bot$ ($\tx$ is still in the wait queue of $(\hpRT,\tx)$. After everybody has completed this snapshot, it thus holds that $\forall i: \Uinit\applytx\Tbar_i=\hatmL$, and thus, that
+      $\forall i: \Uinit\applytx(\Tbar_i\cup\{\tx\}$.
   \end{itemize}
   In both cases, the lemma follows.
 \end{proof}
