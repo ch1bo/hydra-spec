@@ -143,9 +143,9 @@ and has the following structure:
 \noindent The $\nuInitial$ validator with $\datumInitial{} = \cid$ and
 $\redeemerInitial{} = \txOutRef_{\mathsf{committed}}$ ensures that:
 \begin{menumerate}
-	\item The committed value is in the output
+	\item Committed value is in the output
 	$\valCommit{} = \valInitial{} \cup \val_{\mathsf{committed}}$
-	\item The currency id and committed output are recorded in the output datum
+	\item \textcolor{red}{Currency id and committed output are recorded in the output datum}
 	$\datumCommit{} = (\cid, C_{i})$ where
 	$C_{i} = (\txOutRef_{\mathsf{committed}},\bytes(o_{\mathsf{committed}}))$
 	\item Transaction is signed by the right participant
@@ -200,7 +200,7 @@ all the committed UTxOs to the same head. It has
 	result\footnote{Sorting is required to ensure a canonical representation
 		which can also be reproduced from the UTxO set later in the fanout.}.
 
-	\item All committed value captured and no additional funds ``enter'' or ``leave''\\
+	\item \textcolor{red}{All committed value captured and no additional funds ``enter'' or ``leave''}\\
 	$\val_{\mathsf{head}}' = \mathsf{ST} \cup (\bigcup_{i=1}^{n} \valCommit{i})$
 	\item Every participant had the chance to commit, by checking all tokens are
 	present in output\footnote{This is sufficient as a Head participant would
