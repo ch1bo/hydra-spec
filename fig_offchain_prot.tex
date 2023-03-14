@@ -32,10 +32,10 @@
 				\adjustbox{valign=t,scale=\sfact}{
 					\begin{walgo}{0.6}
 						\On{$(\gcChainCommit, j, U)$ from chain}{ %
-							$U_j \gets U $
+							$C_j \gets U $
 
-							\If{$\forall k \in [1..n]: U_k \neq \undefined$}{ %
-								$\eta \gets (0, \combine([U_1 \dots U_n]))$ \; %
+							\If{$\forall k \in [1..n]: C_k \neq \undefined$}{ %
+								$\eta \gets (0, \combine([C_1 \dots C_n]))$ \; %
 								$\PostTx{}~(\mtxCCom, \eta)$ \; %
 							} %
 						}

@@ -130,7 +130,7 @@ cannot be checked completely on-chain (see also Section~\ref{sec:init-tx}). \\
 
 \dparagraph{$\mathtt{commitTx}$.}\quad As each party $p_{j}$ posts a
 $\mtxCommit$ transaction, the protocol records observed committed UTxOs of each
-party $U_j$. With all committed UTxOs known, the $\eta$-state is created (as
+party $C_j$. With all committed UTxOs known, the $\eta$-state is created (as
 defined in Section~\ref{sec:collect-tx}) and the $\mtxCollect$ transaction is
 posted. Note that while each participant may post this transaction, only one of
 them will be included in the blockchain as the mainchain ledger prevents double
@@ -138,10 +138,11 @@ spending. Should any party want to abort, they would post an $\mtxAbort$
 transaction and the protocol would end at this point.\\
 
 \dparagraph{$\mathtt{collectComTx}$.}\quad Upon observing the $\mtxCollect$
-transaction, the parties compute $\Uinit \gets \bigcup_{j=1}^{n} U_j$ using
-previously observed $U_j$ and initialize $\hatmU = \barmU = \hatmL = \Uinit$
-with it\todo{check $\eta$ against $\Uinit$?}. The initial transaction sets are
-empty $\mT = \barmT =\hatmT =\emptyset$, and $\bars = \hats = 0$.
+transaction, the parties compute $\Uinit \gets \bigcup_{j=1}^{n} C_j$ using
+previously observed $C_j$ and initialize $\hatmU = \barmU = \hatmL = \Uinit$
+with it. The initial transaction sets are empty
+$\mT = \barmT =\hatmT =\emptyset$, and $\bars = \hats = 0$.
+% REVIEW: check $\eta$ against $\Uinit$?
 
 \subsubsection{Processing transactions off-chain}
 
