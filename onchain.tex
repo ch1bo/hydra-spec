@@ -349,40 +349,53 @@ In order to close a head, a head member may post the \mtxClose{} transaction
 
 \subsection{Contest Transaction}\label{sec:contest-tx}
 
-The \mtxContest{} transaction (see Figure~\ref{fig:contestTx}) is posted
-by a party to prove the currently $\stClosed$ state is not the latest one. This
-transaction has a single input spending from the $\nuHead$ and paying to the
-$\nuHead$ validator, which checks the state of the CEM is advanced:
-\[
-	(\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[\xi]{\stContest} (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta',\contesters',\Tfinal')
-\]
-
-\begin{samepage}
-	\noindent The $\nuHead$ validator performs these checks:
-	\begin{menumerate}
-		\item Contest snapshot is newer $s' > s$, where $(s, \cdot) = \eta$ is the current and $(s', \cdot) = \eta'$ is the contest snapshot number
-		\item $\xi$ is a valid multi-signature of the new snapshot state
-		$\msVfy(\hydraKeysAgg,(\cid || \eta_{0} || \eta'),\xi) = \true$
-		\item The single signer $\{\keyHash\} = \txKeys$ has not already contested $\keyHash \not\in \contesters$
-		\item The single signer $\{\keyHash\} = \txKeys$ is added to the set of contesters $\contesters' = \contesters \cup \keyHash$
-		\item Transaction is posted before deadline $\txValidityMax \leq \Tfinal$
-		\item Contestation deadline is updated correctly
-		\[
-			\Tfinal' = \left\{\begin{array}{ll}
-				\Tfinal     & \mathrm{if} ~ |\contesters'| = n, \\
-				\Tfinal + T & \mathrm{otherwise}
-			\end{array}\right.
-		\]
-		\item Transaction is signed by a participant $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valHead' \Rightarrow \keyHash_{i} \in \txKeys$
-		\item Value in the head is preserved $\valHead' = \val$
-		\item No minting or burning $\txMint = \varnothing$
-	\end{menumerate}
-\end{samepage}
+The \mtxContest{} transaction (see Figure~\ref{fig:contestTx}) is posted by a
+party to prove the currently $\stClosed$ state is not the latest one. This
+transaction has
+\begin{itemize}
+	\item one input spending from $\nuHead$ holding the $\st$ with $\datumHead$,
+	\item one output paying to $\nuHead$ with value $\valHead'$ and
+	      datum $\datumHead'$.
+\end{itemize}
 
 \begin{figure}[h]
 	\centering \includegraphics[width=0.8\textwidth]{figures/contestTx.pdf}
-	\caption{\mtxContest{} transaction spending the $\stClosed$ head output and producing a different $\stClosed$ head output.}\label{fig:contestTx}
+	\caption{\mtxContest{} transaction spending the $\stClosed$ head output and
+		producing a different $\stClosed$ head output.}\label{fig:contestTx}
 \end{figure}
+
+\begin{samepage}
+	\noindent The state-machine validator $\nuHead$ is spent with
+	$\redeemerHead = (\mathsf{contest}, \xi)$, where $\xi$ is a multi-signature of
+	the contest snapshot, and checks:
+	\begin{enumerate}
+		\item \textcolor{red}{State stays $stClosed$ in both $\datumHead$ and
+			      $\datumHead'$, parameters $\cid,\hydraKeysAgg,\nop,\cPer, \eta_{0}$
+			      stay unchanged and the new state is governed again by $\nuHead$:}
+		      \[
+			      (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta,\contesters,\Tfinal) \xrightarrow[\xi]{\stContest} (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta',\contesters',\Tfinal')
+		      \]
+		\item Contest snapshot is newer $s' > s$, where $(s, \cdot) = \eta$ is the
+		      current and $(s', \cdot) = \eta'$ is the contest snapshot number.
+		\item $\xi$ is a valid multi-signature of the new snapshot state
+		      $\msVfy(\hydraKeysAgg,(\cid || \eta_{0} || \eta'),\xi) = \true$.
+		\item The single signer $\{\keyHash\} = \txKeys$ has not already contested
+		      $\keyHash \notin \contesters$ and is added to the set of contesters
+		      $\contesters' = \contesters \cup \keyHash$.
+		\item Transaction is posted before deadline $\txValidityMax \leq \Tfinal$.
+		\item Contestation deadline is updated correctly to
+		      \[
+			      \Tfinal' = \left\{\begin{array}{ll}
+				      \Tfinal     & \mathrm{if} ~ |\contesters'| = n, \\
+				      \Tfinal + T & \mathrm{otherwise.}
+			      \end{array}\right.
+		      \]
+		\item Transaction is signed by a participant
+		      $\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valHead' \Rightarrow \keyHash_{i} \in \txKeys$.
+		\item Value in the head is preserved $\valHead' = \valHead$.
+		\item No minting or burning $\txMint = \varnothing$.
+	\end{enumerate}
+\end{samepage}
 
 \subsection{Fan-Out Transaction}
 
