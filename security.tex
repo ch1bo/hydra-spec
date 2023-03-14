@@ -161,38 +161,14 @@ We call this the \emph{liveness condition}.
   
   \medskip
   
-  Let $\hatmT$ be the transactions to be considered by $p_i$'s snaphot: $\hatmL=\barmU\applytx\hatmT$
-  where $\barmU$ is the snaphot prior to $p_i$'s. Since $p_i$ issues
+  Let $\hatmT$ be the transactions to be considered by $p_i$'s snapshot: $\hatmL=\barmU\applytx\hatmT$
+  where $\barmU$ is the snapshot prior to $p_i$'s. Since $p_i$ issues
   $(\hpRT,\tx)$ after each snapshot, we have that, either,
   \begin{itemize}
-      \item $\tx\in\hatmT$, in which case $\tx \in \bigcap_{i\in[n]} \Tbar_i$, or,
-      \item $\tx\notin\hatmT$, in which case $\hatmL\applytx\tx=\bot$ ($\tx$ is still in the wait queue of $(\hpRT,\tx)$. Since $\hatmL=\Uinit\applytx\cap
+      \item $\tx\in\hatmT$, in which case $\tx \in \bigcap_{i\in[n]} \Tbar_i$ after everybody has completed this snapshot, or,
+      \item $\tx\notin\hatmT$, in which case $\hatmL\applytx\tx=\bot$ ($\tx$ is still in the wait queue of $(\hpRT,\tx)$. After everybody has completed this snapshot, it thus holds that $\forall i: \Uinit\applytx\bigcap_{i\in[n]}{\Tbar_i}=\hatmL$, and .
   \end{itemize}
   In both cases, the lemma follows.
-
-  \medskip
-  
-  If $\tx\in\hatmT$ then every party outputs $(\hpConf,\tx)$ upon completion of this snapshot, and
-  the lemma follows.
-
-  \medskip
-  
-  It remains to handle the case that $\tx\notin\hatmT$. We distinguish two cases:
-  \begin{enumerate}
-  \item % tx gets added to \mathcal{T} and is attempted to be added during the reqSn leader switch
-     Case: $p_i$ executed $(\hpRT,\tx)$ before executing the $\hpRS$ code guarded
-     by `$\hpLdr(\hats+1)=i$'.
-     The, during $\hpRS$, $\hatmT$ is chosen as a maximal subset of $\mT$ whereas $\tx\in\mT$.
-     Since $\tx\notin\mT$ this implies that $\hatmU^{t}\applytx(\hatmT\cup\{\tx\})=\bot$ (maximality).
-     After everybody confirmed $p_i$'s snapshot, it thus holds for all $j$ that
-     $U_0\applytx(\Tbar_j\cup\{\tx\})=\bot$, and the lemma follows.
-   \item % tx gets added after the reqSn leader switch and is attempted to be added directly during reqTx
-     Case: $p_i$ excecuted $(\hpRT,\tx)$ after executing the respective $\hpRS$ code.
-     Then, during $\hpRT$, we had $\hatmL\applytx\tx=\bot$, and thus
-     $\barmU^{t}\applytx(\hatmT\cup\{\tx\})=\bot$ while, eventually,
-     $\hatmT\subseteq\Tbar_j$ for all $j$, and
-     $U_0\applytx(\Tbar_j\cup\{\tx\})=\bot$, and the lemma follows.\qedhere  
-  \end{enumerate}
 \end{proof}
 
 \paragraph{Soundness and completeness.}
