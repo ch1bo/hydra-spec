@@ -22,8 +22,8 @@
 \item $\Tbar_i$: the set of transactions $\tx$ for which party $\party_i$,
   \emph{while uncorrupted}, output $(\hpConf,\tx)$;
     
-\item $\Snapbar_i$: snapshots $(s,U)$ that party
-  $\party_i$ performs \emph{while uncorrupted}: output $(\hpSnap,(s,U))$;
+\item $\Snapbar_i$: latest snapshot $(s,U)$ that party
+  $\party_i$ performed \emph{while uncorrupted}: output $(\hpSnap,(s,U))$;
 
 \item $\Hcont$: the set of (at the time) uncorrupted parties who produced
   $\xi$ upon close/contest request and $\xi$ was applied to
@@ -42,11 +42,10 @@
    $\Uinit \circ (\Tbar_i \cup \Tbar_j) \not= \bot$, i.e., no two
    uncorrupted parties see conflicting transactions confirmed.
 
-  \item \propName{Liveness (Head)}:
+  \item \propName{Oblivious Liveness (Head)}:
     Consider any protocol execution in presence of a network adversary wherein
     the head does not get closed for a sufficiently long period of time, and consider
-    an honest party $p_i$ who enters transaction $\tx$ by executing $(\hpNew,\tx)$
-    while $\argmax_s(\Snapbar_i)\applytx\tx\not=\bot$.
+    an honest party $p_i$ who enters transaction $\tx$ by executing $(\hpNew,\tx)$ \emph{each time after having finished a snapshot}.
 
     Then the following eventually holds:
     $\tx \in \bigcap_{i\in[n]} \Tbar_i\ \vee\ %
@@ -70,14 +69,12 @@
   protocol are considered.
 \end{itemize}
 
-Note that the original version of the coordinated head satisfied stronger versions of liveness that was not explicitly stated---but still important, for instance:
-
+Note that the original version of the coordinated head satisfies a stronger version of liveness which is important for the 'user experience' in the protocol:
 \begin{itemize}
-  \item \propName{Optimistic Liveness (Head)}:
+  \item \propName{Liveness (Head)}:
     Consider any protocol execution in presence of a network adversary wherein
     the head does not get closed for a sufficiently long period of time, and consider
-    an honest party $p_i$ who enters transaction $\tx$ by executing $(\hpNew,\tx)$
-    while $\barmU_i\applytx\tx\not=\bot$.
+    an honest party $p_i$ who enters transaction $\tx$ by executing $(\hpNew,\tx)$.
 
     Then the following eventually holds:
     $\tx \in \bigcap_{i\in[n]} \Tbar_i\ \vee\ %
@@ -88,6 +85,7 @@ Note that the original version of the coordinated head satisfied stronger versio
       under reasonable network conditions if no head parties get corrupted.
     }
 \end{itemize}
+
 
 \subsection{Proofs}
 
@@ -110,9 +108,7 @@ Note that the original version of the coordinated head satisfied stronger versio
 \end{proof}
 
 \paragraph{Liveness.}
-For all lemmas towards liveness, we assume the presence of a network adversary,
-that every snapshot leader eventually attemps to issue a snapshot whenever it is
-their turn as a leader, and that the head does not get closed for a sufficiently
+For all lemmas towards oblivious liveness, we assume the presence of a network adversary, and that the head does not get closed for a sufficiently
 long period of time.
 We call this the \emph{liveness condition}.
 
@@ -131,9 +127,7 @@ We call this the \emph{liveness condition}.
   guard is thus satisfied for $p_i$.
 
    \item Passing the `wait' guard:
-  Since the snapshot leader sees $\hats=\bars$, also $p_i$ will eventually see $\hats_i=\bars_i$,
-  and all transactions seen by the leader will eventually be seen by $p_i$, and attempted
-  to be applied to the same snapshot. The `wait' gard is thus eventually satisfied for $p_i$.
+  Since the snapshot leader sees $\hats=\bars$, also $p_i$ will eventually see $\hats_i=\bars_i$. 
   \end{itemize}
 
   This implies that every party will eventually sign and acknowledge the newly created snapshot.

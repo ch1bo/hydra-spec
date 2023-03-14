@@ -44,7 +44,7 @@
 						\On{$(\gcChainCollectCom, \eta_{0})$ from chain}{ %
 							% Implictly means that all commits will defined as we cannot miss a commit (by assumption)
 							$\Uinit \gets \bigcup_{j=1}^{n} U_j$ \; %
-                                $\Out~(\hpSnap,(0,U_0))$ \; %
+                                % $\Out~(\hpSnap,(0,U_0))$ \; %
 							$\hatmU, \barmU, \hatmL \gets \Uinit$ \; %
 							$\hats,\bars \gets 0$ \; %
 							$\mT, \hatmT, \barmT \gets \emptyset$ \;
@@ -112,8 +112,13 @@
 							% this we would need to do a more recursive algorithm. Right now
 							% we throw out everything which is not applicable after a single
 							% pass. Also: Should we inform users if we drop a transaction?
-							$\hatmT \gets \{ tx \in \hatmT ~  | ~ \hatmU \applytx tx \not = \bot \}$ \; %
-							$\hatmL \gets \hatmU\applytx\hatmT$
+                                $X\gets\hatmT$ \; %
+                                $\hatm\gets\emptyset$ \; %
+                                \ForA{$\tx\in X$}{
+                                    \If{$\hatmU\applytx(\hatm)}
+							         $\hatmT \gets \{ tx \in \hatmT ~  | ~ \hatmU \applytx tx \not = \bot \}$ \; %
+                                }
+						      $\hatmL \gets \hatmU\applytx\hatmT$
 						}
 					}
 				\end{walgo}
@@ -143,7 +148,7 @@
 									$\bars \gets \hats$ \; %
 									$\barsigma \gets \msCSig$ \; %
 
-                                        $\Out~(\hpSnap,(\bars,\barmU))$ \;  %
+                                        %$\Out~(\hpSnap,(\bars,\barmU))$ \;  %
 									$\forall \tx \in \mT_{res} : \Out (\hpConf,\tx)$ \; %
 
 									% issue snapshot if we are leader
