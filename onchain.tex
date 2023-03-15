@@ -129,23 +129,26 @@ to not commit anything. The transaction is depicted in Figure~\ref{fig:commitTx}
 and has the following structure:
 \begin{itemize}
 	\item One input spending the initial output
-	      $o_{\mathsf{initial}} = (\valInitial{}, \nuInitial, \datumInitial{})$ with
-	      $\redeemerInitial{}$
-	\item Zero or one input with reference $\txOutRef_{\mathsf{committed}}$
-	      spending output
-	      $o_{\mathsf{committed}} = (\val_{\mathsf{committed}}, \cdot , \cdot)$
-	\item One output
-	      $o_{\mathsf{commit}} = (\valCommit{}, \nuCommit, \datumCommit{})$
+	      $o_{\mathsf{initial}} = (\valInitial{}, \nuInitial, \datumInitial{})$
+	      with $\redeemerInitial{} \in \tyOutRef^{?}$ being an optional output
+	      reference to be committed,
+	\item zero or one input with reference $\txOutRef_{\mathsf{committed}}$
+	      spending output $o_{\mathsf{committed}}$ with
+	      $\val_{\mathsf{committed}}$, and
+	\item one output
+	      $o_{\mathsf{commit}} = (\valCommit{}, \nuCommit, \datumCommit{})$.
 \end{itemize}
 
 \noindent The $\nuInitial$ validator with $\datumInitial{} = \cid$ and
-$\redeemerInitial{} = \txOutRef_{\mathsf{committed}}$ ensures that:
+$\redeemerInitial{} = \txOutRef_{\mathsf{committed}}^{?}$ ensures that:
 \begin{menumerate}
 	\item Committed value is in the output
 	$\valCommit{} = \valInitial{} \cup \val_{\mathsf{committed}}$
-	\item \textcolor{red}{Currency id and committed output are recorded in the output datum}
-	$\datumCommit{} = (\cid, C_{i})$ where
-	$C_{i} = (\txOutRef_{\mathsf{committed}},\bytes(o_{\mathsf{committed}}))$
+	\item \textcolor{red}{Currency id and committed output are recorded in the
+		output datum} $\datumCommit{} = (\cid, C_{i})$ where
+	$C_{i} = (\txOutRef_{\mathsf{committed}},\bytes(o_{\mathsf{committed}}))$ if
+	$\txOutRef_{\mathsf{committed}}$ was given, or $C_{i} = (\Diamond, \emptyset)$
+	if nothing committed.
 	\item Transaction is signed by the right participant
 	$\exists \{\cid \mapsto \keyHash_{i} \mapsto 1\} \in \valInitial{} \Rightarrow \keyHash_{i} \in \txKeys$
 	\item No minting or burning $\txMint = \varnothing$
