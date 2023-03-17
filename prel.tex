@@ -20,20 +20,12 @@ application of a function $f$ to an argument $x$ is written as $f(x)$. \\
 
 \noindent Furthermore, given a set $\mathcal{A}$, let
 \begin{itemize}
-	\item $\mathcal{A}^? = \mathcal{A} \cup \Diamond$ denotes an option: a value from $\matcal{A}$ or no value at all,
+	\item $\mathcal{A}^? = \mathcal{A} \cup \Diamond$ denotes an option: a value from $\mathcal{A}$ or no value at all,
 	\item $\mathcal{A}^n$ be the set of all n-sized sequences over $\mathcal{A}$,
 	\item $\mathcal{A}^! = \bigcup_{i=1}^{n \in \tyNatural} \mathcal{A}^{i}$ be the set of non-empty sequences over $\mathcal{A}$, and
 	\item $\mathcal{A}^* = \bigcup_{i=0}^{n \in \tyNatural} \mathcal{A}^{i}$ be
 	      the set of all sequences over $\mathcal{A}$.
 \end{itemize}
-
-% \noindent The naming convention for variables is as follows: when $x$ is a single value,
-% \begin{itemize}
-%   \item $x'$ is a modified value (but from same set / type),
-%   \item $\tilde{x}$ is an aggregated value,
-%   \item $x^{\#}$ is the result of $\hash(x)$, and
-%   \item $\underline{x}$ is list of values.
-% \end{itemize}
 
 \noindent With this, we further define:
 \begin{itemize}
@@ -62,7 +54,7 @@ application of a function $f$ to an argument $x$ is written as $f(x)$. \\
 \end{itemize}
 
 \subsection{Public key multi-signature scheme}\label{sec:multisig}
-
+% TODO: move/merge with protocol setup and make concrete
 \noindent A multisignature scheme is a set of algorithms where
 \begin{itemize}
 	\item $\msSetup$ generates public parameters $\msParams$, such that
@@ -70,11 +62,11 @@ application of a function $f$ to an argument $x$ is written as $f(x)$. \\
 	      key pairs,
 	\item $\msSig \gets \msSign(\msParams,\msSK,\msMsg)$ signs a message $\msMsg$
 	      using key $\msSK$,
+	\item $\msCVK \gets \msCombVK(\msParams,\msVKL)$ aggregates a list of
+        verification keys $\msVKL$ into a single, aggregate key $\msCVK$,
 	\item $\msCSig \gets \msComb(\msParams,\msMsg,\msVKL,\msSigL)$ aggregates a
-	      list $\msSigL$ \todo{rather use $\underline{\sigma}$} of signatures of $m$ into a single, aggregate
+	      list of signatures $\msSigL$ about message $m$ into a single, aggregate
 	      signature~$\msCSig$.
-	\item $\msCVK \gets \msCombVK(\msParams,\msVKL)$ aggregates a tuple $\msVKL$
-	      of verification keys into a single, aggregate key $\msCVK$,
 	\item $\msVfy(\msParams,\msCVK,\msMsg,\msCSig) \in \tyBool$ verifies an aggregate
 	      signature $\msCSig$ of message $\msMsg$ under an aggregate verification
 	      key $\msCVK$.
@@ -224,11 +216,11 @@ ledger model~\cite{eutxo-2, ledger-shelley-spec}.
 	where $\txInputs \in \tyInputs$ is a \textbf{set} of inputs,
 	$\txOutputs \in \tyOutputs$ is a \textbf{list} of outputs,
 	$\txMint \in \tyValue$ is the minted (or burned) value,
-	$(\txValidityMin, \txValidityMax) \in \tyValidity$ \todo{$\tyValidity$
-		undefined, define time, periods and intervals} are the lower and upper
+	$(\txValidityMin, \txValidityMax) \in \tyValidity$ are the lower and upper
 	validity bounds where $\txValidityMin <= \txValidityMax$, and
 	$\txKeys \in \mathcal{K}$ is the set of verification keys which signed the
 	transaction.
+    % TODO: \tyValidity undefined, define time, periods and intervals?
 \end{definition}
 
 Informally, scripts are evaluated by the ledger when it applies a transaction to

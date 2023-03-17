@@ -1,3 +1,4 @@
+\clearpage
 \section{On-chain Protocol}\label{sec:on-chain}
 
 \todo{Open problem: ensure abort is always possible. e.g. by individual aborts or undoing commits}
@@ -128,22 +129,21 @@ $\forall i \in \{1 \dots \nop\}$ to commit a UTxO into the head or acknowledge
 to not commit anything. The transaction is depicted in Figure~\ref{fig:commitTx}
 and has the following structure:
 \begin{itemize}
-	\item One input spending the initial output
-	      $o_{\mathsf{initial}} = (\valInitial{}, \nuInitial, \datumInitial{})$
-	      with $\redeemerInitial{} \in \tyOutRef^{?}$ being an optional output
+	\item One input spending from $\nuInitial$ with datum $\datumInitial{}$, 
+        where value $\valInitial{i}$ holds a $\pt_i$, and the redeemer
+        $\redeemerInitial{} \in \tyOutRef^{?}$ is an optional output
 	      reference to be committed,
 	\item zero or one input with reference $\txOutRef_{\mathsf{committed}}$
 	      spending output $o_{\mathsf{committed}}$ with
 	      $\val_{\mathsf{committed}}$, and
-	\item one output
-	      $o_{\mathsf{commit}} = (\valCommit{}, \nuCommit, \datumCommit{})$.
+	\item one output paying to $\nuCommit$ with value $\valCommit{i}$ and datum $\datumCommit{}$.
 \end{itemize}
 
 \noindent The $\nuInitial$ validator with $\datumInitial{} = \cid$ and
 $\redeemerInitial{} = \txOutRef_{\mathsf{committed}}^{?}$ ensures that:
 \begin{menumerate}
 	\item Committed value is in the output
-	$\valCommit{} = \valInitial{} \cup \val_{\mathsf{committed}}$
+	$\valCommit{i} = \valInitial{i} \cup \val_{\mathsf{committed}}$
 	\item \textcolor{red}{Currency id and committed output are recorded in the
 		output datum} $\datumCommit{} = (\cid, C_{i})$ where
 	$C_{i} = (\txOutRef_{\mathsf{committed}},\bytes(o_{\mathsf{committed}}))$ if
@@ -290,6 +290,8 @@ machine and hence there is no state machine output.
 	\item The state token of currency $\cid$ is getting burned $\{\st \mapsto -1\} \subseteq \txMint$.
 \end{menumerate}
 
+\todo{mention $\mu_\mathsf{head}$ same as the others}
+
 \subsection{Close Transaction}\label{sec:close-tx}
 
 In order to close a head, a head member may post the \mtxClose{} transaction
@@ -435,6 +437,7 @@ distribute, and checks:
 	\item All tokens are burnt
 	$|\{\cid \mapsto \cdot \mapsto -1\} \in \txMint| = n + 1$.
 \end{menumerate}
+\todo{mention $\mu_\mathsf{head}$ same as the others}
 
 \FloatBarrier{}
 

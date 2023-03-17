@@ -1,7 +1,5 @@
 \section{Protocol Overview}\label{sec:overview}
 
-\todo{maybe change terminology (use L1 and L2)}
-
 The Hydra Head protocol provides functionality to lock a set of UTxOs on a
 blockchain, referred to as the \emph{mainchain}, and evolve it inside a
 so-called off-chain \emph{head}, independently of the mainchain. At any point,
@@ -62,11 +60,10 @@ are received from the other parties.
 To confirm transactions and allow for an on-chain decommit of the resulting UTxO
 set without needing the whole transaction history, snapshots are created by the
 protocol participants. The initial snapshot $U_{0}$ corresponds to the initial
-UTxO set, while snapshots thereafter $\Uset_1,\Uset_2,\ldots$ \todo{$\Uset_{1}$
-	overlaps with committed utxo $U_{1}$ of party $1$} are created with
+UTxO set, while snapshots thereafter $\Uset_1,\Uset_2,\ldots$ are created with
 monotonically increasing snapshot numbers.
 
-For this, the next snapshot leader (round-robin)  \todo{Who gets to be leader?} requests his view of a new confirmed state to be
+For this, the next snapshot leader (round-robin) requests his view of a new confirmed state to be
 signed by all participants as a new snapshot. The leader does not need to send his local state,
 but only indicate, by hashes, the set of transactions to be included in order to
 obtain the to-be-snapshotted UTxO set.
@@ -99,7 +96,7 @@ the transaction leading to $\stFinal$ correspond exactly to the latest UTxO set
 seen during the contestation period.
 
 \subsection{Differences}
-\todo{More details on what was in orig paper?}
+% TODO More details on what was in orig paper?
 In the Coordinated Head protocol, off-chain consensus is simplified by not
 having transactions confirmed concurrently to the snapshots (and to each other)
 but having the snapshot leader propose, in their snapshot, a set of transactions
