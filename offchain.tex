@@ -52,19 +52,20 @@ off-chain protocol logic relies on these assumptions:
 	      %       that they do not interfere and the specification will take special care
 	      %       to ensure this.
 	\item All events are processed to completion, i.e.\ run-to-completion semantics
-	      without preemption.
+	      and no preemption.
 	\item Events are deduplicated. That is, any two identical events must not lead
 	      to multiple invocations of the handling semantics.
 	\item Given the specification, events may pile up forever and implementations
-	      need to consider these situations (i.e.\ potential for DoS). Note that,
-	      from a security standpoint, these situations are identical to a
-	      non-collaborative peer.
+	      need to consider these situations (i.e.\ potential for DoS). A valid reaction
+        to this would be to just drop these events. Note that, from a security standpoint,
+        these situations are identical to a non-collaborative peer and closing the head
+        is also a possible reaction. 
 	\item The lifecycle of a Hydra head on-chain does not cross (hard fork)
 	      protocol update boundaries. Note that these events are announced in
 	      advance hence it should be possible for implementations to react in such
 	      a way as to expedite closing of the head before such a protocol update.
 	      This further assumes that the contestation period parameter is picked
-	      accordingly.\todo{Treat this better in a dedicated section, esp. in presence of rollbacks}
+	      accordingly.\todo{Treat this also in a dedicated section like rollbacks}
 \end{itemize}
 
 \subsection{Notation}
@@ -235,14 +236,20 @@ On Cardano with it's Ouroboros consensus algorithm, this means that any local
 view of the mainchain may not be the longest chain and a node may switch to a
 longer chain, onto another fork. This other version of the history may not
 include what was previously observed and hence, any tracking state needs to be
-updated to this ``new reality''. Practically this means that an observer of the
+updated to this ``new reality''. Practically, this means that an observer of the
 blockchain sees a \emph{rollback} followed by rollforwards.
+% TODO: mention the trade-off about waiting for finality when opening the head
+% vs. issue and mark transactions as confirmed on the L2 if they were not in case
+% the head opening get's rolled back and not retransmitted.
 
 For the Head protocol, this means that chain events like $\mathtt{closeTx}$ may
 be observed a second time. Hence, it is crucial, that the local state of the
 Hydra protocol is kept in sync and also rolled back accordingly to be able to
 observe and react to these events the right way, e.g.\ correctly contesting this
 $\mathtt{closeTx}$ if need be.
+% TODO: mention that contestation deadline will stay the same and hence the
+% contestation period will need to be picked long enough to reduce the risk of
+% not being able to contest anymore after a rollback.
 
 The rollback handling can be specified fully orthogonal on top of the nominal
 protocol behavior, if the chain provides strictly monotonically increasing

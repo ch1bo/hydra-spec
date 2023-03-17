@@ -144,10 +144,11 @@
 
 
 								\If{$\forall k \in [1..n]: (k,\cdot) \in \hatSigma$}{ %
-									$\msCSig \gets \msComb(\hydraKeys, \hatSigma)$ \; %
+                                    % TODO: MS-ASig used different than in the preliminaries
+									$\msCSig \gets \msComb(\hydraKeys^{setup}, \hatSigma)$ \; %
 
 									$\eta' \gets (\hats, \combine(\hatmU))$ \; %
-									\Req{} $\msVfy(\hydraKeysAgg, (\cid || \eta_{0} || \eta'), \msCSig)$ \;
+									\Req{} $\msVfy(\hydraKeysAgg, (\textcolor{red}{\cid || \eta_{0} ||} \eta'), \msCSig)$ \;
 									$\barmU \gets \hatmU$ \; %
 									$\bars \gets \hats$ \; %
 									$\barsigma \gets \msCSig$ \; %
