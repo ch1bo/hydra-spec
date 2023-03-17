@@ -88,10 +88,12 @@ by a single output reference parameter $\seed \in \tyOutRef$:
 \end{itemize}
 
 \noindent The $\muHead(\seed)$ minting policy is the only script that verifies
-init transactions and can be redeemed with \textcolor{blue}{either a $\mathsf{Mint}$ or
-	$\mathsf{Burn}$ redeemer}: % TODO: different than in GDoc
+init transactions and can be redeemed with \textcolor{blue}{either a $\mathsf{mint}$ or
+	$\mathsf{burn}$ redeemer}:
+% TODO: mint redeemer conflicts with mint field
+% TODO: different than in GDoc
 \begin{itemize}
-	\item When evaluated with the $\mathsf{Mint}$ redeemer,
+	\item When evaluated with the $\mathsf{mint}$ redeemer,
 	      \begin{menumerate}
 		      \item The seed output is spent in this transaction. This guarantees uniqueness of the policy $\cid$ because the EUTxO ledger ensures that $\seed$ cannot be spent twice in the same chain.
 		      $(\seed, \cdot) \in \txInputs$
@@ -104,7 +106,7 @@ init transactions and can be redeemed with \textcolor{blue}{either a $\mathsf{Mi
 		      \item All initial outputs hold a participation token $\forall i \in [1 \dots n] : \{\cid \mapsto \cdot \mapsto 1\} \in \valInitial{i}$
 		      \item The $\datum_{\mathsf{head}}$ contains own currency id $\cid = \cid'$ and the right seed reference $\seed = \seed'$.
 	      \end{menumerate}
-	\item When evaluated with the $\mathsf{Burn}$ redeemer,
+	\item When evaluated with the $\mathsf{burn}$ redeemer,
 	      \begin{menumerate}
 		      \item All tokens in $\txMint$ need to be of negative quantity
 		      $\forall \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q < 0$.
@@ -129,9 +131,9 @@ $\forall i \in \{1 \dots \nop\}$ to commit a UTxO into the head or acknowledge
 to not commit anything. The transaction is depicted in Figure~\ref{fig:commitTx}
 and has the following structure:
 \begin{itemize}
-	\item One input spending from $\nuInitial$ with datum $\datumInitial{}$, 
-        where value $\valInitial{i}$ holds a $\pt_i$, and the redeemer
-        $\redeemerInitial{} \in \tyOutRef^{?}$ is an optional output
+	\item One input spending from $\nuInitial$ with datum $\datumInitial{}$,
+	      where value $\valInitial{i}$ holds a $\pt_i$, and the redeemer
+	      $\redeemerInitial{} \in \tyOutRef^{?}$ is an optional output
 	      reference to be committed,
 	\item zero or one input with reference $\txOutRef_{\mathsf{committed}}$
 	      spending output $o_{\mathsf{committed}}$ with
@@ -290,7 +292,12 @@ machine and hence there is no state machine output.
 	\item The state token of currency $\cid$ is getting burned $\{\st \mapsto -1\} \subseteq \txMint$.
 \end{menumerate}
 
-\todo{mention $\mu_\mathsf{head}$ same as the others}
+\noindent The $\muHead(\seed)$ minting policy governs the burning of tokens via
+redeemer $\mathsf{burn}$ that:
+\begin{menumerate}
+	\item All tokens in $\txMint$ need to be of negative quantity
+	$\forall \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q < 0$.
+\end{menumerate}
 
 \subsection{Close Transaction}\label{sec:close-tx}
 
@@ -437,7 +444,13 @@ distribute, and checks:
 	\item All tokens are burnt
 	$|\{\cid \mapsto \cdot \mapsto -1\} \in \txMint| = n + 1$.
 \end{menumerate}
-\todo{mention $\mu_\mathsf{head}$ same as the others}
+
+\noindent The $\muHead(\seed)$ minting policy governs the burning of tokens via
+redeemer $\mathsf{burn}$ that:
+\begin{menumerate}
+	\item All tokens in $\txMint$ need to be of negative quantity
+	$\forall \{\cid \mapsto \cdot \mapsto q\} \in \txMint : q < 0$.
+\end{menumerate}
 
 \FloatBarrier{}
 
