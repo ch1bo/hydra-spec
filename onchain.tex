@@ -329,7 +329,7 @@ In order to close a head, a head member may post the \mtxClose{} transaction
 			(\stOpen,\cid,\hydraKeysAgg,\nop,\cPer,\eta) \xrightarrow[\xi]{\stClose} (\stClosed,\cid,\hydraKeysAgg,\nop,\cPer,\eta_0,\eta',\contesters,\Tfinal)
 		\]
 		\item Records the initial snapshot state $\eta_0 = \eta$. \\
-		This is makes off-chain signatures rollback and replay resistant,
+		This makes off-chain signatures rollback and replay resistant,
 		see~\ref{sec:rollbacks} for details.
 		\item New snapshot state is the initial $\eta_{0}$
 		or correctly signed by all participants in $\xi$. \\
@@ -350,7 +350,7 @@ In order to close a head, a head member may post the \mtxClose{} transaction
 		used to delegate head closing.
 
 		\item Correct contestation deadline is set $\Tfinal = \txValidityMax + T$.
-		\item Tranasction validity range is bounded by
+		\item Transaction validity range is bounded by
 		$\txValidityMax - \txValidityMin \leq T$. \\
 		This ensures the contestation deadline $\Tfinal$ is at most $2*T$ in the future.
 		\item Value in the head is preserved $\valHead' = \valHead$.
